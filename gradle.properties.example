@@ -1,0 +1,4 @@
+org.gradle.java.home = /usr/java/jdk-11
+testSpringConfLocation=<path>/test-spring-conf.yaml
+dockerRepository=some repo
+debugEnabled=true
