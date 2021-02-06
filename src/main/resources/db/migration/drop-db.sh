@@ -1,3 +1,3 @@
 #!/bin/sh
-dropdb -U $1 $2
-createdb -U $1 $2 --encoding=UNICODE
+dropdb -U ihome ihome
+createdb -U ihome ihome --encoding=UNICODE

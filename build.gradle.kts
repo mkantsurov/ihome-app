@@ -6,7 +6,6 @@ import java.io.IOException
 val javaVersion = JavaVersion.VERSION_11
 val dockerRepository: String by project
 val testSpringConfLocation: String by project
-val emulationMode: String by project
 
 description = "I-Home Web Application"
 
