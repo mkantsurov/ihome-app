@@ -4,11 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Collections;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * The accounts Spring configuration.
@@ -28,9 +25,8 @@ public class ServicesConfiguration {
     }
 
     @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setMessageConverters(Collections.singletonList(new MappingJackson2HttpMessageConverter()));
-        return restTemplate;
+    public WebClient.Builder webClientBuilder() {
+        return WebClient.builder();
     }
+
 }

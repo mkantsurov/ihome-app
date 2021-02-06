@@ -16,6 +16,7 @@ plugins {
     `java-library`
     maven
     jacoco
+    id("org.flywaydb.flyway") version "7.5.2"
     id("org.springframework.boot") version "2.2.8.RELEASE"
     id("io.spring.dependency-management") version "1.0.5.RELEASE"
     id("com.palantir.docker") version "0.19.2"
@@ -41,20 +42,25 @@ repositories {
 }
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-websocket")
-    compile("org.springframework.boot:spring-boot-configuration-processor")
-    compile("io.jsonwebtoken:jjwt:0.9.0")
-    compile("org.postgresql:postgresql:42.2.2")
-    compile("javax.xml.bind:jaxb-api:2.3.0")
-    compile("com.zaxxer:HikariCP:2.7.4")
-    compile("org.apache.commons:commons-lang3:3.7")
-    compile("org.springframework.boot:spring-boot-starter-jdbc")
-    compile("com.google.guava:guava:28.2-jre")
-    compile("org.apache.httpcomponents:httpclient:4.5.9")
-    compile("commons-io:commons-io:2.6")
-    compile("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.springframework.boot:spring-boot-actuator-autoconfigure")
+    implementation("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("io.jsonwebtoken:jjwt:0.9.0")
+    implementation("org.postgresql:postgresql:42.2.2")
+    implementation("javax.xml.bind:jaxb-api:2.3.0")
+    implementation("com.zaxxer:HikariCP:2.7.4")
+    implementation("org.apache.commons:commons-lang3:3.11")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("com.google.guava:guava:28.2-jre")
+    implementation("org.apache.httpcomponents:httpclient:4.5.9")
+    implementation("commons-io:commons-io:2.6")
+    implementation("net.logstash.logback:logstash-logback-encoder:6.4")
     testCompile("com.jayway.jsonpath:json-path:2.4.0")
     testCompile("org.springframework.boot:spring-boot-starter-test")
     runtime("org.springframework.boot:spring-boot-devtools")
@@ -76,7 +82,7 @@ fun execCommandWithOutput(input: String): String {
 }
 
 tasks.getByName<BootJar>("bootJar") {
-    mainClassName = "com.sectigo.iot.web.ServerApplication"
+    mainClassName = "technology.positivehome.ihome.ServerApplication"
     outputs.upToDateWhen { false }
     archiveFileName.set("app.jar")
 }
@@ -93,7 +99,7 @@ task("prepareDocker") {
 }
 
 tasks.getByName<BootRun>("bootRun") {
-    main = "com.sectigo.iot.web.ServerApplication"
+    main = "technology.positivehome.ihome.ServerApplication"
     environment("SPRING_CONFIG_ADDITIONALLOCATION" to testSpringConfLocation)
     jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=40990")
 }
