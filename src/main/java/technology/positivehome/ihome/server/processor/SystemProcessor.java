@@ -3,6 +3,7 @@ package technology.positivehome.ihome.server.processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
 import technology.positivehome.ihome.domain.runtime.SystemSummaryInfo;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static technology.positivehome.ihome.server.processor.ModuleMapper.from;
+import static technology.positivehome.ihome.server.service.core.module.GenericInputPowerDependentRelayPowerControlModule.POWER_SENSOR_PORT_ID;
 
 @Component
 public class SystemProcessor {
@@ -49,6 +51,7 @@ public class SystemProcessor {
                 .garageData(systemManager.getDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID))
                 .boilerData(systemManager.getDs18b20SensorReading(BOILER_TEMP_SENSOR_ID))
                 .luminosityData(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000))
+                .powerData(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(POWER_SENSOR_PORT_ID)) ? 1 : 0)
                 .systemLoadStatsData(
                         (int) Math.round(ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage() * 100),
                         (int) (ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax() / 1048576L),

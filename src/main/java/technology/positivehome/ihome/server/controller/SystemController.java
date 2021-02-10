@@ -37,6 +37,21 @@ public class SystemController {
 //    public Boolean usernameExists(@RequestParam String username) {
 //       return systemProcessor.usernameExists(username);
 //    }
+    @GetMapping(path = "/outdoor-temp-stat")
+    public OutDoorTempStat getOutdoorTempStat() {
+        return statisticProcessor.getTemperatureStat();
+    }
+
+    @GetMapping(path = "/pressure-stat")
+    public PressureStat getPressureStat() {
+        return statisticProcessor.getPressureStat();
+    }
+
+    @GetMapping(path = "/power-stat")
+    public PowerStat getPowerStat() {
+        return statisticProcessor.getPowerStat();
+    }
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/summary")
     public SystemSummaryInfo getSummary() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
@@ -47,12 +62,6 @@ public class SystemController {
     @GetMapping(path = "/tempstat")
     public TempStat getTempStat() {
         return statisticProcessor.getTempStat();
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/pressurestat")
-    public PressureStat getPressureStat() {
-        return statisticProcessor.getPressureStat();
     }
 
     @PreAuthorize("isAuthenticated()")

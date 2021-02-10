@@ -77,7 +77,8 @@ public class StatisticProcessor implements InitializingBean {
                     si.getGarageTemperature(),
                     si.getGarageHumidity(),
                     si.getBoilerTemperature(),
-                    si.getLuminosity()
+                    si.getLuminosity(),
+                    si.getPowerStatus()
             );
             measurementsLogRepository.writeLogEntry(entry);
         } catch (Exception ex) {
@@ -154,6 +155,9 @@ public class StatisticProcessor implements InitializingBean {
             case SYSTEM_HEAP_USAGE:
                 data.add(new ChartPoint(ts, systemSummaryInfo.getHeapUsage()));
                 break;
+            case POWER_STAT:
+                data.add(new ChartPoint(ts, systemSummaryInfo.getPowerStatus()));
+                break;
         }
     }
 
@@ -214,6 +218,28 @@ public class StatisticProcessor implements InitializingBean {
         return res;
     }
 
+    public OutDoorTempStat getTemperatureStat() {
+        OutDoorTempStat res = new OutDoorTempStat();
+        Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
+
+        for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
+            addChartPoint(ChartType.OUTDOOR_TEMP, res.getTemperature(), entry.getKey(), entry.getValue());
+        }
+        res.getTemperature().sort(Comparator.comparing(ChartPoint::getDt));
+        return res;
+    }
+
+    public PowerStat getPowerStat() {
+        PowerStat res = new PowerStat();
+        Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
+
+        for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
+            addChartPoint(ChartType.POWER_STAT, res.getPower(), entry.getKey(), entry.getValue());
+        }
+        res.getPower().sort(Comparator.comparing(ChartPoint::getDt));
+        return res;
+    }
+
     private enum ChartType {
         INDOOR_TEMP,
         INDOOR_GF_TEMP,
@@ -224,6 +250,7 @@ public class StatisticProcessor implements InitializingBean {
         LUMINOSITY,
         SYSTEM_LA,
         SYSTEM_HEAP_MAX,
-        SYSTEM_HEAP_USAGE
+        SYSTEM_HEAP_USAGE,
+        POWER_STAT
     }
 }

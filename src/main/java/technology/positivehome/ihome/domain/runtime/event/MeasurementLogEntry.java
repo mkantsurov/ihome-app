@@ -22,10 +22,11 @@ public class MeasurementLogEntry {
     private int garageHumidity;
     private int boilerTemperature;
     private int luminosity;
+    private int powerStatus;
 
     public MeasurementLogEntry(long id, Date created, int loadAvg, int heapMax, int heapUsage, int pressure, int outdoorTemp, int outdoorHumidity,
                                int indoorSfTemp, int indoorSfHumidity, int indoorGfTemp, int garageTemp,
-                               int garageHumidity, int boilerTemperature, int luminosity) {
+                               int garageHumidity, int boilerTemperature, int luminosity, int powerStatus) {
         this.id = id;
         this.created = created;
         this.loadAvg = loadAvg;
@@ -41,6 +42,7 @@ public class MeasurementLogEntry {
         this.garageHumidity = garageHumidity;
         this.boilerTemperature = boilerTemperature;
         this.luminosity = luminosity;
+        this.powerStatus = powerStatus;
     }
 
     public long getId() {
@@ -159,4 +161,11 @@ public class MeasurementLogEntry {
         this.luminosity = luminosity;
     }
 
+    public int getPowerStatus() {
+        return powerStatus;
+    }
+
+    public void setPowerStatus(int powerStatus) {
+        this.powerStatus = powerStatus;
+    }
 }

@@ -23,6 +23,7 @@ public class SystemSummaryInfo {
     private int garageHumidity;
     private int boilerTemperature;
     private int luminosity;
+    private int powerStatus;
 
     public SystemSummaryInfo() {
     }
@@ -41,6 +42,7 @@ public class SystemSummaryInfo {
         garageHumidity = bld.garageHumidity;
         boilerTemperature = bld.boilerTemperature;
         luminosity = bld.luminosity;
+        powerStatus = bld.powerStatus;
     }
 
     public SystemSummaryInfo(MeasurementLogEntry entry) {
@@ -57,6 +59,7 @@ public class SystemSummaryInfo {
         garageHumidity = entry.getGarageHumidity();
         boilerTemperature = entry.getBoilerTemperature();
         luminosity = entry.getLuminosity();
+        powerStatus = entry.getPowerStatus();
     }
 
     public int getLoadAvg() {
@@ -159,6 +162,10 @@ public class SystemSummaryInfo {
         this.luminosity = luminosity;
     }
 
+    public int getPowerStatus() {
+        return this.powerStatus;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -178,6 +185,7 @@ public class SystemSummaryInfo {
         private int garageHumidity;
         private int boilerTemperature;
         private int luminosity;
+        private int powerStatus;
 
         public Builder indoorData(Bme280TempHumidityPressureSensorData data, Ds18b20TempSensorData dht21TempHumiditySensorReading) {
             sfTemperature = (int) Math.round(data.getTemperature() * 100);
@@ -206,6 +214,11 @@ public class SystemSummaryInfo {
 
         public Builder luminosityData(Double tsl2591LuminositySensorReading) {
             luminosity = (int) Math.round(tsl2591LuminositySensorReading * 100);
+            return this;
+        }
+
+        public Builder powerData(int powerSensorReading) {
+            powerStatus = powerSensorReading;
             return this;
         }
 

@@ -30,6 +30,7 @@ public class MeasurementLogEntryRowMapper implements RowMapper<MeasurementLogEnt
                 rs.getInt("garage_temp"),
                 rs.getInt("garage_humidity"),
                 rs.getInt("boiler_temp"),
-                rs.getInt("luminosity"));
+                rs.getInt("luminosity"),
+                rs.getInt("power_stat"));
     }
 }

@@ -23,7 +23,7 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
     private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(90);
     private static final long POWER_CHECING_DELAY = TimeUnit.MINUTES.toMillis(5);
 
-    private static final int POWER_SENSOR_PORT_ID = 29;
+    public static final int POWER_SENSOR_PORT_ID = 29;
 
     private final CronModuleJob[] moduleJobs;
 
