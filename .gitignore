@@ -1,3 +1,4 @@
 /src/test/resources/test-spring-conf.yaml
 /gradle.properties
 /dependency-tree.txt
+/build/
