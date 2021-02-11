@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/api/v1/system")
 public class SystemController {
 
-
     private final SystemProcessor systemProcessor;
     private final StatisticProcessor statisticProcessor;
 
@@ -29,27 +28,6 @@ public class SystemController {
     public SystemController(SystemProcessor systemProcessor, StatisticProcessor statisticProcessor) {
         this.systemProcessor = systemProcessor;
         this.statisticProcessor = statisticProcessor;
-    }
-
-    //    @PreAuthorize("isAuthenticated()")
-//    @GetMapping("/check_user")
-//    @ResponseBody
-//    public Boolean usernameExists(@RequestParam String username) {
-//       return systemProcessor.usernameExists(username);
-//    }
-    @GetMapping(path = "/outdoor-temp-stat")
-    public OutDoorTempStat getOutdoorTempStat() {
-        return statisticProcessor.getTemperatureStat();
-    }
-
-    @GetMapping(path = "/pressure-stat")
-    public PressureStat getPressureStat() {
-        return statisticProcessor.getPressureStat();
-    }
-
-    @GetMapping(path = "/power-stat")
-    public PowerStat getPowerStat() {
-        return statisticProcessor.getPowerStat();
     }
 
     @PreAuthorize("isAuthenticated()")

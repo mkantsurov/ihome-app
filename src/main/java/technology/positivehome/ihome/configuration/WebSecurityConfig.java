@@ -35,6 +35,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final String AUTHENTICATION_HEADER_NAME = "Authorization";
     public static final String AUTHENTICATION_URL = "/auth/login";
     public static final String REFRESH_TOKEN_URL = "/auth/token";
+    public static final String GUEST_API_URL = "/guest-api/v1/**";
     public static final String LISTENER_URL = "/wsmd/listener";
     public static final String API_ROOT_URL = "/api/**";
 
@@ -92,7 +93,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         List<String> permitAllEndpointList = Arrays.asList(
                 AUTHENTICATION_URL,
                 REFRESH_TOKEN_URL,
-                LISTENER_URL
+                LISTENER_URL,
+                GUEST_API_URL
         );
 
         http
