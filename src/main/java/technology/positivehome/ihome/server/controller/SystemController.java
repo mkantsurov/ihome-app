@@ -42,6 +42,11 @@ public class SystemController {
         return statisticProcessor.getTempStat();
     }
 
+    @GetMapping(path = "/pressure-stat")
+    public PressureStat getPressureStat() {
+        return statisticProcessor.getPressureStat();
+    }
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/luminositystat")
     public LuminosityStat getLuminosityStat() {

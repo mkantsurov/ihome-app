@@ -31,6 +31,12 @@ public class MeasurementLogEntryRowMapper implements RowMapper<MeasurementLogEnt
                 rs.getInt("garage_humidity"),
                 rs.getInt("boiler_temp"),
                 rs.getInt("luminosity"),
-                rs.getInt("power_stat"));
+                rs.getInt("power_stat"),
+                rs.getInt("security_mode"),
+                rs.getInt("pw_src_converter_mode"),
+                rs.getInt("pw_src_direct_mode"),
+                rs.getInt("heating_pump_ff_mode"),
+                rs.getInt("heating_pump_sf_mode")
+        );
     }
 }

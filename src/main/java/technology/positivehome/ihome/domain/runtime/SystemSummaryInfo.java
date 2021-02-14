@@ -24,6 +24,11 @@ public class SystemSummaryInfo {
     private int boilerTemperature;
     private int luminosity;
     private int powerStatus;
+    private int securityMode;
+    private int pwSrcConverterMode;
+    private int pwSrcDirectMode;
+    private int heatingPumpFFMode;
+    private int heatingPumpSFMode;
 
     public SystemSummaryInfo() {
     }
@@ -43,6 +48,11 @@ public class SystemSummaryInfo {
         boilerTemperature = bld.boilerTemperature;
         luminosity = bld.luminosity;
         powerStatus = bld.powerStatus;
+        securityMode = bld.securityMode;
+        pwSrcConverterMode = bld.pwSrcConverterMode;
+        pwSrcDirectMode = bld.pwSrcDirectMode;
+        heatingPumpFFMode = bld.heatingPumpFFMode;
+        heatingPumpSFMode = bld.heatingPumpSFMode;
     }
 
     public SystemSummaryInfo(MeasurementLogEntry entry) {
@@ -60,6 +70,7 @@ public class SystemSummaryInfo {
         boilerTemperature = entry.getBoilerTemperature();
         luminosity = entry.getLuminosity();
         powerStatus = entry.getPowerStatus();
+        securityMode = entry.getSecurityMode();
     }
 
     public int getLoadAvg() {
@@ -166,6 +177,26 @@ public class SystemSummaryInfo {
         return this.powerStatus;
     }
 
+    public int getSecurityMode() {
+        return securityMode;
+    }
+
+    public int getPwSrcConverterMode() {
+        return pwSrcConverterMode;
+    }
+
+    public int getPwSrcDirectMode() {
+        return pwSrcDirectMode;
+    }
+
+    public int getHeatingPumpFFMode() {
+        return heatingPumpFFMode;
+    }
+
+    public int getHeatingPumpSFMode() {
+        return heatingPumpSFMode;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -186,6 +217,11 @@ public class SystemSummaryInfo {
         private int boilerTemperature;
         private int luminosity;
         private int powerStatus;
+        private int securityMode;
+        private int pwSrcConverterMode;
+        private int pwSrcDirectMode;
+        private int heatingPumpFFMode;
+        private int heatingPumpSFMode;
 
         public Builder indoorData(Bme280TempHumidityPressureSensorData data, Ds18b20TempSensorData dht21TempHumiditySensorReading) {
             sfTemperature = (int) Math.round(data.getTemperature() * 100);
@@ -219,6 +255,31 @@ public class SystemSummaryInfo {
 
         public Builder powerData(int powerSensorReading) {
             powerStatus = powerSensorReading;
+            return this;
+        }
+
+        public Builder securityMode(int securityModeSensorReading) {
+            securityMode = securityModeSensorReading;
+            return this;
+        }
+
+        public Builder pwSrcConverterMode(int pwSrcConverterModeSensorReading) {
+            pwSrcConverterMode = pwSrcConverterModeSensorReading;
+            return this;
+        }
+
+        public Builder pwSrcDirectModeMode(int pwSrcDirectModeSensorReading) {
+            pwSrcDirectMode = pwSrcDirectModeSensorReading;
+            return this;
+        }
+
+        public Builder heatingPumpFFMode(int heatingPumpFFModeSensorReading) {
+            heatingPumpFFMode = heatingPumpFFModeSensorReading;
+            return this;
+        }
+
+        public Builder heatingPumpSFMode(int heatingPumpSFModeSensorReading) {
+            heatingPumpSFMode = heatingPumpSFModeSensorReading;
             return this;
         }
 

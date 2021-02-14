@@ -19,7 +19,7 @@ public class DatabaseUserService implements UserService {
             return Optional.of(new User(
                     1L,
                     "admin",
-                    "$2a$10$9L3UYusKc9VYjzHSgAjo.edSat.g36KAmbX6FFcERC.le0nr6RZSK", //"$2a$10$9L3UYusKc9VYjzHSgAjo.eDu3d9U/2ui/84TjZL2BvSuuOrY9SbJa",
+                    "$2a$10$9L3UYusKc9VYjzHSgAjo.eP/3CyxPRXKhPjBecEhx6hYObykeLrUO", //test123
                     Collections.singletonList(new UserRole(1L, Role.ADMIN))));
         }
         return Optional.empty();

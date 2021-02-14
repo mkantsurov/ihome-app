@@ -78,7 +78,12 @@ public class StatisticProcessor implements InitializingBean {
                     si.getGarageHumidity(),
                     si.getBoilerTemperature(),
                     si.getLuminosity(),
-                    si.getPowerStatus()
+                    si.getPowerStatus(),
+                    si.getSecurityMode(),
+                    si.getPwSrcConverterMode(),
+                    si.getPwSrcDirectMode(),
+                    si.getHeatingPumpFFMode(),
+                    si.getHeatingPumpSFMode()
             );
             measurementsLogRepository.writeLogEntry(entry);
         } catch (Exception ex) {

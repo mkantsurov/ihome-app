@@ -21,8 +21,9 @@ public class MeasurementsLogRepositoryImpl implements MeasurementsLogRepository 
                     "load_avg, memory_heap_max, memory_heap_used, " +
                     "pressure,outdoor_temp,outdoor_humidity,indoor_sf_temp," +
                     "indoor_sf_humidity,indoor_gf_temp,garage_temp,garage_humidity,boiler_temp, " +
-                    "luminosity, power_stat) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "luminosity, power_stat, security_mode, pw_src_converter_mode, pw_src_direct_mode, " +
+                    "heating_pump_ff_mode, heating_pump_sf_mode) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_MEASUREMENT_LOG_ENTRY_FOR_PERIOD =
             "SELECT id, created, load_avg, memory_heap_max, memory_heap_used, pressure, outdoor_temp, outdoor_humidity, indoor_sf_temp, indoor_sf_humidity, indoor_gf_temp, garage_temp, garage_humidity, boiler_temp, luminosity, power_stat " +
@@ -55,7 +56,13 @@ public class MeasurementsLogRepositoryImpl implements MeasurementsLogRepository 
                 logEntry.getGarageHumidity(),
                 logEntry.getBoilerTemperature(),
                 logEntry.getLuminosity(),
-                logEntry.getPowerStatus());
+                logEntry.getPowerStatus(),
+                logEntry.getSecurityMode(),
+                logEntry.getPwSrcConverterMode(),
+                logEntry.getPwSrcDirectMode(),
+                logEntry.getHeatingPumpFFMode(),
+                logEntry.getHeatingPumpSFMode()
+        );
     }
 
     @Override

@@ -23,10 +23,16 @@ public class MeasurementLogEntry {
     private int boilerTemperature;
     private int luminosity;
     private int powerStatus;
+    private int securityMode;
+    private int pwSrcConverterMode;
+    private int pwSrcDirectMode;
+    private int heatingPumpFFMode;
+    private int heatingPumpSFMode;
 
     public MeasurementLogEntry(long id, Date created, int loadAvg, int heapMax, int heapUsage, int pressure, int outdoorTemp, int outdoorHumidity,
                                int indoorSfTemp, int indoorSfHumidity, int indoorGfTemp, int garageTemp,
-                               int garageHumidity, int boilerTemperature, int luminosity, int powerStatus) {
+                               int garageHumidity, int boilerTemperature, int luminosity, int powerStatus, int securityMode,
+                               int pwSrcConverterMode, int pwSrcDirectMode, int heatingPumpFFMode, int heatingPumpSFMode) {
         this.id = id;
         this.created = created;
         this.loadAvg = loadAvg;
@@ -43,6 +49,11 @@ public class MeasurementLogEntry {
         this.boilerTemperature = boilerTemperature;
         this.luminosity = luminosity;
         this.powerStatus = powerStatus;
+        this.securityMode = securityMode;
+        this.pwSrcConverterMode = pwSrcConverterMode;
+        this.pwSrcDirectMode = pwSrcDirectMode;
+        this.heatingPumpFFMode = heatingPumpFFMode;
+        this.heatingPumpSFMode = heatingPumpSFMode;
     }
 
     public long getId() {
@@ -167,5 +178,49 @@ public class MeasurementLogEntry {
 
     public void setPowerStatus(int powerStatus) {
         this.powerStatus = powerStatus;
+    }
+
+    public int getSecurityMode() {
+        return securityMode;
+    }
+
+    public void setSecurityMode(int securityMode) {
+        this.securityMode = securityMode;
+    }
+
+    public void setBoilerTemperature(int boilerTemperature) {
+        this.boilerTemperature = boilerTemperature;
+    }
+
+    public int getPwSrcConverterMode() {
+        return pwSrcConverterMode;
+    }
+
+    public void setPwSrcConverterMode(int pwSrcConverterMode) {
+        this.pwSrcConverterMode = pwSrcConverterMode;
+    }
+
+    public int getPwSrcDirectMode() {
+        return pwSrcDirectMode;
+    }
+
+    public void setPwSrcDirectMode(int pwSrcDirectMode) {
+        this.pwSrcDirectMode = pwSrcDirectMode;
+    }
+
+    public int getHeatingPumpFFMode() {
+        return heatingPumpFFMode;
+    }
+
+    public void setHeatingPumpFFMode(int heatingPumpFFMode) {
+        this.heatingPumpFFMode = heatingPumpFFMode;
+    }
+
+    public int getHeatingPumpSFMode() {
+        return heatingPumpSFMode;
+    }
+
+    public void setHeatingPumpSFMode(int heatingPumpSFMode) {
+        this.heatingPumpSFMode = heatingPumpSFMode;
     }
 }

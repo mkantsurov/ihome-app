@@ -34,6 +34,7 @@ public class SystemProcessor {
     public static final long GARAGE_TEMP_HUMIDITY_SENSOR_ID = 6L;
     public static final long BOILER_TEMP_SENSOR_ID = 9L;
     public static final long LUMINOSITY_SENSOR_ID = 58L;
+    public static final int SECURITY_MODE_SENSOR_PORT_ID = 29;
 
     private final SystemManager systemManager;
 
@@ -52,6 +53,7 @@ public class SystemProcessor {
                 .boilerData(systemManager.getDs18b20SensorReading(BOILER_TEMP_SENSOR_ID))
                 .luminosityData(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000))
                 .powerData(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(POWER_SENSOR_PORT_ID)) ? 1 : 0)
+                .securityMode(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(SECURITY_MODE_SENSOR_PORT_ID)) ? 1 : 0)
                 .systemLoadStatsData(
                         (int) Math.round(ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage() * 100),
                         (int) (ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax() / 1048576L),
