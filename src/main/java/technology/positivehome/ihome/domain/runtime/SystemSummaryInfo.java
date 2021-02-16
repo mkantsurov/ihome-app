@@ -10,6 +10,7 @@ import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData
  **/
 public class SystemSummaryInfo {
 
+    private long upTime;
     private int loadAvg;
     private int heapMax;
     private int heapUsage;
@@ -34,6 +35,7 @@ public class SystemSummaryInfo {
     }
 
     public SystemSummaryInfo(Builder bld) {
+        upTime = bld.upTime;
         loadAvg = bld.loadAvg;
         heapMax = bld.heapMax;
         heapUsage = bld.heapUsage;
@@ -71,6 +73,10 @@ public class SystemSummaryInfo {
         luminosity = entry.getLuminosity();
         powerStatus = entry.getPowerStatus();
         securityMode = entry.getSecurityMode();
+    }
+
+    public long getUpTime() {
+        return upTime;
     }
 
     public int getLoadAvg() {
@@ -197,12 +203,13 @@ public class SystemSummaryInfo {
         return heatingPumpSFMode;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static Builder builder(long startTime) {
+        return new Builder(startTime);
     }
 
     public static class Builder {
 
+        public long upTime;
         private int loadAvg;
         private int heapMax;
         private int heapUsage;
@@ -222,6 +229,10 @@ public class SystemSummaryInfo {
         private int pwSrcDirectMode;
         private int heatingPumpFFMode;
         private int heatingPumpSFMode;
+
+        public Builder(long startTime) {
+            this.upTime = System.currentTimeMillis() - startTime;
+        }
 
         public Builder indoorData(Bme280TempHumidityPressureSensorData data, Ds18b20TempSensorData dht21TempHumiditySensorReading) {
             sfTemperature = (int) Math.round(data.getTemperature() * 100);

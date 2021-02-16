@@ -21,6 +21,7 @@ import java.lang.management.ManagementFactory;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static technology.positivehome.ihome.server.processor.ModuleMapper.from;
 import static technology.positivehome.ihome.server.service.core.module.GenericInputPowerDependentRelayPowerControlModule.POWER_SENSOR_PORT_ID;
@@ -37,6 +38,7 @@ public class SystemProcessor {
     public static final int SECURITY_MODE_SENSOR_PORT_ID = 29;
 
     private final SystemManager systemManager;
+    private final AtomicLong startTime = new AtomicLong(System.currentTimeMillis());
 
     private static final Logger log = LoggerFactory.getLogger(SystemProcessor.class);
 
@@ -45,7 +47,7 @@ public class SystemProcessor {
     }
 
     public SystemSummaryInfo getSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return SystemSummaryInfo.builder()
+        return SystemSummaryInfo.builder(startTime.get())
                 .indoorData(systemManager.getBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID),
                         systemManager.getDs18b20SensorReading(GFLOOR_TEMP_SENSOR_ID))
                 .outDoorData(systemManager.getDht21TempHumiditySensorReading(OUTDOOR_TEMP_HUMIDITY_SENSOR_ID))
