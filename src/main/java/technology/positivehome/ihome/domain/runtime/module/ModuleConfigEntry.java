@@ -1,5 +1,6 @@
 package technology.positivehome.ihome.domain.runtime.module;
 
+import technology.positivehome.ihome.domain.constant.ModuleAssignment;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
 import technology.positivehome.ihome.domain.constant.ModuleType;
 
@@ -12,6 +13,7 @@ import java.util.List;
 public class ModuleConfigEntry {
 
     private long id;
+    private ModuleAssignment moduleAssignment;
     private ModuleGroupEntry moduleGroupEntry;
     private String moduleName;
     private List<ModuleConfigElementEntry> controls = new ArrayList<>();
@@ -35,6 +37,13 @@ public class ModuleConfigEntry {
         this.moduleName = moduleName;
     }
 
+    public ModuleAssignment getModuleAssignment() {
+        return moduleAssignment;
+    }
+
+    public void setModuleAssignment(ModuleAssignment moduleAssignment) {
+        this.moduleAssignment = moduleAssignment;
+    }
 
     public ModuleGroupEntry getModuleGroupEntry() {
         return moduleGroupEntry;

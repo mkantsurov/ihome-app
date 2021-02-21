@@ -2,6 +2,7 @@ package technology.positivehome.ihome.server.persistence.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+import technology.positivehome.ihome.domain.constant.ModuleAssignment;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
 import technology.positivehome.ihome.domain.constant.ModuleType;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
@@ -21,6 +22,7 @@ public class ModuleConfigEntryRowMapper implements RowMapper<ModuleConfigEntry> 
         ModuleConfigEntry result = new ModuleConfigEntry();
         result.setId(rs.getLong("id"));
         result.setModuleName(rs.getString("name"));
+        result.setModuleAssignment(ModuleAssignment.values()[rs.getInt("mode")]);
         result.setMode(ModuleOperationMode.values()[rs.getInt("mode")]);
         result.setType(ModuleType.values()[rs.getInt("type")]);
         result.setModuleGroupEntry(new ModuleGroupEntry());

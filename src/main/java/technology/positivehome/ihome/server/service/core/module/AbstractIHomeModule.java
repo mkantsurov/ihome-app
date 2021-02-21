@@ -2,10 +2,7 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.constant.MegadPortType;
-import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
-import technology.positivehome.ihome.domain.constant.ModuleProperty;
+import technology.positivehome.ihome.domain.constant.*;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
@@ -31,6 +28,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
 
     private static final Log log = LogFactory.getLog(AbstractIHomeModule.class);
     private final long groupId;
+    private final ModuleAssignment assignment;
 
     private SystemManager mgr;
 
@@ -51,6 +49,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
         this.mgr = mgr;
         this.moduleId = configEntry.getId();
         this.name = configEntry.getModuleName();
+        this.assignment = configEntry.getModuleAssignment();
         this.moduleOperationMode.set(configEntry.getMode());
         this.groupId = configEntry.getModuleGroupEntry().getId();
 
@@ -217,6 +216,11 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
     protected abstract List<ModuleConfigElementEntry> getOutputPorts();
 
     protected abstract OutputPortStatus updateOutputPortState(long port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException;
+
+    @Override
+    public ModuleAssignment getAssignment() {
+        return assignment;
+    }
 
     @Override
     public ModuleOperationMode getMode() {

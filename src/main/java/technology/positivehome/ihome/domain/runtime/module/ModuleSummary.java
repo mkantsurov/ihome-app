@@ -1,5 +1,7 @@
 package technology.positivehome.ihome.domain.runtime.module;
 
+import technology.positivehome.ihome.domain.constant.ModuleAssignment;
+
 /**
  * Created by maxim on 7/4/19.
  **/
@@ -9,6 +11,7 @@ public class ModuleSummary {
     private String name;
     private int mode;
     private int outputPortState;
+    private ModuleAssignment assignment;
 
     public long getModuleId() {
         return moduleId;
@@ -40,5 +43,13 @@ public class ModuleSummary {
 
     public void setOutputPortState(int outputPortState) {
         this.outputPortState = outputPortState;
+    }
+
+    public void setAssignment(ModuleAssignment assignment) {
+        this.assignment = assignment;
+    }
+
+    public ModuleAssignment getAssignment() {
+        return assignment;
     }
 }

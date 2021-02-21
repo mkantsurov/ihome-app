@@ -133,6 +133,9 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
                 case CONVERTER_INPUT_POWER_SUPPLY_CONTROL_MODULE:
                     moduleToInit = new ConverterInputPowerSupplyControlModule(this, configEntry);
                     break;
+                case SECURITY_MODE_DEPENDENT_RELAY_BASED_IHOME_MODULE:
+                    moduleToInit = new SecurityModeDependentRelayBasedIHomeModuleImpl(this, configEntry);
+                    break;
 
                 default:
                     throw new IllegalStateException("Module with #" + configEntry.getId() + " can't be initialized. (no config available)");

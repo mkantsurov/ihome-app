@@ -35,7 +35,7 @@ public class SystemProcessor {
     public static final long GARAGE_TEMP_HUMIDITY_SENSOR_ID = 6L;
     public static final long BOILER_TEMP_SENSOR_ID = 9L;
     public static final long LUMINOSITY_SENSOR_ID = 58L;
-    public static final int SECURITY_MODE_SENSOR_PORT_ID = 29;
+    public static final int SECURITY_MODE_SENSOR_PORT_ID = 73;
 
     private final SystemManager systemManager;
     private final AtomicLong startTime = new AtomicLong(System.currentTimeMillis());

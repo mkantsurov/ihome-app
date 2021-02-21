@@ -21,7 +21,7 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
 
     private static final long POWER_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
     private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(90);
-    private static final long POWER_CHECING_DELAY = TimeUnit.MINUTES.toMillis(5);
+    private static final long POWER_CHECKING_DELAY = TimeUnit.MINUTES.toMillis(5);
 
     public static final int POWER_SENSOR_PORT_ID = 29;
 
@@ -45,7 +45,7 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                                 switch (state) {
                                     case ENABLED:
                                         lastPowerOkTs.set(System.currentTimeMillis());
-                                        if (status.isDisabled() && now - POWER_CHECING_DELAY > lastPowerFailTs.get() && !disabledManually.get()) {
+                                        if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get() && !disabledManually.get()) {
                                             setOutputStatus(OutputPortStatus.enabled());
                                         }
                                         break;

@@ -26,6 +26,7 @@ public class ModuleMapper {
         ModuleSummary res = new ModuleSummary();
         res.setModuleId(iHomeModule.getModuleId());
         res.setName(iHomeModule.getName());
+        res.setAssignment(iHomeModule.getAssignment());
         res.setMode(iHomeModule.getMode().ordinal());
         res.setOutputPortState(iHomeModule.getOutputPortStatus().getValue());
         return res;
@@ -38,6 +39,7 @@ public class ModuleMapper {
         data.setModuleId(moduleSummary.getModuleId());
         data.setMode(moduleSummary.getMode().ordinal());
         data.setName(moduleSummary.getName());
+        data.setAssignment(moduleSummary.getAssignment());
         data.setOutputPortState(moduleSummary.getOutputPortStatus().getValue());
 
         for (ModuleConfigElementEntry entry : moduleSummary.getInputPorts()) {
