@@ -12,6 +12,7 @@ public class ModuleSummary {
     private int mode;
     private int outputPortState;
     private ModuleAssignment assignment;
+    private long group;
 
     public long getModuleId() {
         return moduleId;
@@ -51,5 +52,13 @@ public class ModuleSummary {
 
     public ModuleAssignment getAssignment() {
         return assignment;
+    }
+
+    public void setGroup(long group) {
+        this.group = group;
+    }
+
+    public long getGroup() {
+        return group;
     }
 }

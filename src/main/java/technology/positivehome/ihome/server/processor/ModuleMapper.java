@@ -27,15 +27,16 @@ public class ModuleMapper {
         res.setModuleId(iHomeModule.getModuleId());
         res.setName(iHomeModule.getName());
         res.setAssignment(iHomeModule.getAssignment());
+        res.setGroup(iHomeModule.getGroupId());
         res.setMode(iHomeModule.getMode().ordinal());
         res.setOutputPortState(iHomeModule.getOutputPortStatus().getValue());
         return res;
     }
 
 
-    public static ModuleStateData from(IHomeModuleSummary moduleSummary, ModuleState moduleState) throws MegadApiMallformedUrlException, IOException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, URISyntaxException, InterruptedException {
+    public static ModuleEntry from(IHomeModuleSummary moduleSummary, ModuleState moduleState) throws MegadApiMallformedUrlException, IOException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, URISyntaxException, InterruptedException {
 
-        ModuleStateData data = new ModuleStateData();
+        ModuleEntry data = new ModuleEntry();
         data.setModuleId(moduleSummary.getModuleId());
         data.setMode(moduleSummary.getMode().ordinal());
         data.setName(moduleSummary.getName());

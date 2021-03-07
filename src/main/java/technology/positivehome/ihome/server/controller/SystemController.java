@@ -7,7 +7,7 @@ import technology.positivehome.ihome.domain.runtime.*;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.module.ModuleStateData;
+import technology.positivehome.ihome.domain.runtime.module.ModuleEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleSummary;
 import technology.positivehome.ihome.server.processor.StatisticProcessor;
 import technology.positivehome.ihome.server.processor.SystemProcessor;
@@ -15,7 +15,6 @@ import technology.positivehome.ihome.server.processor.SystemProcessor;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
-
 
 @RestController
 @RequestMapping("/api/v1/system")
@@ -34,6 +33,18 @@ public class SystemController {
     @GetMapping(path = "/summary")
     public SystemSummaryInfo getSummary() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return systemProcessor.getSummaryInfo();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/power-summary")
+    public PowerSummaryInfo getPowerSummary() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+        return systemProcessor.getPowerSummaryInfo();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/heating-summary")
+    public HeatingSummaryInfo getHeatingSummary() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+        return systemProcessor.getHeatingSummaryInfo();
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -79,7 +90,7 @@ public class SystemController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/moduledata/{moduleId}")
-    public ModuleStateData getModuleData(@PathVariable long moduleId) throws MegadApiMallformedUrlException, URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+    public ModuleEntry getModuleData(@PathVariable long moduleId) throws MegadApiMallformedUrlException, URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return systemProcessor.getModuleData(moduleId);
     }
 
@@ -94,6 +105,5 @@ public class SystemController {
     public ModuleSummary updateModuleOutputState(@PathVariable long moduleId, @RequestBody int outputStatus) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         return systemProcessor.updateModuleOutputState(moduleId, outputStatus);
     }
-
 
 }

@@ -22,19 +22,19 @@ import java.util.stream.Collectors;
 @Repository
 public class ModuleConfigRepositoryImpl implements ModuleConfigRepository {
 
-    private static final String SELECT_MODULES = "SELECT me.id, me.mode, me.name, me.display, me.type, mg.id group_id, mg.name group_name, mg.priority FROM module_config_entry me INNER JOIN module_group_entry mg ON (me.group_id = mg.id) ORDER BY id";
+    private static final String SELECT_MODULES = "SELECT me.id, me.module_assignment, me.mode, me.name, me.display, me.type, mg.id group_id, mg.name group_name, mg.priority FROM module_config_entry me INNER JOIN module_group_entry mg ON (me.group_id = mg.id) ORDER BY id";
     private static final String SELECT_MODULE_CONFIG_ENTRIES = "SELECT id, module_id, name, type, port, display_mode FROM module_config_element_entry ORDER BY id";
     private static final String SELECT_MODULE_PROPERTY_ENTRIES = "SELECT id, module_id, key, long_value, string_value FROM module_property_entry ORDER BY id";
 
-    private static final String SELECT_MODULE_BY_ID = "SELECT me.id, me.mode, me.name, me.display, me.type, mg.id group_id, mg.name group_name, mg.priority FROM module_config_entry me INNER JOIN module_group_entry mg ON (me.group_id = mg.id) WHERE me.id = :id ORDER BY id";
+    private static final String SELECT_MODULE_BY_ID = "SELECT me.id, me.mode, me.name, me.module_assignment, me.display, me.type, mg.id group_id, mg.name group_name, mg.priority FROM module_config_entry me INNER JOIN module_group_entry mg ON (me.group_id = mg.id) WHERE me.id = :id ORDER BY id";
     private static final String SELECT_MODULE_CONFIG_ENTRIES_BY_MODULE_ID = "SELECT id, module_id, name, type, port, display_mode FROM module_config_element_entry WHERE module_id = :module_id ORDER BY id";
     private static final String SELECT_MODULE_PROPERTY_ENTRIES_BY_MODULE_ID = "SELECT id, module_id, key, long_value, string_value FROM module_property_entry WHERE module_id = :module_id ORDER BY id";
 
     private static final String SELECT_MODULE_GROUP_ENTRY_BY_ID = "SELECT id, name, priority FROM module_group_entry WHERE id = :id";
     private static final String UPDATE_MODULE_MODE = "UPDATE module_config_entry SET mode = :mode WHERE id = :id";
     private static final String CREATE_NEW_MODULE = "INSERT INTO module_config_entry " +
-            "(mode, name, group_id, type) " +
-            "VALUES (:mode, :name, :group_id, :type)";
+            "(mode, module_assignment, name, group_id, type) " +
+            "VALUES (:mode, :moduleAssigment, :name, :group_id, :type)";
 
     private static final String UPDATE_MODULE_SETTINGS = "UPDATE module_config_entry SET mode = :mode, name = :name, group_id = :group_id WHERE id = :id";
     private static final String UPDATE_CONFIG_ELEMENT_ENTRY = "UPDATE module_config_element_entry SET  name = :name, type = :type, port = :port, display_mode = :display_mode  WHERE id = :id";

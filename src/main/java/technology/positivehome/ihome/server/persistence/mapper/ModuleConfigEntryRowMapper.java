@@ -22,7 +22,7 @@ public class ModuleConfigEntryRowMapper implements RowMapper<ModuleConfigEntry> 
         ModuleConfigEntry result = new ModuleConfigEntry();
         result.setId(rs.getLong("id"));
         result.setModuleName(rs.getString("name"));
-        result.setModuleAssignment(ModuleAssignment.values()[rs.getInt("mode")]);
+        result.setModuleAssignment(ModuleAssignment.values()[rs.getInt("module_assignment")]);
         result.setMode(ModuleOperationMode.values()[rs.getInt("mode")]);
         result.setType(ModuleType.values()[rs.getInt("type")]);
         result.setModuleGroupEntry(new ModuleGroupEntry());

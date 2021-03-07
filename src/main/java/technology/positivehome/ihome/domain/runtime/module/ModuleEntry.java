@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by maxim on 7/13/19.
  **/
-public class ModuleStateData extends ModuleSummary {
+public class ModuleEntry extends ModuleSummary {
 
     private List<BinarySensorData> binarySensorData = new ArrayList<>();
     private List<Ds18b20TempSensorReadingData> temperatureSensorData = new ArrayList<>();
