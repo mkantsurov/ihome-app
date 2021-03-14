@@ -105,13 +105,12 @@ tasks.getByName<BootRun>("bootRun") {
 
 configure<DockerExtension> {
     tags("$version", "latest")
-    name = "$dockerRepository/iot/web-app"
+    name = "$dockerRepository/ihome/app"
     setDockerfile(file("Dockerfile"))
     pull(true)
 }
 
 
-tasks.getByName("docker").dependsOn("asciidoctor")
 tasks.getByName("dockerClean").dependsOn("bootJar")
 tasks.getByName("build").dependsOn("dockerClean")
 //tasks.getByName("dockerfileZip").dependsOn("prepareDocker")
@@ -138,7 +137,6 @@ tasks.register<Test>("integrationTest") {
 }
 
 tasks.named("docker") {
-    dependsOn("asciidoctor")
     dependsOn("build")
 }
 
