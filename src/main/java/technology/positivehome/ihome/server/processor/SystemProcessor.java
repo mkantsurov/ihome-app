@@ -77,8 +77,8 @@ public class SystemProcessor {
                 .luminosityData(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000))
                 .powerData(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(POWER_SENSOR_PORT_ID)) ? 1 : 0)
                 .securityMode(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(SECURITY_MODE_SENSOR_PORT_ID)) ? 1 : 0)
-                .pwSrcDirectModeMode(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(DIRECT_POWER_SUPPLY_PORT)) ? 1 : 0)
-                .pwSrcConverterMode(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(CONVERTER_POWER_SUPPLY_PORT)) ? 1 : 0)
+                .pwSrcDirectModeMode(systemManager.getBinOutputStatus(DIRECT_POWER_SUPPLY_PORT) ? 1 : 0)
+                .pwSrcConverterMode(systemManager.getBinOutputStatus(CONVERTER_POWER_SUPPLY_PORT) ? 1: 0)
                 .systemLoadStatsData(
                         (int) Math.round(ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage() * 100),
                         (int) (ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax() / 1048576L),
