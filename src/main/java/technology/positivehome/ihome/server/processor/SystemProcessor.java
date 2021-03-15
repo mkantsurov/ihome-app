@@ -54,8 +54,8 @@ public class SystemProcessor {
                 systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000),
                 BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(POWER_SENSOR_PORT_ID)) ? 1 : 0,
                 BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(SECURITY_MODE_SENSOR_PORT_ID)) ? 1 : 0,
-                BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(DIRECT_POWER_SUPPLY_PORT)) ? 1 : 0,
-                BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(CONVERTER_POWER_SUPPLY_PORT)) ? 1 : 0
+                BinaryPortStatus.ENABLED.equals(systemManager.getBinOutputStatus(DIRECT_POWER_SUPPLY_PORT)) ? 1 : 0,
+                BinaryPortStatus.ENABLED.equals(systemManager.getBinOutputStatus(CONVERTER_POWER_SUPPLY_PORT)) ? 1 : 0
         );
     }
 
