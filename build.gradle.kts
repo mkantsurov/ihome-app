@@ -18,7 +18,7 @@ plugins {
     id("org.flywaydb.flyway") version "7.5.2"
     id("org.springframework.boot") version "2.2.8.RELEASE"
     id("io.spring.dependency-management") version "1.0.5.RELEASE"
-    id("com.palantir.docker") version "0.19.2"
+    id("com.palantir.docker") version "0.26.0"
     id("net.ltgt.apt") version "0.10"
     id("com.github.jk1.dependency-license-report") version "1.13"
     id("org.liquibase.gradle") version "1.2.4"
