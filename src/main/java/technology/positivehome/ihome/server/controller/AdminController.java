@@ -13,7 +13,7 @@ import technology.positivehome.ihome.server.processor.AdminProcessor;
 @RequestMapping("/api/v1/admin")
 public class AdminController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     private final AdminProcessor adminProcessor;
     private PasswordEncoder encoder;

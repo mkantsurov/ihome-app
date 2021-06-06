@@ -47,7 +47,6 @@ public class StatisticProcessor implements InitializingBean {
         List<MeasurementLogEntry> res = measurementsLogRepository.readDataForPeriod(startTime, endTime);
         for (MeasurementLogEntry entry : res) {
             LocalDateTime ldt = LocalDateTime.ofInstant(entry.getCreated().toInstant(), ZoneId.systemDefault());
-            log.info("Reading measurement history: " + entry.getCreated().toString() + " Converted " + ldt.toString());
             statCache.put(ldt, new SystemSummaryInfo(entry));
         }
     }
