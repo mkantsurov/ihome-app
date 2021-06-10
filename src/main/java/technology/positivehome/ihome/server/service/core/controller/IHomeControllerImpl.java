@@ -159,7 +159,7 @@ public class IHomeControllerImpl extends AbstractIHomeController {
 
     private void tryLockOrThrowExcption() throws InterruptedException, IOException {
         if (!lock.tryLock(20, TimeUnit.SECONDS)) {
-            throw new IOException("Could not acquire lock  in thread " + Thread.currentThread());
+            throw new IOException("Could not acquire lock  in thread controller " + getModuleUrl() + " Thread info: "  + Thread.currentThread());
         }
     }
 
