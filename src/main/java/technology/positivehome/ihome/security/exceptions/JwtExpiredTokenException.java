@@ -19,7 +19,7 @@ public class JwtExpiredTokenException extends AuthenticationException {
     }
 
     public String token() {
-        return this.token.getToken();
+        return this.token.getAccessToken();
     }
 
 }

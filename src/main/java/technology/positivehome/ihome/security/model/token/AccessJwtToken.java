@@ -14,7 +14,7 @@ public class AccessJwtToken implements JwtToken {
         this.claims = claims;
     }
 
-    public String getToken() {
+    public String getAccessToken() {
         return this.rawToken;
     }
 

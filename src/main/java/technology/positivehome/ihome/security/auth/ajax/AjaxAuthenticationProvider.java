@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import technology.positivehome.ihome.security.model.UserContext;
 import technology.positivehome.ihome.security.model.user.User;
-import technology.positivehome.ihome.security.service.DatabaseUserService;
+import technology.positivehome.ihome.security.service.UserServiceImpl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 @Component
 public class AjaxAuthenticationProvider implements AuthenticationProvider {
     private final PasswordEncoder encoder;
-    private final DatabaseUserService userService;
+    private final UserServiceImpl userService;
 
     @Autowired
-    public AjaxAuthenticationProvider(final DatabaseUserService userService, final PasswordEncoder encoder) {
+    public AjaxAuthenticationProvider(final UserServiceImpl userService, final PasswordEncoder encoder) {
         this.userService = userService;
         this.encoder = encoder;
     }

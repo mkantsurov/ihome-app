@@ -34,7 +34,7 @@ public class RawAccessJwtToken implements JwtToken {
     }
 
     @Override
-    public String getToken() {
+    public String getAccessToken() {
         return token;
     }
 }
