@@ -60,11 +60,11 @@ public class InputPowerSupplySourceCalc implements InitializingBean {
     }
 
     public PreferredPowerSupplyMode getPreferredPowerSupplyMode() {
-        if (!isDay()) {
+        double luminosity = getAvgValue(TimeUnit.MINUTES.toMillis(10));
+        if (!isDay() || luminosity < 300) {
             return PreferredPowerSupplyMode.DIRECT;
         }
-        double luminosity = getAvgValue(TimeUnit.MINUTES.toMillis(10));
-        if (luminosity < 2700) {
+        if (luminosity < 500) {
             return PreferredPowerSupplyMode.CONVERTER;
         } else {
             return PreferredPowerSupplyMode.ONLY_LED;
