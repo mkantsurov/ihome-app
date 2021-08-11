@@ -5,7 +5,6 @@ import technology.positivehome.ihome.security.model.user.Role;
 import technology.positivehome.ihome.security.model.user.User;
 import technology.positivehome.ihome.security.model.user.UserRole;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +15,8 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private static final List<User> users = Arrays.asList(new User(
-            1L,
+    private static final List<User> users = Collections.singletonList(new User(
+            (long) "admin-user".hashCode(),
             "admin",
             "$2a$10$9L3UYusKc9VYjzHSgAjo.eXbKqnj72O0qIgo/ty6jEWw2GFuQkPSK", //"г р 11 к 3 2 3 #%"
             Collections.singletonList(new UserRole(1L, Role.ADMIN))));

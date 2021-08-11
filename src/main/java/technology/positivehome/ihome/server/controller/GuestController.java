@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import technology.positivehome.ihome.domain.runtime.OutDoorTempStat;
-import technology.positivehome.ihome.domain.runtime.PowerStat;
-import technology.positivehome.ihome.domain.runtime.PressureStat;
+import technology.positivehome.ihome.domain.shared.OutDoorTempStatInfo;
+import technology.positivehome.ihome.domain.shared.PowerStatInfo;
+import technology.positivehome.ihome.domain.shared.PressureStatInfo;
 import technology.positivehome.ihome.server.processor.StatisticProcessor;
 
 
@@ -22,17 +22,17 @@ public class GuestController {
     }
 
     @GetMapping(path = "/outdoor-temp-stat")
-    public OutDoorTempStat getOutdoorTempStat() {
+    public OutDoorTempStatInfo getOutdoorTempStat() {
         return statisticProcessor.getTemperatureStat();
     }
 
     @GetMapping(path = "/pressure-stat")
-    public PressureStat getPressureStat() {
+    public PressureStatInfo getPressureStat() {
         return statisticProcessor.getPressureStat();
     }
 
     @GetMapping(path = "/power-stat")
-    public PowerStat getPowerStat() {
+    public PowerStatInfo getPowerStat() {
         return statisticProcessor.getPowerStat();
     }
 

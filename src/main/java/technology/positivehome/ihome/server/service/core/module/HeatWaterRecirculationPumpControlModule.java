@@ -90,7 +90,6 @@ public class HeatWaterRecirculationPumpControlModule extends AbstractRelayBasedI
                     }
                 }
         };
-        getMgr().getEventBus().register(this);
     }
 
     private double getBoilerTemperature() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {

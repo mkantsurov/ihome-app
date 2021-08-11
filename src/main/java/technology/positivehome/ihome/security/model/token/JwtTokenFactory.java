@@ -3,12 +3,12 @@ package technology.positivehome.ihome.security.model.token;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.configuration.JwtSettings;
 import technology.positivehome.ihome.security.model.Scopes;
 import technology.positivehome.ihome.security.model.UserContext;
+import technology.positivehome.ihome.security.service.UserService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -22,11 +22,16 @@ import java.util.stream.Collectors;
  */
 @Component
 public class JwtTokenFactory {
+
+    public static final String USER_PATH = "/user/";
+
     private final JwtSettings settings;
+    private final UserService userService;
 
     @Autowired
-    public JwtTokenFactory(JwtSettings settings) {
+    public JwtTokenFactory(JwtSettings settings, UserService userService) {
         this.settings = settings;
+        this.userService = userService;
     }
 
     /**
@@ -36,15 +41,16 @@ public class JwtTokenFactory {
      * @return
      */
     public AccessJwtToken createAccessJwtToken(UserContext userContext) {
-        if (StringUtils.isBlank(userContext.getUsername()))
-            throw new IllegalArgumentException("Cannot create JWT Token without username");
+        if (userContext.getUserId() == 0) {
+            throw new IllegalArgumentException("Cannot create JWT Token without userId");
+        }
 
-        if (userContext.getAuthorities() == null || userContext.getAuthorities().isEmpty())
+        if (userContext.getAuthorities() == null || userContext.getAuthorities().isEmpty()) {
             throw new IllegalArgumentException("User doesn't have any privileges");
+        }
 
-        Claims claims = Jwts.claims().setSubject(userContext.getUsername());
-        claims.put("scopes", userContext.getAuthorities().stream().map(s -> s.toString()).collect(Collectors.toList()));
-
+        Claims claims = Jwts.claims().setSubject(USER_PATH + userContext.getUserId());
+        claims.put("scopes", userContext.getAuthorities().stream().map(Object::toString).collect(Collectors.toList()));
         LocalDateTime currentTime = LocalDateTime.now();
 
         String token = Jwts.builder()
@@ -61,13 +67,13 @@ public class JwtTokenFactory {
     }
 
     public JwtToken createRefreshToken(UserContext userContext) {
-        if (StringUtils.isBlank(userContext.getUsername())) {
-            throw new IllegalArgumentException("Cannot create JWT Token without username");
+        if (userContext.getUserId() <= 0) {
+            throw new IllegalArgumentException("Cannot create JWT Token without userId");
         }
 
         LocalDateTime currentTime = LocalDateTime.now();
 
-        Claims claims = Jwts.claims().setSubject(userContext.getUsername());
+        Claims claims = Jwts.claims().setSubject(USER_PATH + userContext.getUserId());
         claims.put("scopes", Collections.singletonList(Scopes.REFRESH_TOKEN.authority()));
 
         String token = Jwts.builder()

@@ -35,7 +35,7 @@ public class SystemProcessor {
     public static final long OUTDOOR_TEMP_HUMIDITY_SENSOR_ID = 11L;
     public static final long GARAGE_TEMP_HUMIDITY_SENSOR_ID = 6L;
     public static final long BOILER_TEMP_SENSOR_ID = 9L;
-    public static final long LUMINOSITY_SENSOR_ID = 58L;
+    public static final long LUMINOSITY_SENSOR_ID = 77L;
     public static final long SECURITY_MODE_SENSOR_PORT_ID = 73L;
     public static final long DIRECT_POWER_SUPPLY_PORT= 56L;
     public static final long CONVERTER_POWER_SUPPLY_PORT= 57L;

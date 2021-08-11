@@ -37,11 +37,13 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
     private final AtomicReference<ModuleOperationMode> moduleOperationMode = new AtomicReference<>(ModuleOperationMode.UNDEFINED);
 
     private final Map<Long, ModuleConfigElementEntry> inputPorts = new HashMap<>();
+    private final Set<Long> inputPortIds = new HashSet<>();
     private final Map<ModuleProperty, ModulePropertyValue> properties = new HashMap<>();
 
 
     private final AtomicLong lastEnableEventTs = new AtomicLong(0);
     private final AtomicLong lastDisableEventTs = new AtomicLong(0);
+
     protected final AtomicReference<OutputPortStatus> lastPortState = new AtomicReference<>(OutputPortStatus.undefined());
 
     public AbstractIHomeModule(SystemManager mgr, ModuleConfigEntry configEntry) {
@@ -60,6 +62,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
                     break;
                 default:
                     inputPorts.put(ent.getId(), ent);
+                    inputPortIds.add(ent.getPort());
             }
         }
 
@@ -172,7 +175,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
 
     public void onButtonClick(long buttonId) {
         ModuleConfigElementEntry conf = inputPorts.get(buttonId);
-        mgr.getEventBus().post(new BinaryInputInitiatedHwEvent(conf.getPort(), MegadPortType.BINARY_INPUT, new ControllerEventInfo.Builder().count("1").mode("1").build()));
+        mgr.getEventPublisher().publishEvent(new BinaryInputInitiatedHwEvent(this, conf.getPort(), MegadPortType.BINARY_INPUT, new ControllerEventInfo.Builder().count("1").mode("1").build()));
     }
 
     public ModuleOperationMode onUpdateMode(ModuleOperationMode newState) {
@@ -213,6 +216,10 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
         return curStatus;
     }
 
+    public boolean hasInputPort(long portId) {
+        return inputPortIds.contains(portId);
+    }
+
     protected abstract List<ModuleConfigElementEntry> getOutputPorts();
 
     protected abstract OutputPortStatus updateOutputPortState(long port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException;
@@ -245,5 +252,11 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
     public String getName() {
         return name;
     }
+
+    /**
+     * Override that method to handle event properly
+     * @param event
+     */
+    public void handleEvent(BinaryInputInitiatedHwEvent event) {}
 
 }

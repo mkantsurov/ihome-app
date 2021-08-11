@@ -1,5 +1,6 @@
 package technology.positivehome.ihome.domain.runtime.event;
 
+import org.springframework.context.ApplicationEvent;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.constant.MegadPortType;
 import technology.positivehome.ihome.server.service.core.controller.ControllerEventInfo;
@@ -7,7 +8,7 @@ import technology.positivehome.ihome.server.service.core.controller.ControllerEv
 /**
  * Created by maxim on 6/30/19.
  **/
-public class BinaryInputInitiatedHwEvent implements IHomeEvent {
+public class BinaryInputInitiatedHwEvent extends ApplicationEvent {
 
     private long portId;
     private MegadPortType portType;
@@ -15,7 +16,8 @@ public class BinaryInputInitiatedHwEvent implements IHomeEvent {
     private Integer count;
     private Integer click;
 
-    public BinaryInputInitiatedHwEvent(long portId, MegadPortType portType, ControllerEventInfo eventInfo) {
+    public BinaryInputInitiatedHwEvent(Object source, long portId, MegadPortType portType, ControllerEventInfo eventInfo) {
+        super(source);
         this.portId = portId;
         this.portType = portType;
 

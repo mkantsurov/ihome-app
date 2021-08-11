@@ -1,6 +1,5 @@
 package technology.positivehome.ihome.server.service.core.module;
 
-import com.google.common.eventbus.Subscribe;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import technology.positivehome.ihome.domain.constant.ModuleProperty;
@@ -13,7 +12,6 @@ import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPre
 import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,7 +47,6 @@ public class BathRoomVentilationControlModule extends AbstractRelayBasedIHomeMod
         indoorHumiditySensorId = getProperty(ModuleProperty.INDOOR_HUMIDITY_SENSOR);
         bathRoomMotionSensorId = getProperty(ModuleProperty.BATH_ROOM_MOTION_SENSOR);
 
-        getMgr().getEventBus().register(this);
         for (ModuleConfigElementEntry ent : getInputPorts()) {
             portsToListen.put(ent.getPort(), ent.getId());
         }
@@ -95,8 +92,7 @@ public class BathRoomVentilationControlModule extends AbstractRelayBasedIHomeMod
         return moduleJobs;
     }
 
-    @Subscribe
-    public void handleEvent(BinaryInputInitiatedHwEvent event) throws IOException {
+    public void handleEvent(BinaryInputInitiatedHwEvent event) {
         Long elementId;
         if ((elementId = portsToListen.get(event.getPortId())) != null) {
             if (bathRoomMotionSensorId.isPresent() && bathRoomMotionSensorId.get().getLongValue().equals(elementId)) {

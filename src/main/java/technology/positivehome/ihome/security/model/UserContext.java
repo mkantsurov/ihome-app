@@ -1,6 +1,5 @@
 package technology.positivehome.ihome.security.model;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.List;
@@ -10,21 +9,24 @@ import java.util.List;
  **/
 public class UserContext {
 
-    private final String username;
+    private final long userId;
     private final List<GrantedAuthority> authorities;
 
-    private UserContext(String username, List<GrantedAuthority> authorities) {
-        this.username = username;
+    public UserContext(long userId, List<GrantedAuthority> authorities) {
+        this.userId = userId;
         this.authorities = authorities;
     }
 
-    public static UserContext create(String username, List<GrantedAuthority> authorities) {
-        if (StringUtils.isBlank(username)) throw new IllegalArgumentException("Username is blank: " + username);
-        return new UserContext(username, authorities);
+    public static UserContext create(long userId, List<GrantedAuthority> authorities) {
+        if (userId == 0) {
+            throw new IllegalArgumentException("UserId :" + userId);
+        }
+        return new UserContext(userId, authorities);
     }
 
-    public String getUsername() {
-        return username;
+
+    public long getUserId() {
+        return userId;
     }
 
     public List<GrantedAuthority> getAuthorities() {

@@ -8,10 +8,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.domain.runtime.*;
 import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntry;
+import technology.positivehome.ihome.domain.shared.*;
 import technology.positivehome.ihome.server.persistence.MeasurementsLogRepository;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,19 +36,13 @@ public class StatisticProcessor implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        calendar.add(Calendar.HOUR, 1);
-        Date endTime = calendar.getTime();
-        calendar.add(Calendar.HOUR, -48);
-        Date startTime = calendar.getTime();
+
+        LocalDateTime endTime = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).plusHours(1);
+        LocalDateTime startTime = endTime.minusHours(48);
+
         List<MeasurementLogEntry> res = measurementsLogRepository.readDataForPeriod(startTime, endTime);
         for (MeasurementLogEntry entry : res) {
-            LocalDateTime ldt = LocalDateTime.ofInstant(entry.getCreated().toInstant(), ZoneId.systemDefault());
-            statCache.put(ldt, new SystemSummaryInfo(entry));
+            statCache.put(entry.getCreated(), new SystemSummaryInfo(entry));
         }
     }
 
@@ -63,7 +58,7 @@ public class StatisticProcessor implements InitializingBean {
                 }
             }
             statCache.put(LocalDateTime.now(), si);
-            MeasurementLogEntry entry = new MeasurementLogEntry(0, new Date(),
+            MeasurementLogEntry entry = new MeasurementLogEntry(0, LocalDateTime.now(),
                     si.getLoadAvg(),
                     si.getHeapMax(),
                     si.getHeapUsage(),
@@ -90,7 +85,7 @@ public class StatisticProcessor implements InitializingBean {
         }
     }
 
-    public TempStat getTempStat() {
+    public TempStatInfo getTempStat() {
         TempStat res = new TempStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
@@ -111,10 +106,10 @@ public class StatisticProcessor implements InitializingBean {
         res.getIndoorGf().sort(Comparator.comparing(ChartPoint::getDt));
         res.getOutdoor().sort(Comparator.comparing(ChartPoint::getDt));
         res.getGarage().sort(Comparator.comparing(ChartPoint::getDt));
-        return res;
+        return DataMapper.from(res);
     }
 
-    public PressureStat getPressureStat() {
+    public PressureStatInfo getPressureStat() {
         PressureStat res = new PressureStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
@@ -124,7 +119,7 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.PRESSURE, res.getPressure(), LocalDateTime.now(), new SystemSummaryInfo());
         }
         res.getPressure().sort(Comparator.comparing(ChartPoint::getDt));
-        return res;
+        return DataMapper.from(res);
     }
 
     private void addChartPoint(ChartType type, List<ChartPoint> data, LocalDateTime ts, SystemSummaryInfo systemSummaryInfo) {
@@ -165,7 +160,7 @@ public class StatisticProcessor implements InitializingBean {
         }
     }
 
-    public BoilerTempStat getBoilerTempStat() {
+    public BoilerTempStatInfo getBoilerTempStat() {
         BoilerTempStat res = new BoilerTempStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
@@ -175,10 +170,10 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.BOILER_TEMP, res.getTemperature(), LocalDateTime.now(), new SystemSummaryInfo());
         }
         res.getTemperature().sort(Comparator.comparing(ChartPoint::getDt));
-        return res;
+        return DataMapper.from(res);
     }
 
-    public LuminosityStat getLuminosityStat() {
+    public LuminosityStatInfo getLuminosityStat() {
         LuminosityStat res = new LuminosityStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
@@ -188,10 +183,10 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.LUMINOSITY, res.getLuminosity(), LocalDateTime.now(), new SystemSummaryInfo());
         }
         res.getLuminosity().sort(Comparator.comparing(ChartPoint::getDt));
-        return res;
+        return DataMapper.from(res);
     }
 
-    public SystemStat getSystemStat() {
+    public SystemStatInfo getSystemStat() {
         SystemStat res = new SystemStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
@@ -204,10 +199,10 @@ public class StatisticProcessor implements InitializingBean {
         }
         res.getHeapMax().sort(Comparator.comparing(ChartPoint::getDt));
         res.getHeapUsage().sort(Comparator.comparing(ChartPoint::getDt));
-        return res;
+        return DataMapper.from(res);
     }
 
-    public LaStat getLaStat() {
+    public LaStatInfo getLaStat() {
         LaStat res = new LaStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
@@ -219,10 +214,10 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.SYSTEM_LA, res.getLa(), LocalDateTime.now(), new SystemSummaryInfo());
         }
         res.getLa().sort(Comparator.comparing(ChartPoint::getDt));
-        return res;
+        return DataMapper.from(res);
     }
 
-    public OutDoorTempStat getTemperatureStat() {
+    public OutDoorTempStatInfo getTemperatureStat() {
         OutDoorTempStat res = new OutDoorTempStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
@@ -230,10 +225,10 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.OUTDOOR_TEMP, res.getTemperature(), entry.getKey(), entry.getValue());
         }
         res.getTemperature().sort(Comparator.comparing(ChartPoint::getDt));
-        return res;
+        return DataMapper.from(res);
     }
 
-    public PowerStat getPowerStat() {
+    public PowerStatInfo getPowerStat() {
         PowerStat res = new PowerStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
@@ -241,7 +236,7 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.POWER_STAT, res.getPower(), entry.getKey(), entry.getValue());
         }
         res.getPower().sort(Comparator.comparing(ChartPoint::getDt));
-        return res;
+        return DataMapper.from(res);
     }
 
     private enum ChartType {

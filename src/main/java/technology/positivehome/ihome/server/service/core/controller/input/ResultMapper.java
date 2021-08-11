@@ -2,10 +2,7 @@ package technology.positivehome.ihome.server.service.core.controller.input;
 
 import com.google.common.base.Strings;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPressureSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Tsl2591LuminositySensorData;
+import technology.positivehome.ihome.domain.runtime.sensor.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -86,6 +83,14 @@ public class ResultMapper {
 
     public static Tsl2591LuminositySensorData tsl2591LuminositySensorData(String response) {
         Tsl2591LuminositySensorData result = new Tsl2591LuminositySensorData();
+        if (!Strings.isNullOrEmpty(response)) {
+            result.setData(Double.parseDouble(response));
+        }
+        return result;
+    }
+
+    public static ADCConnectedSensorData adcSensorData(String response) {
+        ADCConnectedSensorData result = new ADCConnectedSensorData();
         if (!Strings.isNullOrEmpty(response)) {
             result.setData(Double.parseDouble(response));
         }

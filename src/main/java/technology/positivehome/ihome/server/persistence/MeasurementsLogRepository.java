@@ -2,7 +2,7 @@ package technology.positivehome.ihome.server.persistence;
 
 import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntry;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -11,5 +11,5 @@ import java.util.List;
 public interface MeasurementsLogRepository {
     void writeLogEntry(MeasurementLogEntry logEntry);
 
-    List<MeasurementLogEntry> readDataForPeriod(Date startDate, Date endDate);
+    List<MeasurementLogEntry> readDataForPeriod(LocalDateTime startDate, LocalDateTime endDate);
 }

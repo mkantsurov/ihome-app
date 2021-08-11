@@ -1,6 +1,5 @@
 package technology.positivehome.ihome.server.service.core.module;
 
-import com.google.common.eventbus.Subscribe;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
@@ -10,7 +9,6 @@ import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -59,8 +57,7 @@ public class SecurityModeDependentRelayBasedIHomeModuleImpl extends AbstractRela
         }
     }
 
-    @Subscribe
-    public void handleEvent(BinaryInputInitiatedHwEvent event) throws IOException {
+    public void handleEvent(BinaryInputInitiatedHwEvent event) {
         if (portsToListen.contains(event.getPortId())) {
             try {
                 boolean wasEnabled = powerState.get();

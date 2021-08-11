@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
-import technology.positivehome.ihome.domain.runtime.sensor.Tsl2591LuminositySensorData;
+import technology.positivehome.ihome.domain.runtime.sensor.ADCConnectedSensorData;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -71,8 +71,8 @@ public class InputPowerSupplySourceCalc implements InitializingBean {
         }
     }
 
-    public void dataUpdate(Tsl2591LuminositySensorData tsl2591LuminositySensorReading) {
-        luminosityCache.put(System.currentTimeMillis(), tsl2591LuminositySensorReading.getData());
+    public void dataUpdate(ADCConnectedSensorData adcConnectedSensorData) {
+        luminosityCache.put(System.currentTimeMillis(), adcConnectedSensorData.getData());
     }
 
     public boolean isDay() {

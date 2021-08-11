@@ -4,23 +4,24 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
+import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleState;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
-import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPressureSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Tsl2591LuminositySensorData;
+import technology.positivehome.ihome.domain.runtime.sensor.*;
 import technology.positivehome.ihome.server.persistence.ControllerConfigRepository;
 import technology.positivehome.ihome.server.persistence.ModuleConfigRepository;
 import technology.positivehome.ihome.server.service.core.controller.ControllerEventInfo;
@@ -28,24 +29,24 @@ import technology.positivehome.ihome.server.service.core.controller.EmulatedIHom
 import technology.positivehome.ihome.server.service.core.controller.IHomeController;
 import technology.positivehome.ihome.server.service.core.controller.IHomeControllerImpl;
 import technology.positivehome.ihome.server.service.core.module.*;
-import technology.positivehome.ihome.server.service.util.IHomeEventBus;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executor;
 
 import static technology.positivehome.ihome.server.processor.SystemProcessor.LUMINOSITY_SENSOR_ID;
 
 /**
  * Created by maxim on 6/24/19.
  **/
-@Component
+@Service
 @EnableScheduling
 public class SystemManager implements ControllerEventListener, InitializingBean {
 
     private static final Log log = LogFactory.getLog(SysConfigImpl.class);
+    private final ApplicationEventPublisher eventPublisher;
     private final SysConfig sysConfig;
     private final ControllerConfigRepository controllerConfigRepository;
     private final ModuleConfigRepository moduleConfigRepository;
@@ -54,16 +55,22 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
     private final Map<Long, Long> controllerIdByPort = new ConcurrentHashMap<>();
     private final Map<Long, IHomeController> controllerById = new ConcurrentHashMap<>();
     private final Map<Long, AbstractIHomeModule> moduleById = new ConcurrentHashMap<>();
-    private final ForkJoinPool moduleCronExecutionPool = new ForkJoinPool(3);
     private final InputPowerSupplySourceCalc inputPowerSupplySourceCalc;
-
+    @Qualifier("moduleJobTaskExecutor")
+    private final Executor moduleJobTaskExecutor;
 
     @Autowired
-    public SystemManager(SysConfig sysConfig, ControllerConfigRepository controllerConfigRepository, ModuleConfigRepository moduleConfigRepository, InputPowerSupplySourceCalc inputPowerSupplySourceCalc) {
+    public SystemManager(ApplicationEventPublisher eventPublisher, SysConfig sysConfig,
+                         ControllerConfigRepository controllerConfigRepository,
+                         ModuleConfigRepository moduleConfigRepository,
+                         InputPowerSupplySourceCalc inputPowerSupplySourceCalc,
+                         Executor moduleJobTaskExecutor) {
+        this.eventPublisher = eventPublisher;
         this.sysConfig = sysConfig;
         this.controllerConfigRepository = controllerConfigRepository;
         this.moduleConfigRepository = moduleConfigRepository;
         this.inputPowerSupplySourceCalc = inputPowerSupplySourceCalc;
+        this.moduleJobTaskExecutor = moduleJobTaskExecutor;
     }
 
     @Override
@@ -72,10 +79,10 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
             IHomeController cnt;
             switch (sysConfig.getControllerMode()) {
                 case LIVE:
-                    cnt = new IHomeControllerImpl(getEventBus(), configEntry);
+                    cnt = new IHomeControllerImpl(eventPublisher, configEntry);
                     break;
                 default:
-                    cnt = new EmulatedIHomeControllerImpl(getEventBus(), configEntry);
+                    cnt = new EmulatedIHomeControllerImpl(eventPublisher, configEntry);
             }
             controllerById.put(configEntry.getId(), cnt);
             controllerIdByAddress.put(configEntry.getIpAddress(), configEntry.getId());
@@ -188,8 +195,12 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
         return getController(controllerIdByPort.get(portId)).getTsl2591LuminositySensorPortData(portId);
     }
 
-    public IHomeEventBus getEventBus() {
-        return sysConfig.getEventBus();
+    public ADCConnectedSensorData getADCSensorReading(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+        return getController(controllerIdByPort.get(portId)).getAdcSensorPortData(portId);
+    }
+
+    public ApplicationEventPublisher getEventPublisher() {
+        return eventPublisher;
     }
 
     public void saveModuleMode(long moduleId, ModuleOperationMode newMode) {
@@ -199,14 +210,14 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
     @Scheduled(fixedDelay = 15000, initialDelay = 10000)
     protected void checkState() {
         for (AbstractIHomeModule module : moduleById.values()) {
-            moduleCronExecutionPool.execute(module::runCronTasks);
+            moduleJobTaskExecutor.execute(module::runCronTasks);
         }
     }
 
     @Scheduled(fixedDelay = 60000, initialDelay = 10000)
     protected void checkLuminosity() {
         try {
-            inputPowerSupplySourceCalc.dataUpdate(getTsl2591LuminositySensorReading(LUMINOSITY_SENSOR_ID));
+            inputPowerSupplySourceCalc.dataUpdate(getADCSensorReading(LUMINOSITY_SENSOR_ID));
         } catch (Exception ex) {
             log.error("Error reading luminosity data ", ex);
         }
@@ -262,4 +273,13 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
         getController(eventInfo.getSourceId()).onEvent(eventInfo);
     }
 
+
+    @EventListener
+    public void onBatchGenerationCompleteEvent(BinaryInputInitiatedHwEvent event) {
+        moduleById.values().forEach(module -> {
+            if (module.hasInputPort(event.getPortId())) {
+                module.handleEvent(event);
+            }
+        });
+    }
 }

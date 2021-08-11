@@ -1,6 +1,5 @@
 package technology.positivehome.ihome.server.service.core.module;
 
-import com.google.common.eventbus.Subscribe;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
@@ -9,7 +8,6 @@ import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +49,6 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
                     }
                 }
         };
-        getMgr().getEventBus().register(this);
         for (ModuleConfigElementEntry ent : getInputPorts()) {
             portsToListen.add(ent.getPort());
         }
@@ -62,8 +59,7 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
         return moduleJobs;
     }
 
-    @Subscribe
-    public void handleEvent(BinaryInputInitiatedHwEvent event) throws IOException {
+    public void handleEvent(BinaryInputInitiatedHwEvent event) {
         if (portsToListen.contains(event.getPortId())) {
             if (GARAGE_LIGHT_SW_BT == event.getPortId()) { //garage light switch
                 try {

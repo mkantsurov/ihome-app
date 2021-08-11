@@ -259,8 +259,8 @@ public class SystemSummaryInfo {
             return this;
         }
 
-        public Builder luminosityData(Double tsl2591LuminositySensorReading) {
-            luminosity = (int) Math.round(tsl2591LuminositySensorReading * 100);
+        public Builder luminosityData(Double adcSensorReading) {
+            luminosity = (int) Math.round(adcSensorReading * 100);
             return this;
         }
 

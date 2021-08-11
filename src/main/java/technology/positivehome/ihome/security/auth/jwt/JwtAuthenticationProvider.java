@@ -15,6 +15,7 @@ import technology.positivehome.ihome.security.model.UserContext;
 import technology.positivehome.ihome.security.model.token.RawAccessJwtToken;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -45,9 +46,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         List<GrantedAuthority> authorities = scopes.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
-
-        UserContext context = UserContext.create(subject, authorities);
-
+        String[] userIds = Optional.ofNullable(subject).orElseThrow().split("/(\\D+)");
+        UserContext context = UserContext.create(Long.parseLong(userIds[1]), authorities);
         return new JwtAuthenticationToken(context, context.getAuthorities());
     }
 

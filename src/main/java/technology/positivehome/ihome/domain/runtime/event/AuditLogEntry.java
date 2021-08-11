@@ -4,7 +4,7 @@ import technology.positivehome.ihome.domain.constant.AuditLogAction;
 import technology.positivehome.ihome.domain.constant.EntityType;
 import technology.positivehome.ihome.domain.constant.ProcessorType;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Created by maxim on 6/25/19.
@@ -21,7 +21,7 @@ public class AuditLogEntry {
     private long objId;
     private EntityType parentObjType = EntityType.UNDEFINED;
     private long parentObjId;
-    private Date created = new Date();
+    private LocalDateTime created = LocalDateTime.now();
     private String descr;
     private int statusCode = 1;
 
@@ -106,11 +106,11 @@ public class AuditLogEntry {
         this.parentObjId = parentObjId;
     }
 
-    public Date getCreated() {
+    public LocalDateTime getCreated() {
         return created;
     }
 
-    public void setCreated(Date created) {
+    public void setCreated(LocalDateTime created) {
         this.created = created;
     }
 

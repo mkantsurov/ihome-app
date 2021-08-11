@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import technology.positivehome.ihome.domain.constant.ControllerMode;
 import technology.positivehome.ihome.server.persistence.LogRepository;
-import technology.positivehome.ihome.server.service.util.IHomeEventBus;
 
 import java.util.Optional;
 
@@ -27,16 +26,14 @@ public class SysConfigImpl implements SysConfig, InitializingBean {
     private long startTimeInMills;
 
     private final LogRepository logRepository;
-    private final IHomeEventBus eventBus;
 
     @Autowired
-    public SysConfigImpl(@Value("${ihome.app.url}") String iHomeBaseUrl, @Value("${ihome.app.login-page}") String loginPage, @Value("${ihome.app.auth-page}") String authPage, @Value("${ihome.app.emulation-mode}") String mode, LogRepository logRepository, IHomeEventBus eventBus) {
+    public SysConfigImpl(@Value("${ihome.app.url}") String iHomeBaseUrl, @Value("${ihome.app.login-page}") String loginPage, @Value("${ihome.app.auth-page}") String authPage, @Value("${ihome.app.emulation-mode}") String mode, LogRepository logRepository) {
         this.iHomeBaseUrl = Optional.ofNullable(iHomeBaseUrl).orElseThrow();
         this.iHomeLoginUrl = iHomeBaseUrl + Optional.ofNullable(loginPage).orElseThrow();
         this.iHomeAuthUrl = iHomeBaseUrl + Optional.ofNullable(authPage).orElseThrow();
         this.mode = (Optional.ofNullable(mode).orElseThrow().equals("true")) ? ControllerMode.EMULATED : ControllerMode.LIVE;
         this.logRepository = logRepository;
-        this.eventBus = eventBus;
     }
 
     @Override
@@ -58,11 +55,6 @@ public class SysConfigImpl implements SysConfig, InitializingBean {
     @Override
     public String getIHomeLoginUrl() {
         return iHomeLoginUrl;
-    }
-
-    @Override
-    public IHomeEventBus getEventBus() {
-        return eventBus;
     }
 
     @Override

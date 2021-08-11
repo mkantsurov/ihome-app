@@ -5,10 +5,7 @@ import technology.positivehome.ihome.domain.runtime.controller.ControllerPortCon
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPressureSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Tsl2591LuminositySensorData;
+import technology.positivehome.ihome.domain.runtime.sensor.*;
 
 import java.io.IOException;
 
@@ -36,6 +33,8 @@ public interface IHomeController {
     Bme280TempHumidityPressureSensorData getBme280TempHumidityPressureSensorPortData(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
 
     Tsl2591LuminositySensorData getTsl2591LuminositySensorPortData(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
+
+    ADCConnectedSensorData getAdcSensorPortData(long portId) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException, InterruptedException;
 
     void onEvent(ControllerEventInfo port);
 }

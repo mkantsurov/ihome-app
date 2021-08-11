@@ -6,7 +6,7 @@ import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntry;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Created by maxim on 6/27/19.
@@ -17,7 +17,7 @@ public class MeasurementLogEntryRowMapper implements RowMapper<MeasurementLogEnt
     public MeasurementLogEntry mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new MeasurementLogEntry(
                 rs.getLong("id"),
-                new Date(rs.getTimestamp("created").getTime()),
+                rs.getObject("created", LocalDateTime.class),
                 rs.getInt("load_avg"),
                 rs.getInt("memory_heap_max"),
                 rs.getInt("memory_heap_used"),

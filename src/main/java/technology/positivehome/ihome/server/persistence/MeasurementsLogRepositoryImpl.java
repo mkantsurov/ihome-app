@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntry;
 import technology.positivehome.ihome.server.persistence.mapper.MeasurementLogEntryRowMapper;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -66,8 +66,9 @@ public class MeasurementsLogRepositoryImpl implements MeasurementsLogRepository 
     }
 
     @Override
-    public List<MeasurementLogEntry> readDataForPeriod(Date startDate, Date endDate) {
-        return namedParameterJdbcTemplate.query(SELECT_MEASUREMENT_LOG_ENTRY_FOR_PERIOD, Map.of("start_time", startDate, "end_time", endDate), measurementLogEntryRowMapper);
+    public List<MeasurementLogEntry> readDataForPeriod(LocalDateTime startDate, LocalDateTime endDate) {
+        return namedParameterJdbcTemplate.query(SELECT_MEASUREMENT_LOG_ENTRY_FOR_PERIOD,
+                Map.of("start_time", startDate, "end_time", endDate), measurementLogEntryRowMapper);
     }
 
 }

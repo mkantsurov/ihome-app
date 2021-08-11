@@ -1,20 +1,17 @@
 package technology.positivehome.ihome.server.service.core.controller;
 
+import org.springframework.context.ApplicationEventPublisher;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPressureSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Tsl2591LuminositySensorData;
+import technology.positivehome.ihome.domain.runtime.sensor.*;
 import technology.positivehome.ihome.server.service.core.controller.input.*;
 import technology.positivehome.ihome.server.service.core.controller.output.DimmerOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.LiveDimmerOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.LiveRelayOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.RelayOutput;
-import technology.positivehome.ihome.server.service.util.IHomeEventBus;
 import technology.positivehome.mgr.processor.megad.controller.input.BinarySensor;
 
 import java.io.IOException;
@@ -28,8 +25,8 @@ public class IHomeControllerImpl extends AbstractIHomeController {
 
     final ReentrantLock lock = new ReentrantLock();
 
-    public IHomeControllerImpl(IHomeEventBus eventBus, ControllerConfigEntry configEntry) {
-        super(eventBus, configEntry.getIpAddress(), configEntry.getPortConfig());
+    public IHomeControllerImpl(ApplicationEventPublisher eventPublisher, ControllerConfigEntry configEntry) {
+        super(eventPublisher, configEntry.getIpAddress(), configEntry.getPortConfig());
     }
 
     @Override
@@ -123,6 +120,16 @@ public class IHomeControllerImpl extends AbstractIHomeController {
     }
 
     @Override
+    public ADCConnectedSensorData getAdcSensorPortData(long portId) throws IOException, InterruptedException, MegadApiMallformedResponseException, PortNotSupporttedFunctionException, MegadApiMallformedUrlException {
+        tryLockOrThrowExcption();
+        try {
+            return getADCConnectedSensorPortById(portId).getData();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     protected RelayOutput createRelayOutput(int addr) {
         return new LiveRelayOutput(getModuleUrl(), addr);
     }
@@ -155,6 +162,11 @@ public class IHomeControllerImpl extends AbstractIHomeController {
     @Override
     protected Tsl2591LuminositySensor createTsl2591LuminositySensor(int addr) {
         return new LiveTsl2591LuminositySensor(getModuleUrl(), addr);
+    }
+
+    @Override
+    protected ADCConnectedSensor createAdcConnectedSensor(int addr) {
+         return new LiveADCConnectedSensor(getModuleUrl(), addr);
     }
 
     private void tryLockOrThrowExcption() throws InterruptedException, IOException {

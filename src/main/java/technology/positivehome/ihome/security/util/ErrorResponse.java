@@ -2,7 +2,7 @@ package technology.positivehome.ihome.security.util;
 
 import org.springframework.http.HttpStatus;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class ErrorResponse {
     // HTTP Response Status Code
@@ -14,13 +14,13 @@ public class ErrorResponse {
     // Error code
     private final ErrorCode errorCode;
 
-    private final Date timestamp;
+    private final LocalDateTime timestamp;
 
     protected ErrorResponse(final String message, final ErrorCode errorCode, HttpStatus status) {
         this.message = message;
         this.errorCode = errorCode;
         this.status = status;
-        this.timestamp = new java.util.Date();
+        this.timestamp = LocalDateTime.now();
     }
 
     public static ErrorResponse of(final String message, final ErrorCode errorCode, HttpStatus status) {
@@ -39,7 +39,7 @@ public class ErrorResponse {
         return errorCode;
     }
 
-    public Date getTimestamp() {
+    public LocalDateTime getTimestamp() {
         return timestamp;
     }
 }

@@ -11,5 +11,6 @@ public enum MegadPortType {
     DS1820_TEMPERATURE_SENSOR,          //4
     DIMMER_OUTPUT,                      //5
     BME280_TEMP_HUMIDITY_PRESS_SENSOR,  //6
-    TSL2591_LUMINOSITY_SENSOR           //7
+    TSL2591_LUMINOSITY_SENSOR,          //7
+    ADC                                 //8
 }

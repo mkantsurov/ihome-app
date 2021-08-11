@@ -106,8 +106,8 @@ public class HeatingSystemPumpControlModule extends AbstractRelayBasedIHomeModul
                     }
                 }
         };
-        getMgr().getEventBus().register(this);
     }
+
 
     private double getBoilerTemperature() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return getTemperatureSensorReading(boilerTemperatureSensorPort).getData();

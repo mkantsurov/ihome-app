@@ -2,16 +2,13 @@ package technology.positivehome.ihome.server.service.core.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import technology.positivehome.ihome.domain.constant.MegadPortType;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
-import technology.positivehome.ihome.server.service.core.controller.input.Bme280TempHumidityPressureSensor;
-import technology.positivehome.ihome.server.service.core.controller.input.Dht21TempHumiditySensor;
-import technology.positivehome.ihome.server.service.core.controller.input.Ds18b20TempSensor;
-import technology.positivehome.ihome.server.service.core.controller.input.Tsl2591LuminositySensor;
+import technology.positivehome.ihome.server.service.core.controller.input.*;
 import technology.positivehome.ihome.server.service.core.controller.output.DimmerOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.RelayOutput;
-import technology.positivehome.ihome.server.service.util.IHomeEventBus;
 import technology.positivehome.mgr.processor.megad.controller.input.BinarySensor;
 
 import java.util.List;
@@ -31,14 +28,15 @@ public abstract class AbstractIHomeController implements IHomeController {
     private final Map<Long, Dht21TempHumiditySensor> dht21SensorPorts = new ConcurrentHashMap<>();
     private final Map<Long, Bme280TempHumidityPressureSensor> bme280SensorPorts = new ConcurrentHashMap<>();
     private final Map<Long, Tsl2591LuminositySensor> tsl2591LuminositySensorPorts = new ConcurrentHashMap<>();
+    private final Map<Long, ADCConnectedSensor> adcConnectedSensorPorts = new ConcurrentHashMap<>();
     private final Map<Integer, PortInfo> portInfoByAddress = new ConcurrentHashMap<>();
     private final String moduleUrl;
 
 
-    private IHomeEventBus eventBus;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public AbstractIHomeController(IHomeEventBus eventBus, String ipAddress, List<ControllerPortConfigEntry> portConfig) {
-        this.eventBus = eventBus;
+    public AbstractIHomeController(ApplicationEventPublisher eventPublisher, String ipAddress, List<ControllerPortConfigEntry> portConfig) {
+        this.eventPublisher = eventPublisher;
         this.moduleUrl = "http://" + ipAddress + "/sec/";
         for (ControllerPortConfigEntry configEntry : portConfig) {
             portInfoByAddress.put(configEntry.getPortAdress(), new PortInfo(configEntry.getId(), configEntry.getType()));
@@ -71,9 +69,10 @@ public abstract class AbstractIHomeController implements IHomeController {
             case TSL2591_LUMINOSITY_SENSOR:
                 tsl2591LuminositySensorPorts.put(configEntry.getId(), createTsl2591LuminositySensor(configEntry.getPortAdress()));
                 break;
+            case ADC:
+                adcConnectedSensorPorts.put(configEntry.getId(), createAdcConnectedSensor(configEntry.getPortAdress()));
         }
     }
-
 
     protected RelayOutput getRelayPortById(long portId) {
         return relayPorts.get(portId);
@@ -103,6 +102,10 @@ public abstract class AbstractIHomeController implements IHomeController {
         return tsl2591LuminositySensorPorts.get(portId);
     }
 
+    protected ADCConnectedSensor getADCConnectedSensorPortById(long portId) {
+        return adcConnectedSensorPorts.get(portId);
+    }
+
     protected abstract RelayOutput createRelayOutput(int addr);
 
     protected abstract DimmerOutput createDimmerOutput(int addr);
@@ -117,6 +120,8 @@ public abstract class AbstractIHomeController implements IHomeController {
 
     protected abstract Tsl2591LuminositySensor createTsl2591LuminositySensor(int addr);
 
+    protected abstract ADCConnectedSensor createAdcConnectedSensor(int addr);
+
     @Override
     public void onEvent(ControllerEventInfo eventInfo) {
         log.info("Controller #" + eventInfo.getSourceId() + " event: port " + eventInfo.getPort() + " Mode " + eventInfo.getMode());
@@ -125,7 +130,7 @@ public abstract class AbstractIHomeController implements IHomeController {
         if (portInfo != null) {
             switch (portInfo.getPortType()) {
                 case BINARY_INPUT:
-                    eventBus.post(new BinaryInputInitiatedHwEvent(portInfo.getPortId(), portInfo.getPortType(), eventInfo));
+                    eventPublisher.publishEvent(new BinaryInputInitiatedHwEvent(this, portInfo.getPortId(), portInfo.getPortType(), eventInfo));
                     break;
             }
         }

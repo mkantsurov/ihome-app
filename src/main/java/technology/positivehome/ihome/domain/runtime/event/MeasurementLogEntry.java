@@ -1,6 +1,6 @@
 package technology.positivehome.ihome.domain.runtime.event;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Created by maxim on 6/25/19.
@@ -8,7 +8,7 @@ import java.util.Date;
 public class MeasurementLogEntry {
 
     private long id;
-    private Date created = new Date();
+    private LocalDateTime created = LocalDateTime.now();
     private int loadAvg;
     private int heapMax;
     private int heapUsage;
@@ -29,7 +29,7 @@ public class MeasurementLogEntry {
     private int heatingPumpFFMode;
     private int heatingPumpSFMode;
 
-    public MeasurementLogEntry(long id, Date created, int loadAvg, int heapMax, int heapUsage, int pressure, int outdoorTemp, int outdoorHumidity,
+    public MeasurementLogEntry(long id, LocalDateTime created, int loadAvg, int heapMax, int heapUsage, int pressure, int outdoorTemp, int outdoorHumidity,
                                int indoorSfTemp, int indoorSfHumidity, int indoorGfTemp, int garageTemp,
                                int garageHumidity, int boilerTemperature, int luminosity, int powerStatus, int securityMode,
                                int pwSrcConverterMode, int pwSrcDirectMode, int heatingPumpFFMode, int heatingPumpSFMode) {
@@ -64,11 +64,11 @@ public class MeasurementLogEntry {
         this.id = id;
     }
 
-    public Date getCreated() {
+    public LocalDateTime getCreated() {
         return created;
     }
 
-    public void setCreated(Date created) {
+    public void setCreated(LocalDateTime created) {
         this.created = created;
     }
 

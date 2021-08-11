@@ -3,12 +3,15 @@ package technology.positivehome.ihome.server.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import technology.positivehome.ihome.domain.runtime.*;
+import technology.positivehome.ihome.domain.runtime.HeatingSummaryInfo;
+import technology.positivehome.ihome.domain.runtime.PowerSummaryInfo;
+import technology.positivehome.ihome.domain.runtime.SystemSummaryInfo;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.ModuleEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleSummary;
+import technology.positivehome.ihome.domain.shared.*;
 import technology.positivehome.ihome.server.processor.StatisticProcessor;
 import technology.positivehome.ihome.server.processor.SystemProcessor;
 
@@ -49,36 +52,36 @@ public class SystemController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/tempstat")
-    public TempStat getTempStat() {
+    public TempStatInfo getTempStat() {
         return statisticProcessor.getTempStat();
     }
 
     @GetMapping(path = "/pressure-stat")
-    public PressureStat getPressureStat() {
+    public PressureStatInfo getPressureStat() {
         return statisticProcessor.getPressureStat();
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/luminositystat")
-    public LuminosityStat getLuminosityStat() {
+    public LuminosityStatInfo getLuminosityStat() {
         return statisticProcessor.getLuminosityStat();
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/systemstat")
-    public SystemStat getSystemStat() {
+    public SystemStatInfo getSystemStat() {
         return statisticProcessor.getSystemStat();
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/lastat")
-    public LaStat getLaStat() {
+    public LaStatInfo getLaStat() {
         return statisticProcessor.getLaStat();
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/boiler-temp-stat")
-    public BoilerTempStat getBoilerTempStatStat() {
+    public BoilerTempStatInfo getBoilerTempStatStat() {
         return statisticProcessor.getBoilerTempStat();
     }
 

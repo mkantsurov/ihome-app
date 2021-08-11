@@ -12,5 +12,6 @@ public enum UiControlType {
     DHT21_TEMP_HUMIDITY_SENSOR,         //5
     DIMMER,                             //6
     BME280_TEMP_HUMIDITY_PRESS_SENSOR,  //7
-    TSL2591_LUMINOSITY_SENSOR,  //8
+    TSL2591_LUMINOSITY_SENSOR,          //8
+    ADC,                                //9
 }
