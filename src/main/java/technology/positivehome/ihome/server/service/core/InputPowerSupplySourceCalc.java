@@ -98,7 +98,7 @@ public class InputPowerSupplySourceCalc implements InitializingBean {
             Calendar cal = Calendar.getInstance();
             int hour = cal.get(Calendar.HOUR_OF_DAY);
             int minute = cal.get(Calendar.MINUTE);
-            int hourToStopConverter = endHr - 1;
+            int hourToStopConverter = endHr - 3;
             if (hour > startHr && hour < hourToStopConverter) {
                 return true;
             } else if (startHr == hour) {
