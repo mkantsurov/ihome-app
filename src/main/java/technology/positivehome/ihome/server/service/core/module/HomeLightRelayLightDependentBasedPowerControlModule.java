@@ -11,6 +11,7 @@ import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -22,9 +23,26 @@ public class HomeLightRelayLightDependentBasedPowerControlModule extends Abstrac
 
     private final Set<Long> portsToListen = new HashSet<>();
     private AtomicBoolean lightState = new AtomicBoolean(false);
+    private final CronModuleJob[] moduleJobs;
 
     public HomeLightRelayLightDependentBasedPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
+        moduleJobs = new CronModuleJob[]{
+                new CronModuleJob(TimeUnit.MINUTES.toMillis(15)) {
+                    @Override
+                    protected void execute() throws Exception {
+                        switch (getMode()) {
+                            case AUTO:
+                                lightState.set(getOutputPortStatus().isEnabled());
+                                if (lightState.get() && !PreferredPowerSupplyMode.DIRECT.equals(getMgr().getInputPowerSupplySourceCalc().getPreferredPowerSupplyMode())) {
+                                    lightState.set(setOutputStatus(OutputPortStatus.disabled()).isEnabled());
+                                }
+                                break;
+                        }
+                    }
+                }
+        };
+
         for (ModuleConfigElementEntry ent : getInputPorts()) {
             portsToListen.add(ent.getPort());
         }
@@ -32,7 +50,7 @@ public class HomeLightRelayLightDependentBasedPowerControlModule extends Abstrac
 
     @Override
     protected CronModuleJob[] getJobList() {
-        return new CronModuleJob[0];
+        return moduleJobs;
     }
 
     public void handleEvent(BinaryInputInitiatedHwEvent event) {
