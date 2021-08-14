@@ -3,12 +3,11 @@ package technology.positivehome.ihome.server.service.core.module;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by maxim on 4/28/20.
@@ -27,7 +26,7 @@ public class HomeLightDayLightDependentMotionSensorRelayBasedControlModule exten
             timeWhenLiteEnabled.set(System.currentTimeMillis());
             if (!wasEnabled) {
                 try {
-                    if (getMgr().getInputPowerSupplySourceCalc().getAvgValue(TimeUnit.MINUTES.toMillis(3)) < 1000.0) {
+                    if (!PreferredPowerSupplyMode.ONLY_LED.equals(getMgr().getInputPowerSupplySourceCalc().getPreferredPowerSupplyMode())) {
                         lightState.set(setOutputStatus(OutputPortStatus.enabled()).isEnabled());
                     }
                 } catch (Exception ex) {

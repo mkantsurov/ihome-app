@@ -64,7 +64,7 @@ public class InputPowerSupplySourceCalc implements InitializingBean {
         if (!isDay() || luminosity < 300) {
             return PreferredPowerSupplyMode.DIRECT;
         }
-        if (luminosity < 500) {
+        if (luminosity < 480) {
             return PreferredPowerSupplyMode.CONVERTER;
         } else {
             return PreferredPowerSupplyMode.ONLY_LED;

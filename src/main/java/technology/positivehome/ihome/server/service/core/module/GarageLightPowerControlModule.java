@@ -2,6 +2,7 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
@@ -65,7 +66,8 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
                 try {
                     boolean wasEnabled = lightState.get();
                     lightState.set(setOutputStatus(wasEnabled ? OutputPortStatus.disabled() : OutputPortStatus.enabled()).isEnabled());
-                    if (!wasEnabled && lightState.get()) {
+                    if (!wasEnabled && lightState.get()
+                            && !PreferredPowerSupplyMode.ONLY_LED.equals(getMgr().getInputPowerSupplySourceCalc().getPreferredPowerSupplyMode())) {
                         timeWhenLiteEnabled.set(System.currentTimeMillis());
                     }
                 } catch (Exception ex) {
