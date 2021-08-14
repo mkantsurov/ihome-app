@@ -143,7 +143,9 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
                 case SECURITY_MODE_DEPENDENT_RELAY_BASED_IHOME_MODULE:
                     moduleToInit = new SecurityModeDependentRelayBasedIHomeModuleImpl(this, configEntry);
                     break;
-
+                case HOME_LIGHT_RELAY_LIGHT_DEPENDENT_POWER_CONTROL_MODULE:
+                    moduleToInit = new HomeLightRelayLightDependentBasedPowerControlModule(this, configEntry);
+                    break;
                 default:
                     throw new IllegalStateException("Module with #" + configEntry.getId() + " can't be initialized. (no config available)");
             }
