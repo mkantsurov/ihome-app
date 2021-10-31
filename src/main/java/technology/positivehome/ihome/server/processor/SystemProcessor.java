@@ -31,6 +31,7 @@ import static technology.positivehome.ihome.server.service.core.module.GenericIn
 public class SystemProcessor {
 
     public static final long SFLOOR_PRESS_TEMP_SENSOR_ID = 36L;
+    public static final long SFLOOR_TEMP_SENSOR_ID = 78L;
     public static final long GFLOOR_TEMP_SENSOR_ID = 67;
     public static final long OUTDOOR_TEMP_HUMIDITY_SENSOR_ID = 11L;
     public static final long GARAGE_TEMP_HUMIDITY_SENSOR_ID = 6L;
@@ -60,7 +61,9 @@ public class SystemProcessor {
     }
 
     public HeatingSummaryInfo getHeatingSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
-        return HeatingSummaryInfo.builder().indoorData(systemManager.getBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID),
+        return HeatingSummaryInfo.builder().indoorData(
+                systemManager.getBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID),
+                systemManager.getDs18b20SensorReading(SFLOOR_TEMP_SENSOR_ID),
                 systemManager.getDs18b20SensorReading(GFLOOR_TEMP_SENSOR_ID))
                 .outDoorData(systemManager.getDht21TempHumiditySensorReading(OUTDOOR_TEMP_HUMIDITY_SENSOR_ID))
                 .garageData(systemManager.getDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID))
@@ -69,7 +72,9 @@ public class SystemProcessor {
 
     public SystemSummaryInfo getSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return SystemSummaryInfo.builder(startTime.get())
-                .indoorData(systemManager.getBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID),
+                .indoorData(
+                        systemManager.getBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID),
+                        systemManager.getDs18b20SensorReading(SFLOOR_TEMP_SENSOR_ID),
                         systemManager.getDs18b20SensorReading(GFLOOR_TEMP_SENSOR_ID))
                 .outDoorData(systemManager.getDht21TempHumiditySensorReading(OUTDOOR_TEMP_HUMIDITY_SENSOR_ID))
                 .garageData(systemManager.getDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID))

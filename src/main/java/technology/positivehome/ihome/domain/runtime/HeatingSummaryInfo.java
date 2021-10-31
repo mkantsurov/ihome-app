@@ -118,8 +118,8 @@ public class HeatingSummaryInfo implements Serializable {
         private int garageHumidity;
         private int boilerTemperature;
 
-        public Builder indoorData(Bme280TempHumidityPressureSensorData data, Ds18b20TempSensorData dht21TempHumiditySensorReading) {
-            sfTemperature = (int) Math.round(data.getTemperature() * 100);
+        public Builder indoorData(Bme280TempHumidityPressureSensorData data, Ds18b20TempSensorData sfTempSensData, Ds18b20TempSensorData dht21TempHumiditySensorReading) {
+            sfTemperature = (int) Math.round(sfTempSensData.getData() * 100);
             sfHumidity = (int) Math.round(data.getHumidity() * 100);
             pressure = (int) Math.round(data.getPressure() * 100);
             gfTemperature = (int) Math.round(dht21TempHumiditySensorReading.getData() * 100);

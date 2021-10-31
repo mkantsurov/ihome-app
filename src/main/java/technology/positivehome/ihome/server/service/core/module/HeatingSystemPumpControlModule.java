@@ -46,9 +46,9 @@ public class HeatingSystemPumpControlModule extends AbstractRelayBasedIHomeModul
         for (ModuleConfigElementEntry entry : getInputPorts()) {
             if (UiControlType.DS18B20_TEMP_SENSOR.equals(entry.getType()) && StringUtils.containsIgnoreCase(entry.getName(), "boiler")) {
                 boilerTempSensorPortId = entry.getId();
-            } else if (UiControlType.BME280_TEMP_HUMIDITY_PRESS_SENSOR.equals(entry.getType())) {
-                indoorTempSensorPortId = entry.getId();
-                indoorTemperatureSensorType.set(UiControlType.BME280_TEMP_HUMIDITY_PRESS_SENSOR);
+//            } else if (UiControlType.BME280_TEMP_HUMIDITY_PRESS_SENSOR.equals(entry.getType())) {
+//                indoorTempSensorPortId = entry.getId();
+//                indoorTemperatureSensorType.set(UiControlType.BME280_TEMP_HUMIDITY_PRESS_SENSOR);
             } else if (UiControlType.DHT21_TEMP_HUMIDITY_SENSOR.equals(entry.getType())) {
                 indoorTempSensorPortId = entry.getId();
                 indoorTemperatureSensorType.set(UiControlType.DHT21_TEMP_HUMIDITY_SENSOR);
