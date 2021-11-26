@@ -37,7 +37,7 @@ public class ServicesConfiguration {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
         executor.setMaxPoolSize(2);
-        executor.setQueueCapacity(300);
+        executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("AsyncTask-");
         executor.initialize();
         return executor;
@@ -47,8 +47,8 @@ public class ServicesConfiguration {
     public Executor moduleJobTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(1);
-        executor.setMaxPoolSize(1);
-        executor.setQueueCapacity(300);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("ModuleJobTask-");
         executor.initialize();
         return executor;
