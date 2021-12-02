@@ -8,7 +8,6 @@ import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEn
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModulePropertyValue;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
-import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPressureSensorData;
 import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
@@ -62,7 +61,7 @@ public class BathRoomVentilationControlModule extends AbstractRelayBasedIHomeMod
                         case AUTO:
                             OutputPortStatus status = getOutputPortStatus();
                             Dht21TempHumiditySensorData data = getTemperatureHumiditySensorData(bathRoomHumiditySensorId.get().getLongValue());
-                            Bme280TempHumidityPressureSensorData indoorData = getBme280TempHumidityPressureSensorReading(indoorHumiditySensorId.get().getLongValue());
+//                            Bme280TempHumidityPressureSensorData indoorData = getBme280TempHumidityPressureSensorReading(indoorHumiditySensorId.get().getLongValue());
 
                             if (System.currentTimeMillis() - timeMotionDetected.get() < MILLS_VENTILATION_TIME || data.getHumidity() > HUMIDITY_INDOOR_BATHROOM_MAX) {
                                 if (!status.isEnabled() || status.isUndefined()) {
