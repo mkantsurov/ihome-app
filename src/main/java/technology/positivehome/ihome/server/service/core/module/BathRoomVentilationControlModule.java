@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class BathRoomVentilationControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
 
     private static final Log log = LogFactory.getLog(BathRoomVentilationControlModule.class);
-    public static final int DIFF_IN_HUMIDITY_INDOOR_BATHROOM = 18;
+    public static final int HUMIDITY_INDOOR_BATHROOM_MAX = 70;
     private static final long MILLS_VENTILATION_TIME = TimeUnit.MINUTES.toMillis(2L);
 
     private final Optional<ModulePropertyValue> checkHumidityInterval;
@@ -64,17 +64,11 @@ public class BathRoomVentilationControlModule extends AbstractRelayBasedIHomeMod
                             Dht21TempHumiditySensorData data = getTemperatureHumiditySensorData(bathRoomHumiditySensorId.get().getLongValue());
                             Bme280TempHumidityPressureSensorData indoorData = getBme280TempHumidityPressureSensorReading(indoorHumiditySensorId.get().getLongValue());
 
-                            double diff = 0;
-
-                            if (data.getHumidity() > 0 && indoorData.getHumidity() > 0) {
-                                diff = data.getHumidity() - indoorData.getHumidity();
-                            }
-
-                            if (System.currentTimeMillis() - timeMotionDetected.get() < MILLS_VENTILATION_TIME || diff > DIFF_IN_HUMIDITY_INDOOR_BATHROOM) {
+                            if (System.currentTimeMillis() - timeMotionDetected.get() < MILLS_VENTILATION_TIME || data.getHumidity() > HUMIDITY_INDOOR_BATHROOM_MAX) {
                                 if (!status.isEnabled() || status.isUndefined()) {
                                     setOutputStatus(OutputPortStatus.enabled());
                                 }
-                            } else if (diff <= DIFF_IN_HUMIDITY_INDOOR_BATHROOM && (status.isEnabled() || status.isUndefined())) {
+                            } else if (data.getHumidity() <= HUMIDITY_INDOOR_BATHROOM_MAX && (status.isEnabled() || status.isUndefined())) {
                                 setOutputStatus(OutputPortStatus.disabled());
                             }
                             break;
