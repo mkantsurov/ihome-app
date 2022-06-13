@@ -12,15 +12,11 @@ description = "I-Home Web Application"
 plugins {
     idea
     java
-    `java-library`
-    maven
-    jacoco
-    id("org.flywaydb.flyway") version "7.5.2"
-    id("org.springframework.boot") version "2.5.3"
+    id("org.springframework.boot")
     id("io.spring.dependency-management") version "1.0.5.RELEASE"
-    id("com.palantir.docker") version "0.26.0"
-    id("net.ltgt.apt") version "0.10"
+    id("com.palantir.docker") version "0.32.0"
     id("org.sonarqube") version "2.6.2"
+    id("org.flywaydb.flyway") version "7.5.2"
 }
 
 java {
@@ -31,9 +27,9 @@ java {
 repositories {
     mavenCentral()
     maven { setUrl("https://repo.spring.io/release/") }
-    maven { setUrl("http://repo.spring.io/libs-snapshot-local") }
-    maven { setUrl("http://repo.spring.io/libs-milestone-local") }
-    maven { setUrl("http://repo.spring.io/libs-release-local") }
+    maven { setUrl("https://repo.spring.io/libs-snapshot-local") }
+    maven { setUrl("https://repo.spring.io/libs-milestone-local") }
+    maven { setUrl("https://repo.spring.io/libs-release-local") }
     maven { setUrl("https://repo.spring.io/libs-milestone") }
     maven { setUrl("https://plugins.gradle.org/m2/") }
 }
@@ -41,7 +37,7 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
@@ -49,18 +45,18 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-actuator-autoconfigure")
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation("io.jsonwebtoken:jjwt:0.9.0")
-    implementation("org.postgresql:postgresql:42.2.2")
+    implementation("org.postgresql:postgresql:42.3.3")
     implementation("javax.xml.bind:jaxb-api:2.3.0")
     implementation("com.zaxxer:HikariCP:2.7.4")
     implementation("org.apache.commons:commons-lang3:3.11")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
-    implementation("com.google.guava:guava:28.2-jre")
-    implementation("org.apache.httpcomponents:httpclient:4.5.9")
-    implementation("commons-io:commons-io:2.6")
+    implementation("com.google.guava:guava:31.1-jre")
+    implementation("org.apache.httpcomponents:httpclient:4.5.13")
+    implementation("commons-io:commons-io:2.11.0")
     implementation("net.logstash.logback:logstash-logback-encoder:6.4")
-    testCompile("com.jayway.jsonpath:json-path:2.4.0")
-    testCompile("org.springframework.boot:spring-boot-starter-test")
-    runtime("org.springframework.boot:spring-boot-devtools")
+    testImplementation("com.jayway.jsonpath:json-path:2.4.0")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    runtimeOnly("org.springframework.boot:spring-boot-devtools")
 }
 
 fun execCommandWithOutput(input: String): String {

@@ -11,7 +11,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
+import technology.positivehome.ihome.domain.constant.ControllerMode;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
@@ -77,12 +79,10 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
     public void afterPropertiesSet() throws Exception {
         for (ControllerConfigEntry configEntry : controllerConfigRepository.loadControllerConfig()) {
             IHomeController cnt;
-            switch (sysConfig.getControllerMode()) {
-                case LIVE:
-                    cnt = new IHomeControllerImpl(eventPublisher, configEntry);
-                    break;
-                default:
-                    cnt = new EmulatedIHomeControllerImpl(eventPublisher, configEntry);
+            if (sysConfig.getControllerMode() == ControllerMode.LIVE) {
+                cnt = new IHomeControllerImpl(eventPublisher, configEntry);
+            } else {
+                cnt = new EmulatedIHomeControllerImpl(eventPublisher, configEntry);
             }
             controllerById.put(configEntry.getId(), cnt);
             controllerIdByAddress.put(configEntry.getIpAddress(), configEntry.getId());
@@ -151,6 +151,11 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
             }
             moduleById.put(moduleToInit.getModuleId(), moduleToInit);
         }
+
+        //initialize default state
+        for (AbstractIHomeModule module : moduleById.values()) {
+            module.initDefaultState();
+        }
     }
 
     public IHomeController getController(Long controllerId) {
@@ -207,6 +212,11 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
 
     public void saveModuleMode(long moduleId, ModuleOperationMode newMode) {
         moduleConfigRepository.updateModuleMode(moduleId, newMode);
+    }
+
+    public void updateModuleStartupMode(long moduleId, ModuleStartupMode moduleStartupMode) {
+        moduleConfigRepository.updateModuleStartupMode(moduleId, moduleStartupMode);
+        moduleById.get(moduleId).updateStartupMode(moduleStartupMode);
     }
 
     @Scheduled(fixedDelay = 15000, initialDelay = 10000)
@@ -277,11 +287,13 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
 
 
     @EventListener
-    public void onBatchGenerationCompleteEvent(BinaryInputInitiatedHwEvent event) {
+    public void onBinarySensorEvent(BinaryInputInitiatedHwEvent event) {
         moduleById.values().forEach(module -> {
             if (module.hasInputPort(event.getPortId())) {
                 module.handleEvent(event);
             }
         });
     }
+
+
 }

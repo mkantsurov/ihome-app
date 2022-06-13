@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
 import technology.positivehome.ihome.domain.runtime.HeatingSummaryInfo;
 import technology.positivehome.ihome.domain.runtime.PowerSummaryInfo;
 import technology.positivehome.ihome.domain.runtime.SystemSummaryInfo;
@@ -142,6 +143,7 @@ public class SystemProcessor {
     }
 
     public void updateModuleProps(long moduleId, ModuleUpdateRequest moduleUpdateRequest) throws InterruptedException, MegadApiMallformedUrlException, IOException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, URISyntaxException {
+        systemManager.updateModuleStartupMode(moduleId, moduleUpdateRequest.isEnabledOnStartup() ? ModuleStartupMode.ENABLED : ModuleStartupMode.DISABLED);
         systemManager.updateModuleMode(moduleId, moduleUpdateRequest.isModuleActive() ? ModuleOperationMode.AUTO : ModuleOperationMode.MANUAL);
         systemManager.updateModuleOutputState(moduleId, moduleUpdateRequest.isOutputPortEnabled() ? OutputPortStatus.enabled() : OutputPortStatus.disabled());
     }

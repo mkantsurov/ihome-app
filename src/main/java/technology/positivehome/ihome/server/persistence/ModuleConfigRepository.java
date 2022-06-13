@@ -1,6 +1,7 @@
 package technology.positivehome.ihome.server.persistence;
 
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleSettings;
@@ -17,10 +18,11 @@ public interface ModuleConfigRepository {
 
     ModuleConfigEntry updateModuleMode(long moduleId, ModuleOperationMode newMode);
 
+    ModuleConfigEntry updateModuleStartupMode(long moduleId, ModuleStartupMode moduleStartupMode);
+
     List<ModuleConfigEntry> addNewModule(ModuleSettings moduleSettings);
 
     ModuleConfigEntry updateModuleProperties(ModuleSettings moduleConfigProperties);
 
     ModuleConfigElementEntry updateModuleConfigElement(ModuleConfigElementEntry value);
-
 }

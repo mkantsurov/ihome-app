@@ -2,6 +2,7 @@ package technology.positivehome.ihome.domain.runtime.module;
 
 import technology.positivehome.ihome.domain.constant.ModuleAssignment;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
 import technology.positivehome.ihome.domain.constant.ModuleType;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class ModuleConfigEntry {
     private List<ModulePropertyValue> properties = new ArrayList<>();
     private ModuleOperationMode mode;
     private ModuleType type;
+    private ModuleStartupMode startupMode;
 
     public void setId(long id) {
         this.id = id;
@@ -70,6 +72,14 @@ public class ModuleConfigEntry {
         return mode;
     }
 
+    public void setStartupMode(ModuleStartupMode startupMode) {
+        this.startupMode = startupMode;
+    }
+
+    public ModuleStartupMode getStartupMode() {
+        return startupMode;
+    }
+
     public void setType(ModuleType type) {
         this.type = type;
     }
@@ -85,5 +95,4 @@ public class ModuleConfigEntry {
     public void setProperties(List<ModulePropertyValue> properties) {
         this.properties = properties;
     }
-
 }

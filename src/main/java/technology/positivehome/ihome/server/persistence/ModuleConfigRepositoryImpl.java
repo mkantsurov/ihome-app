@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
 import technology.positivehome.ihome.domain.runtime.module.*;
 import technology.positivehome.ihome.server.persistence.mapper.ModuleConfigElementEntryRowMapper;
 import technology.positivehome.ihome.server.persistence.mapper.ModuleConfigEntryRowMapper;
@@ -22,16 +23,17 @@ import java.util.stream.Collectors;
 @Repository
 public class ModuleConfigRepositoryImpl implements ModuleConfigRepository {
 
-    private static final String SELECT_MODULES = "SELECT me.id, me.module_assignment, me.mode, me.name, me.display, me.type, mg.id group_id, mg.name group_name, mg.priority FROM module_config_entry me INNER JOIN module_group_entry mg ON (me.group_id = mg.id) ORDER BY id";
+    private static final String SELECT_MODULES = "SELECT me.id, me.module_assignment, me.mode, me.startup_mode, me.name, me.display, me.type, mg.id group_id, mg.name group_name, mg.priority FROM module_config_entry me INNER JOIN module_group_entry mg ON (me.group_id = mg.id) ORDER BY id";
     private static final String SELECT_MODULE_CONFIG_ENTRIES = "SELECT id, module_id, name, type, port, display_mode FROM module_config_element_entry ORDER BY id";
     private static final String SELECT_MODULE_PROPERTY_ENTRIES = "SELECT id, module_id, key, long_value, string_value FROM module_property_entry ORDER BY id";
 
-    private static final String SELECT_MODULE_BY_ID = "SELECT me.id, me.mode, me.name, me.module_assignment, me.display, me.type, mg.id group_id, mg.name group_name, mg.priority FROM module_config_entry me INNER JOIN module_group_entry mg ON (me.group_id = mg.id) WHERE me.id = :id ORDER BY id";
+    private static final String SELECT_MODULE_BY_ID = "SELECT me.id, me.mode, me.startup_mode, me.name, me.module_assignment, me.display, me.type, mg.id group_id, mg.name group_name, mg.priority FROM module_config_entry me INNER JOIN module_group_entry mg ON (me.group_id = mg.id) WHERE me.id = :id ORDER BY id";
     private static final String SELECT_MODULE_CONFIG_ENTRIES_BY_MODULE_ID = "SELECT id, module_id, name, type, port, display_mode FROM module_config_element_entry WHERE module_id = :module_id ORDER BY id";
     private static final String SELECT_MODULE_PROPERTY_ENTRIES_BY_MODULE_ID = "SELECT id, module_id, key, long_value, string_value FROM module_property_entry WHERE module_id = :module_id ORDER BY id";
 
     private static final String SELECT_MODULE_GROUP_ENTRY_BY_ID = "SELECT id, name, priority FROM module_group_entry WHERE id = :id";
     private static final String UPDATE_MODULE_MODE = "UPDATE module_config_entry SET mode = :mode WHERE id = :id";
+    private static final String UPDATE_MODULE_STARTUP_MODE = "UPDATE module_config_entry SET startup_mode = :startupMode WHERE id = :id";
     private static final String CREATE_NEW_MODULE = "INSERT INTO module_config_entry " +
             "(mode, module_assignment, name, group_id, type) " +
             "VALUES (:mode, :moduleAssigment, :name, :group_id, :type)";
@@ -92,6 +94,12 @@ public class ModuleConfigRepositoryImpl implements ModuleConfigRepository {
         namedParameterJdbcTemplate.update(UPDATE_MODULE_MODE,
                 Map.of("id", moduleId, "mode", newMode.ordinal()));
 
+        return loadModuleData(moduleId);
+    }
+
+    public ModuleConfigEntry updateModuleStartupMode(long moduleId, ModuleStartupMode moduleStartupMode) {
+        namedParameterJdbcTemplate.update(UPDATE_MODULE_STARTUP_MODE,
+                Map.of("id", moduleId, "startupMode", moduleStartupMode.ordinal()));
         return loadModuleData(moduleId);
     }
 

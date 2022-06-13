@@ -1,6 +1,7 @@
 package technology.positivehome.ihome.server.processor;
 
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
+import technology.positivehome.ihome.domain.constant.ModuleProperty;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
@@ -23,25 +24,34 @@ public class ModuleMapper {
         if (iHomeModule == null) {
             return null;
         }
-        ModuleSummary res = new ModuleSummary();
-        res.setModuleId(iHomeModule.getModuleId());
-        res.setName(iHomeModule.getName());
-        res.setAssignment(iHomeModule.getAssignment());
-        res.setGroup(iHomeModule.getGroupId());
-        res.setMode(iHomeModule.getMode().ordinal());
-        res.setOutputPortState(iHomeModule.getOutputPortStatus().getValue());
+        ModuleSummary res = new ModuleSummary(
+                iHomeModule.getModuleId(),
+                iHomeModule.getName(),
+                iHomeModule.getMode().ordinal(),
+                iHomeModule.getStartupMode().ordinal(),
+                iHomeModule.getOutputPortStatus().getValue(),
+                iHomeModule.getAssignment(),
+                iHomeModule.getGroupId());
+
+        for (ModuleProperty key : ModuleProperty.values()) {
+             iHomeModule.getProperty(key).ifPresent(modulePropertyValue -> {
+                res.getProperties().add(modulePropertyValue);
+            });
+        }
         return res;
     }
 
 
     public static ModuleEntry from(IHomeModuleSummary moduleSummary, ModuleState moduleState) throws MegadApiMallformedUrlException, IOException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, URISyntaxException, InterruptedException {
 
-        ModuleEntry data = new ModuleEntry();
-        data.setModuleId(moduleSummary.getModuleId());
-        data.setMode(moduleSummary.getMode().ordinal());
-        data.setName(moduleSummary.getName());
-        data.setAssignment(moduleSummary.getAssignment());
-        data.setOutputPortState(moduleSummary.getOutputPortStatus().getValue());
+        ModuleEntry data = new ModuleEntry(
+                moduleSummary.getModuleId(),
+                moduleSummary.getName(),
+                moduleSummary.getMode().ordinal(),
+                moduleSummary.getStartupMode().ordinal(),
+                moduleSummary.getOutputPortStatus().getValue(),
+                moduleSummary.getAssignment(),
+                moduleSummary.getGroupId());
 
         for (ModuleConfigElementEntry entry : moduleSummary.getInputPorts()) {
             switch (entry.getType()) {
@@ -64,6 +74,11 @@ public class ModuleMapper {
                     data.getTsl2591LuminositySensorData().add(from(entry, moduleState.getTsl2591LuminositySensorData().get(entry.getId())));
                     break;
             }
+        }
+        for (ModuleProperty key : ModuleProperty.values()) {
+            moduleSummary.getProperty(key).ifPresent(modulePropertyValue -> {
+                data.getProperties().add(modulePropertyValue);
+            });
         }
         return data;
     }

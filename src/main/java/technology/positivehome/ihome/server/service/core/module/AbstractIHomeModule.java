@@ -30,11 +30,12 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
     private final long groupId;
     private final ModuleAssignment assignment;
 
-    private SystemManager mgr;
+    private final SystemManager mgr;
 
     private final long moduleId;
     private final String name;
     private final AtomicReference<ModuleOperationMode> moduleOperationMode = new AtomicReference<>(ModuleOperationMode.UNDEFINED);
+    private final AtomicReference<ModuleStartupMode> moduleStartupMode = new AtomicReference<>(ModuleStartupMode.DISABLED);
 
     private final Map<Long, ModuleConfigElementEntry> inputPorts = new HashMap<>();
     private final Set<Long> inputPortIds = new HashSet<>();
@@ -53,6 +54,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
         this.name = configEntry.getModuleName();
         this.assignment = configEntry.getModuleAssignment();
         this.moduleOperationMode.set(configEntry.getMode());
+        this.moduleStartupMode.set(configEntry.getStartupMode());
         this.groupId = configEntry.getModuleGroupEntry().getId();
 
         for (ModuleConfigElementEntry ent : configEntry.getControls()) {
@@ -68,6 +70,15 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
 
         for (ModulePropertyValue ent : configEntry.getProperties()) {
             properties.put(ent.getKey(), ent);
+        }
+    }
+
+    public void initDefaultState() {
+        try {
+            setOutputStatus(ModuleStartupMode.ENABLED.equals(moduleStartupMode.get()) ? OutputPortStatus.enabled() : OutputPortStatus.disabled());
+            log.info("Module " + getName() + " initialized with status " + moduleStartupMode.get().name());
+        } catch (Exception e) {
+            log.error("Unable to initialize default module state", e);
         }
     }
 
@@ -232,6 +243,16 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
     @Override
     public ModuleOperationMode getMode() {
         return moduleOperationMode.get();
+    }
+
+    @Override
+    public ModuleStartupMode getStartupMode() {
+        return moduleStartupMode.get();
+    }
+
+    @Override
+    public void  updateStartupMode(ModuleStartupMode moduleStartupMode) {
+        this.moduleStartupMode.set(moduleStartupMode);
     }
 
     @Override
