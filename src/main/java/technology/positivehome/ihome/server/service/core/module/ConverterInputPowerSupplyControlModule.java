@@ -54,7 +54,7 @@ public class ConverterInputPowerSupplyControlModule extends AbstractRelayBasedIH
     }
 
     @PreDestroy
-    void onDestroey() {
+    void onDestroy() {
         executor.shutdown();
     }
 
