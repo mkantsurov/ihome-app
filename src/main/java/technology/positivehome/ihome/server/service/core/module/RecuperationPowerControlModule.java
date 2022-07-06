@@ -1,5 +1,7 @@
 package technology.positivehome.ihome.server.service.core.module;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
@@ -15,8 +17,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class RecuperatorPowerControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
+public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
 
+    private static final Log log = LogFactory.getLog(RecuperationPowerControlModule.class);
     private static final long POWER_CHECK_INTERVAL = TimeUnit.MINUTES.toMillis(5);
     private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(90);
     private static final long POWER_CHECKING_DELAY = TimeUnit.MINUTES.toMillis(5);
@@ -31,7 +34,7 @@ public class RecuperatorPowerControlModule extends AbstractRelayBasedIHomeModule
     private final AtomicLong lastPowerFailTs = new AtomicLong(System.currentTimeMillis());
     private final AtomicBoolean disabledManually = new AtomicBoolean(true);
 
-    public RecuperatorPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
+    public RecuperationPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
         moduleJobs = new CronModuleJob[]{
                 new CronModuleJob(POWER_CHECK_INTERVAL) {
@@ -43,6 +46,12 @@ public class RecuperatorPowerControlModule extends AbstractRelayBasedIHomeModule
                                 BinaryPortStatus state = getMgr().getBinSensorsState(POWER_SENSOR_PORT_ID);
                                 Dht21TempHumiditySensorData data = getMgr().getDht21TempHumiditySensorReading(OUTDOOR_TEMPERATURE_SENS_PORT_ID);
                                 long now = System.currentTimeMillis();
+                                log.info("RecuperationModule: " +
+                                        "\n disabled manually: " + disabledManually.get() +
+                                        "\n ext power state: " + state +
+                                        "\n module out port state: " + status.isEnabled() +
+                                        "\n last power ok ts: " + (System.currentTimeMillis() - lastPowerOkTs.get()) +
+                                        "\n temperature: " + data.getTemperature());
                                 switch (state) {
                                     case ENABLED:
                                         lastPowerOkTs.set(System.currentTimeMillis());

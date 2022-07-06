@@ -150,7 +150,7 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
                     moduleToInit = new GarageInverterCoolingControlModule(this, configEntry);
                     break;
                 case RECUPERATOR_POWER_SUPPLY_CONTROL_MODULE:
-                    moduleToInit = new RecuperatorPowerControlModule(this, configEntry);
+                    moduleToInit = new RecuperationPowerControlModule(this, configEntry);
                     break;
                 default:
                     throw new IllegalStateException("Module with #" + configEntry.getId() + " can't be initialized. (no config available)");
