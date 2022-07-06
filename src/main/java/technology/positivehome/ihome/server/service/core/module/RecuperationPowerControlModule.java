@@ -3,18 +3,12 @@ package technology.positivehome.ihome.server.service.core.module;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
@@ -32,7 +26,6 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
 
     private final AtomicLong lastPowerOkTs = new AtomicLong(System.currentTimeMillis());
     private final AtomicLong lastPowerFailTs = new AtomicLong(System.currentTimeMillis());
-    private final AtomicBoolean disabledManually = new AtomicBoolean(true);
 
     public RecuperationPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
@@ -47,7 +40,6 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
                                 Dht21TempHumiditySensorData data = getMgr().getDht21TempHumiditySensorReading(OUTDOOR_TEMPERATURE_SENS_PORT_ID);
                                 long now = System.currentTimeMillis();
                                 log.info("RecuperationModule: " +
-                                        "\n disabled manually: " + disabledManually.get() +
                                         "\n ext power state: " + state +
                                         "\n module out port state: " + status.isEnabled() +
                                         "\n last power ok ts: " + (System.currentTimeMillis() - lastPowerOkTs.get()) +
@@ -55,9 +47,9 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
                                 switch (state) {
                                     case ENABLED:
                                         lastPowerOkTs.set(System.currentTimeMillis());
-                                        if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get()
-                                                && data.getTemperature() < 24.5
-                                                && !disabledManually.get()) {
+                                        if (status.isDisabled()
+                                                && now - POWER_CHECKING_DELAY > lastPowerFailTs.get()
+                                                && data.getTemperature() < 24.5) {
                                             setOutputStatus(OutputPortStatus.enabled());
                                         }  else if (status.isEnabled() && data.getTemperature() > 25) {
                                             setOutputStatus(OutputPortStatus.disabled());
@@ -67,7 +59,6 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
                                         lastPowerFailTs.set(System.currentTimeMillis());
                                         if (status.isEnabled() && now - MAX_POWER_ABSENT_DELAY > lastPowerOkTs.get()) {
                                             setOutputStatus(OutputPortStatus.disabled());
-                                            disabledManually.set(false);
                                         }
                                         break;
                                 }
@@ -75,12 +66,6 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
                         }
                     }
                 }};
-    }
-
-    @Override
-    public OutputPortStatus setOutputStatus(OutputPortStatus status) throws URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException {
-        disabledManually.set(true);
-        return super.setOutputStatus(status);
     }
 
     @Override
