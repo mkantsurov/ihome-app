@@ -52,9 +52,11 @@ public class LiveDs18b20TempSensor extends MegadPort implements Ds18b20TempSenso
         String response = makeRequest("", megadRequest);
         Ds18b20TempSensorData result = ResultMapper.ds18b20TempSensorData(response);
 
-        lastRequestTs.set(System.currentTimeMillis());
-        temperatureCache.set(ResultMapper.ds18b20TempSensorData(response));
-
-        return result;
+        if (result.getData() > -30.0) {
+            lastRequestTs.set(System.currentTimeMillis());
+            temperatureCache.set(result);
+            return result;
+        }
+        return temperatureCache.get();
     }
 }
