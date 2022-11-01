@@ -35,15 +35,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final String AUTHENTICATION_HEADER_NAME = "Authorization";
     public static final String AUTHENTICATION_URL = "/auth/login";
     public static final String REFRESH_TOKEN_URL = "/auth/token";
-    public static final String GUEST_API_URL = "/guest-api/v1/stats/*";
+    public static final String GUEST_API_URL = "/guest-api/v1/**";
     public static final String LISTENER_URL = "/wsmd/listener";
     public static final String API_ROOT_URL = "/api/**";
-
-    public static final String API_ADMIN = "/api/v1/admin/*";
-
-    public static final String API_MODULES = "/api/v1/modules/*";
-
-    public static final String API_SYSTEM = "/api/v1/system/*";
 
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final AuthenticationSuccessHandler successHandler;
@@ -120,7 +114,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
                 .authorizeRequests()
-                .antMatchers(API_ADMIN, API_MODULES, API_SYSTEM).authenticated() // Protected API End-points
+                .antMatchers(API_ROOT_URL).authenticated() // Protected API End-points
                 .anyRequest().permitAll()
                 .and()
                 .addFilterBefore(new CustomCorsFilter(), UsernamePasswordAuthenticationFilter.class)
