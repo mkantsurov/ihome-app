@@ -39,32 +39,34 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final String LISTENER_URL = "/wsmd/listener";
     public static final String API_ROOT_URL = "/api/**";
 
-    @Autowired
-    private RestAuthenticationEntryPoint authenticationEntryPoint;
-    @Autowired
-    private AuthenticationSuccessHandler successHandler;
-    @Autowired
-    private AuthenticationFailureHandler failureHandler;
-    @Autowired
-    private AjaxAuthenticationProvider ajaxAuthenticationProvider;
-    @Autowired
-    private JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final AuthenticationSuccessHandler successHandler;
+    private final AuthenticationFailureHandler failureHandler;
+    private final AjaxAuthenticationProvider ajaxAuthenticationProvider;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final TokenExtractor tokenExtractor;
+    private final ObjectMapper objectMapper;
+    private final SecurityPermissionEvaluator securityPermissionEvaluator;
 
     @Autowired
-    private TokenExtractor tokenExtractor;
+    public WebSecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint, AuthenticationSuccessHandler successHandler, AuthenticationFailureHandler failureHandler,
+                             AjaxAuthenticationProvider ajaxAuthenticationProvider, JwtAuthenticationProvider jwtAuthenticationProvider,
+                             TokenExtractor tokenExtractor, ObjectMapper objectMapper,
+                             SecurityPermissionEvaluator securityPermissionEvaluator) {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private SecurityPermissionEvaluator securityPermissionEvaluator;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.successHandler = successHandler;
+        this.failureHandler = failureHandler;
+        this.ajaxAuthenticationProvider = ajaxAuthenticationProvider;
+        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
+        this.tokenExtractor = tokenExtractor;
+        this.objectMapper = objectMapper;
+        this.securityPermissionEvaluator = securityPermissionEvaluator;
+    }
 
     protected AjaxLoginProcessingFilter buildAjaxLoginProcessingFilter(String loginEntryPoint) throws Exception {
         AjaxLoginProcessingFilter filter = new AjaxLoginProcessingFilter(loginEntryPoint, successHandler, failureHandler, objectMapper);
-        filter.setAuthenticationManager(this.authenticationManager);
+        filter.setAuthenticationManager(authenticationManagerBean());
         return filter;
     }
 
@@ -72,7 +74,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, pattern);
         JwtTokenAuthenticationProcessingFilter filter
                 = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
-        filter.setAuthenticationManager(this.authenticationManager);
+        filter.setAuthenticationManager(authenticationManagerBean());
         return filter;
     }
 
