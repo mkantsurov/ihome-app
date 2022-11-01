@@ -75,7 +75,7 @@ fun execCommandWithOutput(input: String): String {
 }
 
 tasks.getByName<BootJar>("bootJar") {
-    mainClassName = "technology.positivehome.ihome.ServerApplication"
+    mainClass.set("technology.positivehome.ihome.ServerApplication")
     outputs.upToDateWhen { false }
     archiveFileName.set("app.jar")
 }
@@ -92,7 +92,7 @@ task("prepareDocker") {
 }
 
 tasks.getByName<BootRun>("bootRun") {
-    main = "technology.positivehome.ihome.ServerApplication"
+    mainClass.set("technology.positivehome.ihome.ServerApplication")
     environment("SPRING_CONFIG_ADDITIONALLOCATION" to testSpringConfLocation)
     jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=40990")
 }

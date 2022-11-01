@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class GenericInputPowerDependentRelayPowerControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
 
     private static final long POWER_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
-    private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(30);
+    private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(15);
     private static final long POWER_CHECKING_DELAY = TimeUnit.MINUTES.toMillis(5);
 
     public static final int POWER_SENSOR_PORT_ID = 29;
