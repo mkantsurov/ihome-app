@@ -15,7 +15,7 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
 
     private static final Log log = LogFactory.getLog(RecuperationPowerControlModule.class);
     private static final long POWER_CHECK_INTERVAL = TimeUnit.MINUTES.toMillis(5);
-    private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(90);
+    private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(15);
     private static final long POWER_CHECKING_DELAY = TimeUnit.MINUTES.toMillis(5);
 
     private static final long OUTDOOR_TEMPERATURE_SENS_PORT_ID = 11;
