@@ -24,4 +24,4 @@ UPDATE module_property_entry SET long_value = 101 WHERE key = 6 AND module_id=42
 UPDATE module_property_entry SET long_value = 103 WHERE key = 5 AND module_id=42;  --INDOOR_HUMIDITY_SENSOR
 UPDATE module_property_entry SET long_value = 102 WHERE key = 8 AND module_id=42;  --BATH_ROOM_MOTION_SENSOR
 
-UPDATE module_config_element_entry SET port=36 WHERE id=103;
+UPDATE module_config_element_entry SET port=36, type = 7 WHERE id=103;
