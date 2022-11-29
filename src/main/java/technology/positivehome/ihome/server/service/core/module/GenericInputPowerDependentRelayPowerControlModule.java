@@ -1,17 +1,11 @@
 package technology.positivehome.ihome.server.service.core.module;
 
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -20,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class GenericInputPowerDependentRelayPowerControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
 
     private static final long POWER_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
-    private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(15);
+    private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(7);
     private static final long POWER_CHECKING_DELAY = TimeUnit.MINUTES.toMillis(5);
 
     public static final int POWER_SENSOR_PORT_ID = 29;
@@ -29,7 +23,6 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
 
     private final AtomicLong lastPowerOkTs = new AtomicLong(System.currentTimeMillis());
     private final AtomicLong lastPowerFailTs = new AtomicLong(System.currentTimeMillis());
-    private final AtomicBoolean disabledManually = new AtomicBoolean(true);
 
     public GenericInputPowerDependentRelayPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
@@ -45,7 +38,7 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                                 switch (state) {
                                     case ENABLED:
                                         lastPowerOkTs.set(System.currentTimeMillis());
-                                        if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get() && !disabledManually.get()) {
+                                        if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get()) {
                                             setOutputStatus(OutputPortStatus.enabled());
                                         }
                                         break;
@@ -53,7 +46,6 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                                         lastPowerFailTs.set(System.currentTimeMillis());
                                         if (status.isEnabled() && now - MAX_POWER_ABSENT_DELAY > lastPowerOkTs.get()) {
                                             setOutputStatus(OutputPortStatus.disabled());
-                                            disabledManually.set(false);
                                         }
                                         break;
                                 }
@@ -61,12 +53,6 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                         }
                     }
                 }};
-    }
-
-    @Override
-    public OutputPortStatus setOutputStatus(OutputPortStatus status) throws URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException {
-        disabledManually.set(true);
-        return super.setOutputStatus(status);
     }
 
     @Override
