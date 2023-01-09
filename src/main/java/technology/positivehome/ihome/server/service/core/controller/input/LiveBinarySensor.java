@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class LiveBinarySensor extends MegadPort implements BinarySensor {
 
     private final String moduleUrl;
-    private static final long DATA_TTL = TimeUnit.SECONDS.toMillis(60);
+    private static final long DATA_TTL = TimeUnit.SECONDS.toMillis(10);
     private AtomicLong lastRequestTs = new AtomicLong(0);
     private AtomicReference<BinaryPortStatus> stateCache = new AtomicReference<>(BinaryPortStatus.UNDEFINED);
 
