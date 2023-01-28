@@ -14,9 +14,9 @@ public class DR404ControllerTest {
         try {
             try (Socket clientSocket = new Socket("192.168.88.75", 80)) {
                 try (OutputStream os = clientSocket.getOutputStream()) {
-                    byte[] cmd=new byte[]{0, 0x03, 0, 0x0c, 0, 0x01, 0x44, 0x09};
+                    byte[] cmd=new byte[]{0x01, 0x03, 0, 0x0c, 0, 0x01, 0x44, 0x09};
                     os.write(cmd);
-                    os.flush();
+//                    os.flush();
                     InputStream is = clientSocket.getInputStream();
                     byte[] buffer = new byte[1024];
                     int read;
