@@ -8,10 +8,7 @@ import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformed
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.*;
-import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPressureSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
-import technology.positivehome.ihome.domain.runtime.sensor.Tsl2591LuminositySensorData;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 import technology.positivehome.ihome.server.service.core.controller.ControllerEventInfo;
 
@@ -82,49 +79,6 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
         }
     }
 
-    public BinaryPortStatus getBinarySensorData(long elementId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        ModuleConfigElementEntry cfg = inputPorts.get(elementId);
-        switch (cfg.getType()) {
-            case BUTTON:
-                return mgr.getBinSensorsState(cfg.getPort());
-            case REED_SWITCH:
-                return mgr.getBinSensorsState(cfg.getPort());
-        }
-        throw new IllegalStateException("Incompatible element " + cfg.getName() + " requested to get binary sensor reading");
-    }
-
-    public Ds18b20TempSensorData getTemperatureSensorReading(long elementId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        ModuleConfigElementEntry conf = inputPorts.get(elementId);
-        if (conf == null) {
-            throw new IllegalArgumentException("Element with ID# " + elementId + " is absent in module configuration");
-        }
-        return mgr.getDs18b20SensorReading(conf.getPort());
-    }
-
-    public Dht21TempHumiditySensorData getTemperatureHumiditySensorData(long elementId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        ModuleConfigElementEntry conf = inputPorts.get(elementId);
-        if (conf == null) {
-            throw new IllegalArgumentException("Element with ID# " + elementId + " is absent in module configuration");
-        }
-        return mgr.getDht21TempHumiditySensorReading(conf.getPort());
-    }
-
-    public Bme280TempHumidityPressureSensorData getBme280TempHumidityPressureSensorReading(long elementId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        ModuleConfigElementEntry conf = inputPorts.get(elementId);
-        if (conf == null) {
-            throw new IllegalArgumentException("Element with ID# " + elementId + " is absent in module configuration");
-        }
-        return mgr.getBme280TempHumidityPressureSensorReading(conf.getPort());
-    }
-
-    public Tsl2591LuminositySensorData getTsl2591LuminositySensorReading(long elementId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        ModuleConfigElementEntry conf = inputPorts.get(elementId);
-        if (conf == null) {
-            throw new IllegalArgumentException("Element with ID# " + elementId + " is absent in module configuration");
-        }
-        return mgr.getTsl2591LuminositySensorReading(conf.getPort());
-    }
-
     public long getLastEnableEventTs() {
         return lastEnableEventTs.get();
     }
@@ -157,26 +111,27 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
 
     public ModuleState getSensorReadings() throws MegadApiMallformedUrlException, IOException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, URISyntaxException, InterruptedException {
         ModuleState state = new ModuleState();
-
         for (ModuleConfigElementEntry entry : inputPorts.values()) {
+            ModuleConfigElementEntry cfg = inputPorts.get(entry.getId());
             switch (entry.getType()) {
                 case BUTTON:
-                    state.getBinarySensorData().put(entry.getId(), getBinarySensorData(entry.getId()));
-                    break;
                 case REED_SWITCH:
-                    state.getBinarySensorData().put(entry.getId(), getBinarySensorData(entry.getId()));
+                    state.getBinarySensorData().put(entry.getId(), mgr.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(cfg.getPort())));
                     break;
                 case DS18B20_TEMP_SENSOR:
-                    state.getTemperatureSensorData().put(entry.getId(), getTemperatureSensorReading(entry.getId()));
+                    state.getTemperatureSensorData().put(entry.getId(), mgr.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(cfg.getPort())));
                     break;
                 case DHT21_TEMP_HUMIDITY_SENSOR:
-                    state.getTempHumiditySensorData().put(entry.getId(), getTemperatureHumiditySensorData(entry.getId()));
+                    state.getTempHumiditySensorData().put(entry.getId(), mgr.runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(cfg.getPort())));
                     break;
                 case BME280_TEMP_HUMIDITY_PRESS_SENSOR:
-                    state.getBme280TempHumidityPressureSensorData().put(entry.getId(), getBme280TempHumidityPressureSensorReading(entry.getId()));
+                    state.getBme280TempHumidityPressureSensorData().put(entry.getId(), mgr.runCommand(IHomeCommandFactory.cmdGetBme280TempHumidityPressureSensorReading(cfg.getPort())));
                     break;
                 case TSL2591_LUMINOSITY_SENSOR:
-                    state.getTsl2591LuminositySensorData().put(entry.getId(), getTsl2591LuminositySensorReading(entry.getId()));
+                    state.getTsl2591LuminositySensorData().put(entry.getId(), mgr.runCommand(IHomeCommandFactory.cmdGetTsl2591LuminositySensorReading(cfg.getPort())));
+                    break;
+                case DDS_238_POWER_METER:
+                    state.getDds238PowerMeterData().put(entry.getId(), mgr.runCommand(IHomeCommandFactory.cmdGetDds238Reading(cfg.getPort())));
                     break;
             }
         }
@@ -186,7 +141,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
 
     public void onButtonClick(long buttonId) {
         ModuleConfigElementEntry conf = inputPorts.get(buttonId);
-        mgr.getEventPublisher().publishEvent(new BinaryInputInitiatedHwEvent(this, conf.getPort(), MegadPortType.BINARY_INPUT, new ControllerEventInfo.Builder().count("1").mode("1").build()));
+        mgr.getEventPublisher().publishEvent(new BinaryInputInitiatedHwEvent(this, conf.getPort(), IHomePortType.BINARY_INPUT, new ControllerEventInfo.Builder().count("1").mode("1").build()));
     }
 
     public ModuleOperationMode onUpdateMode(ModuleOperationMode newState) {

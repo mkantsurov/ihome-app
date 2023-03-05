@@ -10,10 +10,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.constant.ControllerMode;
-import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
-import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
+import technology.positivehome.ihome.domain.constant.*;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
@@ -24,12 +21,13 @@ import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleState;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.domain.runtime.sensor.*;
-import technology.positivehome.ihome.server.persistence.ControllerConfigRepository;
+import technology.positivehome.ihome.server.model.command.IHomeCommand;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.persistence.ModuleConfigRepository;
-import technology.positivehome.ihome.server.service.core.controller.ControllerEventInfo;
-import technology.positivehome.ihome.server.service.core.controller.EmulatedIHomeControllerImpl;
-import technology.positivehome.ihome.server.service.core.controller.IHomeController;
-import technology.positivehome.ihome.server.service.core.controller.IHomeControllerImpl;
+import technology.positivehome.ihome.server.persistence.model.ControllerConfigEntity;
+import technology.positivehome.ihome.server.persistence.repository.ControllerConfigRepository;
+import technology.positivehome.ihome.server.persistence.repository.ControllerPortConfigRepository;
+import technology.positivehome.ihome.server.service.core.controller.*;
 import technology.positivehome.ihome.server.service.core.module.*;
 
 import java.io.IOException;
@@ -51,6 +49,7 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
     private final ApplicationEventPublisher eventPublisher;
     private final SysConfig sysConfig;
     private final ControllerConfigRepository controllerConfigRepository;
+    private final ControllerPortConfigRepository controllerPortConfigRepository;
     private final ModuleConfigRepository moduleConfigRepository;
 
     private final Map<String, Long> controllerIdByAddress = new ConcurrentHashMap<>();
@@ -64,31 +63,36 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
     @Autowired
     public SystemManager(ApplicationEventPublisher eventPublisher, SysConfig sysConfig,
                          ControllerConfigRepository controllerConfigRepository,
+                         ControllerPortConfigRepository controllerPortConfigRepository,
                          ModuleConfigRepository moduleConfigRepository,
                          InputPowerSupplySourceCalc inputPowerSupplySourceCalc,
                          Executor moduleJobTaskExecutor) {
         this.eventPublisher = eventPublisher;
         this.sysConfig = sysConfig;
         this.controllerConfigRepository = controllerConfigRepository;
+        this.controllerPortConfigRepository = controllerPortConfigRepository;
         this.moduleConfigRepository = moduleConfigRepository;
         this.inputPowerSupplySourceCalc = inputPowerSupplySourceCalc;
         this.moduleJobTaskExecutor = moduleJobTaskExecutor;
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
-        for (ControllerConfigEntry configEntry : controllerConfigRepository.loadControllerConfig()) {
+    public void afterPropertiesSet() {
+        for (ControllerConfigEntity configEntity : controllerConfigRepository.findAll()) {
+            ControllerConfigEntry entry = ControllerConfigMapper.from(
+                    configEntity, controllerPortConfigRepository.findByControllerId(configEntity.id()));
             IHomeController cnt;
             if (sysConfig.getControllerMode() == ControllerMode.LIVE) {
-                cnt = new IHomeControllerImpl(eventPublisher, configEntry);
+                cnt = new MegadControllerImpl(eventPublisher, entry);
             } else {
-                cnt = new EmulatedIHomeControllerImpl(eventPublisher, configEntry);
+                cnt = new EmulatedMegadControllerImpl(eventPublisher, entry);
             }
-            controllerById.put(configEntry.getId(), cnt);
-            controllerIdByAddress.put(configEntry.getIpAddress(), configEntry.getId());
 
-            for (ControllerPortConfigEntry portConfig : configEntry.getPortConfig()) {
-                controllerIdByPort.put(portConfig.getId(), configEntry.getId());
+            controllerById.put(entry.id(), cnt);
+            controllerIdByAddress.put(entry.ipAddr(), entry.id());
+
+            for (ControllerPortConfigEntry portConfig : entry.portConfig()) {
+                controllerIdByPort.put(portConfig.id(), entry.id());
             }
 
         }
@@ -172,44 +176,8 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
         throw new IllegalArgumentException("Controller #" + controllerId + " is not defined");
     }
 
-    public boolean getBinOutputStatus(long portId) throws PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).getRelayStatus(portId);
-    }
-
-    public boolean updateBinPortState(long portId, boolean enabled) throws PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).setRelayState(portId, enabled);
-    }
-
-    public int getDimmerOutputStatus(long portId) throws PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).getDimmerStatus(portId);
-    }
-
-    public int updateDimmerPortState(long portId, int value) throws PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).setDimmerState(portId, value);
-    }
-
-    public BinaryPortStatus getBinSensorsState(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).getBinaryPortStatus(portId);
-    }
-
-    public Ds18b20TempSensorData getDs18b20SensorReading(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).getTemperatureSensorPortData(portId);
-    }
-
-    public Dht21TempHumiditySensorData getDht21TempHumiditySensorReading(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).getTemperatureHumiditySensorPortData(portId);
-    }
-
-    public Bme280TempHumidityPressureSensorData getBme280TempHumidityPressureSensorReading(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).getBme280TempHumidityPressureSensorPortData(portId);
-    }
-
-    public Tsl2591LuminositySensorData getTsl2591LuminositySensorReading(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).getTsl2591LuminositySensorPortData(portId);
-    }
-
-    public ADCConnectedSensorData getADCSensorReading(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getController(controllerIdByPort.get(portId)).getAdcSensorPortData(portId);
+    public <R> R runCommand(IHomeCommand<R> iHomeCommand) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException, InterruptedException {
+        return getController(controllerIdByPort.get(iHomeCommand.getPortAddress())).runCommand(iHomeCommand);
     }
 
     public ApplicationEventPublisher getEventPublisher() {
@@ -235,7 +203,9 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
     @Scheduled(fixedDelay = 60000, initialDelay = 10000)
     protected void checkLuminosity() {
         try {
-            inputPowerSupplySourceCalc.dataUpdate(getADCSensorReading(LUMINOSITY_SENSOR_ID));
+            inputPowerSupplySourceCalc.dataUpdate(
+                    getController(controllerIdByPort.get(LUMINOSITY_SENSOR_ID))
+                            .runCommand(IHomeCommandFactory.cmdGetADCSensorReading(LUMINOSITY_SENSOR_ID)));
         } catch (Exception ex) {
             log.error("Error reading luminosity data ", ex);
         }

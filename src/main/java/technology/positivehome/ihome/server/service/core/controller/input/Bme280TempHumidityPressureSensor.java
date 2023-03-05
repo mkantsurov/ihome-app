@@ -7,9 +7,6 @@ import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPre
 
 import java.io.IOException;
 
-/**
- * Created by maxim on 12/29/17.
- **/
 public interface Bme280TempHumidityPressureSensor {
     Bme280TempHumidityPressureSensorData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException;
 }

@@ -14,4 +14,5 @@ public enum UiControlType {
     BME280_TEMP_HUMIDITY_PRESS_SENSOR,  //7
     TSL2591_LUMINOSITY_SENSOR,          //8
     ADC,                                //9
+    DDS_238_POWER_METER,                //10
 }

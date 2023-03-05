@@ -20,13 +20,4 @@ public interface IHomeModule {
 
     OutputPortStatus getOutputPortStatus() throws URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException;
 
-    BinaryPortStatus getBinarySensorData(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
-
-    Ds18b20TempSensorData getTemperatureSensorReading(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
-
-    Dht21TempHumiditySensorData getTemperatureHumiditySensorData(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
-
-    Bme280TempHumidityPressureSensorData getBme280TempHumidityPressureSensorReading(long elementId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
-
-    Tsl2591LuminositySensorData getTsl2591LuminositySensorReading(long portId) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
 }

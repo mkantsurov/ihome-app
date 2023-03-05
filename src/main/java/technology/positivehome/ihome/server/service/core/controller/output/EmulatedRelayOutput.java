@@ -1,5 +1,6 @@
 package technology.positivehome.ihome.server.service.core.controller.output;
 
+import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
@@ -11,20 +12,20 @@ import java.io.IOException;
  **/
 public class EmulatedRelayOutput implements RelayOutput {
 
-    private boolean enabled = false;
+    private BinaryPortStatus status = BinaryPortStatus.DISABLED;
 
     public EmulatedRelayOutput() {
     }
 
     @Override
-    public boolean getStatus() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
-        return enabled;
+    public BinaryPortStatus getStatus() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
+        return status;
     }
 
     @Override
-    public boolean setRelayState(boolean enable) throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException {
-        enabled = enable;
-        return enabled;
+    public BinaryPortStatus setRelayState(BinaryPortStatus newStatus) throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException {
+        status = newStatus;
+        return status;
     }
 
 }

@@ -1,11 +1,13 @@
 package technology.positivehome.ihome.server.service.core.module;
 
+import technology.positivehome.ihome.domain.constant.DimmerPortStatus;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.io.IOException;
@@ -33,12 +35,14 @@ public abstract class AbstractDimmerBasedIHomeModule extends AbstractIHomeModule
 
     @Override
     protected OutputPortStatus getOutputPortStatus(long port) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return new OutputPortStatus(getMgr().getDimmerOutputStatus(port));
+        DimmerPortStatus status = getMgr().runCommand(IHomeCommandFactory.cmdGetDimmerStatus(port));
+        return OutputPortStatus.of(status);
     }
 
     @Override
     protected OutputPortStatus updateOutputPortState(long port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
-        return new OutputPortStatus(getMgr().updateDimmerPortState(port, status.getValue()));
+        DimmerPortStatus newStatus = getMgr().runCommand(IHomeCommandFactory.cmdSetDimmerStatus(port, DimmerPortStatus.of(status.getValue())));
+        return OutputPortStatus.of(newStatus);
     }
 
     @Override

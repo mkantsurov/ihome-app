@@ -1,11 +1,13 @@
 package technology.positivehome.ihome.server.service.core.module;
 
+import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.io.IOException;
@@ -32,14 +34,13 @@ public abstract class AbstractRelayBasedIHomeModule extends AbstractIHomeModule 
 
     @Override
     protected OutputPortStatus getOutputPortStatus(long port) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getMgr().getBinOutputStatus(port) ? OutputPortStatus.enabled() : OutputPortStatus.disabled();
+        return OutputPortStatus.of(getMgr().runCommand(IHomeCommandFactory.cmdGetRelayStatus(port)));
     }
 
     @Override
     protected OutputPortStatus updateOutputPortState(long port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
-        return getMgr().updateBinPortState(port, status.isEnabled()) ? OutputPortStatus.enabled() : OutputPortStatus.disabled();
+        return OutputPortStatus.of(getMgr().runCommand(IHomeCommandFactory.cmdSetRelayStatus(port, status.isEnabled() ? BinaryPortStatus.ENABLED : BinaryPortStatus.DISABLED)));
     }
-
 
     @Override
     protected List<ModuleConfigElementEntry> getOutputPorts() {

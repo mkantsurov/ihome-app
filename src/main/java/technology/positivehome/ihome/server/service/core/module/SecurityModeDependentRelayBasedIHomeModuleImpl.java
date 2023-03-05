@@ -7,6 +7,7 @@ import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHw
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.HashSet;
@@ -34,7 +35,7 @@ public class SecurityModeDependentRelayBasedIHomeModuleImpl extends AbstractRela
                     protected void execute() throws Exception {
                         switch (getMode()) {
                             case AUTO:
-                                BinaryPortStatus state = getMgr().getBinSensorsState(SECURITY_MODE_SENSOR_PORT_ID);
+                                BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID));
                                 switch (state) {
                                     case ENABLED:
                                         if (powerState.get()) {

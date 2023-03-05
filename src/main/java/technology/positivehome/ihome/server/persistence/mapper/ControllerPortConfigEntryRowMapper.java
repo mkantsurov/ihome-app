@@ -2,8 +2,8 @@ package technology.positivehome.ihome.server.persistence.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import technology.positivehome.ihome.domain.constant.MegadPortType;
-import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntity;
+import technology.positivehome.ihome.domain.constant.IHomePortType;
+import technology.positivehome.ihome.server.persistence.model.ControllerPortConfigEntity;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,12 +16,13 @@ public class ControllerPortConfigEntryRowMapper implements RowMapper<ControllerP
 
     @Override
     public ControllerPortConfigEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
-        ControllerPortConfigEntity res = new ControllerPortConfigEntity();
-        res.setId(rs.getLong("id"));
-        res.setPortAdress(rs.getInt("port_address"));
-        res.setType(MegadPortType.values()[rs.getInt("type")]);
-        res.setDescription(rs.getString("description"));
-        res.setControllerId(rs.getLong("controller_id"));
-        return res;
+
+        return new ControllerPortConfigEntity(
+                rs.getLong("id"),
+                rs.getLong("controller_id"),
+                IHomePortType.of(rs.getInt("type")),
+                rs.getInt("port_address"),
+                rs.getString("description")
+                );
     }
 }

@@ -3,7 +3,7 @@ package technology.positivehome.ihome.domain.constant;
 /**
  * Created by maxim on 6/27/19.
  **/
-public enum MegadPortType {
+public enum IHomePortType {
     UNDEFINED,                          //0
     RELAY_OUTPUT,                       //1
     BINARY_INPUT,                       //2
@@ -12,5 +12,15 @@ public enum MegadPortType {
     DIMMER_OUTPUT,                      //5
     BME280_TEMP_HUMIDITY_PRESS_SENSOR,  //6
     TSL2591_LUMINOSITY_SENSOR,          //7
-    ADC                                 //8
+    ADC,                                //8
+    DDS238_POWER_METER;                 //9
+
+    public static IHomePortType of(int portTypeId) {
+        for (IHomePortType portType : IHomePortType.values()) {
+            if (portType.ordinal() == portTypeId) {
+                return portType;
+            }
+        }
+        return UNDEFINED;
+    }
 }

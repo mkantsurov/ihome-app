@@ -10,6 +10,7 @@ import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedF
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.io.IOException;
@@ -110,16 +111,16 @@ public class HeatingSystemPumpControlModule extends AbstractRelayBasedIHomeModul
 
 
     private double getBoilerTemperature() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getTemperatureSensorReading(boilerTemperatureSensorPort).getData();
+        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(boilerTemperatureSensorPort)).getData();
     }
 
     private double getIndoorTemperature(UiControlType indoorTemperatureSensorType) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         if (UiControlType.DS18B20_TEMP_SENSOR.equals(indoorTemperatureSensorType)) {
-            return getTemperatureSensorReading(indoorTemperatureSensorPort).getData();
+            return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(indoorTemperatureSensorPort)).getData();
         } else if (UiControlType.DHT21_TEMP_HUMIDITY_SENSOR.equals(indoorTemperatureSensorType)) {
-            return getTemperatureHumiditySensorData(indoorTemperatureSensorPort).getTemperature();
+            return getMgr().runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(indoorTemperatureSensorPort)).getTemperature();
         } else if (UiControlType.BME280_TEMP_HUMIDITY_PRESS_SENSOR.equals(indoorTemperatureSensorType)) {
-            return getBme280TempHumidityPressureSensorReading(indoorTemperatureSensorPort).getTemperature();
+            return getMgr().runCommand(IHomeCommandFactory.cmdGetBme280TempHumidityPressureSensorReading(indoorTemperatureSensorPort)).getTemperature();
         } else {
             throw new IllegalStateException("Unsupported sensor type");
         }

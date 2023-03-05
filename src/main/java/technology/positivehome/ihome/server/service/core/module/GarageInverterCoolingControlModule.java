@@ -3,6 +3,7 @@ package technology.positivehome.ihome.server.service.core.module;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ public class GarageInverterCoolingControlModule extends AbstractRelayBasedIHomeM
                     case AUTO:
 
                         OutputPortStatus status = getOutputPortStatus();
-                        Dht21TempHumiditySensorData data = getMgr().getDht21TempHumiditySensorReading(GARAGE_TEMPERATURE_PORT_ID);
+                        Dht21TempHumiditySensorData data = getMgr().runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(GARAGE_TEMPERATURE_PORT_ID));
 
                         switch (mgr.getInputPowerSupplySourceCalc().getPreferredPowerSupplyMode()) {
                             case CONVERTER:

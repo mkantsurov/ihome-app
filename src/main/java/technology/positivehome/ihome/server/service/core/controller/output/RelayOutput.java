@@ -1,5 +1,6 @@
 package technology.positivehome.ihome.server.service.core.controller.output;
 
+import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
@@ -11,7 +12,7 @@ import java.io.IOException;
  **/
 public interface RelayOutput {
 
-    boolean getStatus() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException;
+    BinaryPortStatus getStatus() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException;
 
-    boolean setRelayState(boolean enable) throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException;
+    BinaryPortStatus setRelayState(BinaryPortStatus enable) throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException;
 }

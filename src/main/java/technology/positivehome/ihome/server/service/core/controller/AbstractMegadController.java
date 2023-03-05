@@ -3,24 +3,31 @@ package technology.positivehome.ihome.server.service.core.controller;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import technology.positivehome.ihome.domain.constant.MegadPortType;
+import technology.positivehome.ihome.domain.constant.IHomePortType;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.server.model.command.*;
 import technology.positivehome.ihome.server.service.core.controller.input.*;
 import technology.positivehome.ihome.server.service.core.controller.output.DimmerOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.RelayOutput;
 import technology.positivehome.mgr.processor.megad.controller.input.BinarySensor;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by maxim on 6/30/19.
  **/
-public abstract class AbstractIHomeController implements IHomeController {
-    private static final Log log = LogFactory.getLog(AbstractIHomeController.class);
-
+public abstract class AbstractMegadController implements IHomeController {
+    private static final Log log = LogFactory.getLog(AbstractMegadController.class);
+    final ReentrantLock lock = new ReentrantLock();
     private final Map<Long, RelayOutput> relayPorts = new ConcurrentHashMap<>();
     private final Map<Long, DimmerOutput> dimmerPorts = new ConcurrentHashMap<>();
     private final Map<Long, BinarySensor> binarySensors = new ConcurrentHashMap<>();
@@ -32,47 +39,48 @@ public abstract class AbstractIHomeController implements IHomeController {
     private final Map<Integer, PortInfo> portInfoByAddress = new ConcurrentHashMap<>();
     private final String moduleUrl;
 
-
     private final ApplicationEventPublisher eventPublisher;
 
-    public AbstractIHomeController(ApplicationEventPublisher eventPublisher, String ipAddress, List<ControllerPortConfigEntry> portConfig) {
+    public AbstractMegadController(ApplicationEventPublisher eventPublisher, String ipAddress, List<ControllerPortConfigEntry> portConfig) {
         this.eventPublisher = eventPublisher;
         this.moduleUrl = "http://" + ipAddress + "/sec/";
         for (ControllerPortConfigEntry configEntry : portConfig) {
-            portInfoByAddress.put(configEntry.getPortAdress(), new PortInfo(configEntry.getId(), configEntry.getType()));
+            portInfoByAddress.put(configEntry.portAddress(), new PortInfo(configEntry.id(), configEntry.type()));
             addPort(configEntry);
         }
     }
 
     @Override
     public void addPort(ControllerPortConfigEntry configEntry) {
-
-        switch (configEntry.getType()) {
-            case RELAY_OUTPUT:
-                relayPorts.put(configEntry.getId(), createRelayOutput(configEntry.getPortAdress()));
-                break;
-            case DIMMER_OUTPUT:
-                dimmerPorts.put(configEntry.getId(), createDimmerOutput(configEntry.getPortAdress()));
-                break;
-            case BINARY_INPUT:
-                binarySensors.put(configEntry.getId(), createBinarySensor(configEntry.getPortAdress()));
-                break;
-            case DS1820_TEMPERATURE_SENSOR:
-                ds1820SensorPorts.put(configEntry.getId(), createDs1820TemperatureSensor(configEntry.getPortAdress()));
-                break;
-            case DHT21_TEMPERATURE_HUMIDITY_SENSOR:
-                dht21SensorPorts.put(configEntry.getId(), createDht21TemperatureHumiditySensor(configEntry.getPortAdress()));
-                break;
-            case BME280_TEMP_HUMIDITY_PRESS_SENSOR:
-                bme280SensorPorts.put(configEntry.getId(), createBme280TempHumidityPressureSensor(configEntry.getPortAdress()));
-                break;
-            case TSL2591_LUMINOSITY_SENSOR:
-                tsl2591LuminositySensorPorts.put(configEntry.getId(), createTsl2591LuminositySensor(configEntry.getPortAdress()));
-                break;
-            case ADC:
-                adcConnectedSensorPorts.put(configEntry.getId(), createAdcConnectedSensor(configEntry.getPortAdress()));
+        switch (configEntry.type()) {
+            case RELAY_OUTPUT -> relayPorts.put(configEntry.id(), createRelayOutput(configEntry.portAddress()));
+            case DIMMER_OUTPUT -> dimmerPorts.put(configEntry.id(), createDimmerOutput(configEntry.portAddress()));
+            case BINARY_INPUT -> binarySensors.put(configEntry.id(), createBinarySensor(configEntry.portAddress()));
+            case DS1820_TEMPERATURE_SENSOR ->
+                    ds1820SensorPorts.put(configEntry.id(), createDs1820TemperatureSensor(configEntry.portAddress()));
+            case DHT21_TEMPERATURE_HUMIDITY_SENSOR ->
+                    dht21SensorPorts.put(configEntry.id(), createDht21TemperatureHumiditySensor(configEntry.portAddress()));
+            case BME280_TEMP_HUMIDITY_PRESS_SENSOR ->
+                    bme280SensorPorts.put(configEntry.id(), createBme280TempHumidityPressureSensor(configEntry.portAddress()));
+            case TSL2591_LUMINOSITY_SENSOR ->
+                    tsl2591LuminositySensorPorts.put(configEntry.id(), createTsl2591LuminositySensor(configEntry.portAddress()));
+            case ADC ->
+                    adcConnectedSensorPorts.put(configEntry.id(), createAdcConnectedSensor(configEntry.portAddress()));
         }
     }
+
+    @Override
+    public <R> R runCommand(IHomeCommand<R> iHomeCommand) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException, InterruptedException {
+        tryLockOrThrowExcption();
+        try {
+            return iHomeCommand.dispatch(IHomePorts.of(relayPorts, binarySensors, dimmerPorts, ds1820SensorPorts, dht21SensorPorts, bme280SensorPorts, tsl2591LuminositySensorPorts, adcConnectedSensorPorts));
+        } finally {
+            lock.unlock();
+        }
+
+    }
+
+
 
     protected RelayOutput getRelayPortById(long portId) {
         return relayPorts.get(portId);
@@ -143,9 +151,9 @@ public abstract class AbstractIHomeController implements IHomeController {
     private class PortInfo {
 
         private long portId;
-        private MegadPortType portType;
+        private IHomePortType portType;
 
-        public PortInfo(long portId, MegadPortType portType) {
+        public PortInfo(long portId, IHomePortType portType) {
             this.portId = portId;
             this.portType = portType;
         }
@@ -154,8 +162,14 @@ public abstract class AbstractIHomeController implements IHomeController {
             return portId;
         }
 
-        public MegadPortType getPortType() {
+        public IHomePortType getPortType() {
             return portType;
+        }
+    }
+
+    private void tryLockOrThrowExcption() throws InterruptedException, IOException {
+        if (!lock.tryLock(20, TimeUnit.SECONDS)) {
+            throw new IOException("Could not acquire lock  in thread controller " + getModuleUrl() + " Thread info: "  + Thread.currentThread());
         }
     }
 }

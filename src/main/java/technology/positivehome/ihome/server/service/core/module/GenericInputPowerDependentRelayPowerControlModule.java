@@ -3,6 +3,7 @@ package technology.positivehome.ihome.server.service.core.module;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.concurrent.TimeUnit;
@@ -33,7 +34,7 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                         switch (getMode()) {
                             case AUTO:
                                 OutputPortStatus status = getOutputPortStatus();
-                                BinaryPortStatus state = getMgr().getBinSensorsState(POWER_SENSOR_PORT_ID);
+                                BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
                                 long now = System.currentTimeMillis();
                                 switch (state) {
                                     case ENABLED:

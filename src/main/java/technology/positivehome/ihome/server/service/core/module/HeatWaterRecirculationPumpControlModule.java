@@ -8,6 +8,7 @@ import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedF
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.io.IOException;
@@ -93,11 +94,11 @@ public class HeatWaterRecirculationPumpControlModule extends AbstractRelayBasedI
     }
 
     private double getBoilerTemperature() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getTemperatureSensorReading(boilerTemperatureSensorPort).getData();
+        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(boilerTemperatureSensorPort)).getData();
     }
 
     private double getWaterTemperature() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getTemperatureSensorReading(waterTemperatureSensorPort).getData();
+        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(waterTemperatureSensorPort)).getData();
     }
 
     @Override

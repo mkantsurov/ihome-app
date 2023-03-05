@@ -1,6 +1,8 @@
 package technology.positivehome.ihome.domain.runtime.module;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
+import technology.positivehome.ihome.domain.constant.DimmerPortStatus;
 
 import java.util.Iterator;
 import java.util.List;
@@ -37,6 +39,18 @@ public class OutputPortStatus {
 
     public static OutputPortStatus intension(int percentage) {
         return new OutputPortStatus((255 * percentage) / 100);
+    }
+
+    public static OutputPortStatus of(DimmerPortStatus status) {
+        return new OutputPortStatus(status.intValue());
+    }
+
+    public static OutputPortStatus of(BinaryPortStatus status) {
+        return switch (status) {
+            case DISABLED -> OutputPortStatus.disabled();
+            case ENABLED -> OutputPortStatus.enabled();
+            default -> OutputPortStatus.undefined();
+        };
     }
 
     @JsonIgnore

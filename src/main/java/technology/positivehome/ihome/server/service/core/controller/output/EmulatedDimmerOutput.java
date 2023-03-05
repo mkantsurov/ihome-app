@@ -1,5 +1,6 @@
 package technology.positivehome.ihome.server.service.core.controller.output;
 
+import technology.positivehome.ihome.domain.constant.DimmerPortStatus;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
@@ -11,15 +12,15 @@ import java.io.IOException;
  **/
 public class EmulatedDimmerOutput implements DimmerOutput {
 
-    int currentState = 0;
+    DimmerPortStatus currentState = DimmerPortStatus.OFF;
 
     @Override
-    public int getStatus() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
+    public DimmerPortStatus getStatus() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
         return currentState;
     }
 
     @Override
-    public int setState(int value) throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException {
+    public DimmerPortStatus setState(DimmerPortStatus value) throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException {
         currentState = value;
         return currentState;
     }

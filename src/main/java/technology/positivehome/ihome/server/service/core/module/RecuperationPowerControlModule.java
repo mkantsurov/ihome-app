@@ -6,6 +6,7 @@ import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.concurrent.TimeUnit;
@@ -36,8 +37,8 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
                         switch (getMode()) {
                             case AUTO:
                                 OutputPortStatus status = getOutputPortStatus();
-                                BinaryPortStatus state = getMgr().getBinSensorsState(POWER_SENSOR_PORT_ID);
-                                Dht21TempHumiditySensorData data = getMgr().getDht21TempHumiditySensorReading(OUTDOOR_TEMPERATURE_SENS_PORT_ID);
+                                BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
+                                Dht21TempHumiditySensorData data = getMgr().runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(OUTDOOR_TEMPERATURE_SENS_PORT_ID));
                                 long now = System.currentTimeMillis();
                                 log.info("RecuperationModule: " +
                                         "\n ext power state: " + state +

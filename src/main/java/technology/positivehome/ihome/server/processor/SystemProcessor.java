@@ -13,6 +13,7 @@ import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformed
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.*;
+import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 import technology.positivehome.ihome.server.service.core.module.IHomeModuleSummary;
 
@@ -54,37 +55,38 @@ public class SystemProcessor {
     public PowerSummaryInfo getPowerSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return new PowerSummaryInfo(
                 systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000),
-                BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(POWER_SENSOR_PORT_ID)) ? 1 : 0,
-                BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(SECURITY_MODE_SENSOR_PORT_ID)) ? 1 : 0,
-                BinaryPortStatus.ENABLED.equals(systemManager.getBinOutputStatus(DIRECT_POWER_SUPPLY_PORT)) ? 1 : 0,
-                BinaryPortStatus.ENABLED.equals(systemManager.getBinOutputStatus(CONVERTER_POWER_SUPPLY_PORT)) ? 1 : 0
+                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID))) ? 1 : 0,
+                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0,
+                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0,
+                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(CONVERTER_POWER_SUPPLY_PORT))) ? 1 : 0
         );
     }
 
     public HeatingSummaryInfo getHeatingSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
-        return HeatingSummaryInfo.builder().indoorData(
-                systemManager.getBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID),
-                systemManager.getDs18b20SensorReading(SFLOOR_TEMP_SENSOR_ID),
-                systemManager.getDs18b20SensorReading(GFLOOR_TEMP_SENSOR_ID))
-                .outDoorData(systemManager.getDht21TempHumiditySensorReading(OUTDOOR_TEMP_HUMIDITY_SENSOR_ID))
-                .garageData(systemManager.getDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID))
-                .boilerData(systemManager.getDs18b20SensorReading(BOILER_TEMP_SENSOR_ID)).build();
+        return HeatingSummaryInfo.builder()
+                .indoorData(
+                        systemManager.runCommand(IHomeCommandFactory.cmdGetBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID)),
+                        systemManager.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(SFLOOR_TEMP_SENSOR_ID)),
+                        systemManager.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(GFLOOR_TEMP_SENSOR_ID)))
+                .outDoorData(systemManager.runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(OUTDOOR_TEMP_HUMIDITY_SENSOR_ID)))
+                .garageData(systemManager.runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID)))
+                .boilerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(BOILER_TEMP_SENSOR_ID))).build();
     }
 
     public SystemSummaryInfo getSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return SystemSummaryInfo.builder(startTime.get())
                 .indoorData(
-                        systemManager.getBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID),
-                        systemManager.getDs18b20SensorReading(SFLOOR_TEMP_SENSOR_ID),
-                        systemManager.getDs18b20SensorReading(GFLOOR_TEMP_SENSOR_ID))
-                .outDoorData(systemManager.getDht21TempHumiditySensorReading(OUTDOOR_TEMP_HUMIDITY_SENSOR_ID))
-                .garageData(systemManager.getDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID))
-                .boilerData(systemManager.getDs18b20SensorReading(BOILER_TEMP_SENSOR_ID))
+                        systemManager.runCommand(IHomeCommandFactory.cmdGetBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID)),
+                        systemManager.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(SFLOOR_TEMP_SENSOR_ID)),
+                        systemManager.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(GFLOOR_TEMP_SENSOR_ID)))
+                .outDoorData(systemManager.runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(OUTDOOR_TEMP_HUMIDITY_SENSOR_ID)))
+                .garageData(systemManager.runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID)))
+                .boilerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(BOILER_TEMP_SENSOR_ID)))
                 .luminosityData(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000))
-                .powerData(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(POWER_SENSOR_PORT_ID)) ? 1 : 0)
-                .securityMode(BinaryPortStatus.ENABLED.equals(systemManager.getBinSensorsState(SECURITY_MODE_SENSOR_PORT_ID)) ? 1 : 0)
-                .pwSrcDirectModeMode(systemManager.getBinOutputStatus(DIRECT_POWER_SUPPLY_PORT) ? 1 : 0)
-                .pwSrcConverterMode(systemManager.getBinOutputStatus(CONVERTER_POWER_SUPPLY_PORT) ? 1: 0)
+                .powerData(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID))) ? 1 : 0)
+                .securityMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0)
+                .pwSrcDirectModeMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0)
+                .pwSrcConverterMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(CONVERTER_POWER_SUPPLY_PORT))) ? 1: 0)
                 .systemLoadStatsData(
                         (int) Math.round(ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage() * 100),
                         (int) (ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax() / 1048576L),
