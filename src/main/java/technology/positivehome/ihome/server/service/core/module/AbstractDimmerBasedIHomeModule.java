@@ -34,14 +34,14 @@ public abstract class AbstractDimmerBasedIHomeModule extends AbstractIHomeModule
     }
 
     @Override
-    protected OutputPortStatus getOutputPortStatus(long port) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        DimmerPortStatus status = getMgr().runCommand(IHomeCommandFactory.cmdGetDimmerStatus(port));
+    protected OutputPortStatus getOutputPortStatus(ModuleConfigElementEntry port) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+        DimmerPortStatus status = getMgr().runCommand(IHomeCommandFactory.cmdGetDimmerStatus(port.getPort()));
         return OutputPortStatus.of(status);
     }
 
     @Override
-    protected OutputPortStatus updateOutputPortState(long port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
-        DimmerPortStatus newStatus = getMgr().runCommand(IHomeCommandFactory.cmdSetDimmerStatus(port, DimmerPortStatus.of(status.getValue())));
+    protected OutputPortStatus updateOutputPortState(ModuleConfigElementEntry port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
+        DimmerPortStatus newStatus = getMgr().runCommand(IHomeCommandFactory.cmdSetDimmerStatus(port.getPort(), DimmerPortStatus.of(status.getValue())));
         return OutputPortStatus.of(newStatus);
     }
 

@@ -61,8 +61,11 @@ public class BathRoomVentilationControlModule extends AbstractRelayBasedIHomeMod
                     switch (getMode()) {
                         case AUTO:
                             OutputPortStatus status = getOutputPortStatus();
+
                             Dht21TempHumiditySensorData data = getMgr().runCommand(
-                                    IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(bathRoomHumiditySensorId.get().getLongValue()));
+                                    IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(
+                                            controllerPort(bathRoomHumiditySensorId.get().getLongValue())));
+
                             if (System.currentTimeMillis() - timeMotionDetected.get() < MILLS_VENTILATION_TIME || data.getHumidity() > HUMIDITY_INDOOR_BATHROOM_MAX) {
                                 if (!status.isEnabled() || status.isUndefined()) {
                                     setOutputStatus(OutputPortStatus.enabled());

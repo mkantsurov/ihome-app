@@ -156,12 +156,12 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
 
         List<OutputPortStatus> results = new ArrayList<>();
         for (ModuleConfigElementEntry ent : outputPorts) {
-            results.add(getOutputPortStatus(ent.getPort()));
+            results.add(getOutputPortStatus(ent));
         }
         return OutputPortStatus.summarize(results);
     }
 
-    protected abstract OutputPortStatus getOutputPortStatus(long port) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
+    protected abstract OutputPortStatus getOutputPortStatus(ModuleConfigElementEntry ent) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException;
 
     public OutputPortStatus setOutputStatus(OutputPortStatus status) throws URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException {
 
@@ -169,7 +169,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
 
         List<OutputPortStatus> results = new ArrayList<>();
         for (ModuleConfigElementEntry ent : outputPorts) {
-            results.add(updateOutputPortState(ent.getPort(), status));
+            results.add(updateOutputPortState(ent, status));
         }
         OutputPortStatus curStatus = OutputPortStatus.summarize(results);
         OutputPortStatus previousState = lastPortState.getAndSet(curStatus);
@@ -188,7 +188,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
 
     protected abstract List<ModuleConfigElementEntry> getOutputPorts();
 
-    protected abstract OutputPortStatus updateOutputPortState(long port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException;
+    protected abstract OutputPortStatus updateOutputPortState(ModuleConfigElementEntry port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException;
 
     @Override
     public ModuleAssignment getAssignment() {
@@ -227,6 +227,14 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
     @Override
     public String getName() {
         return name;
+    }
+
+    protected long controllerPort(Long moduleElementId) {
+        ModuleConfigElementEntry conf = inputPorts.get(moduleElementId);
+        if (conf == null) {
+            throw new IllegalArgumentException("Module element with ID# " + moduleElementId + " is absent in module configuration");
+        }
+        return conf.getPort();
     }
 
     /**

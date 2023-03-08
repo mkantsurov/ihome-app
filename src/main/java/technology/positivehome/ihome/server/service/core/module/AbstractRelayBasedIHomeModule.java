@@ -33,13 +33,13 @@ public abstract class AbstractRelayBasedIHomeModule extends AbstractIHomeModule 
     }
 
     @Override
-    protected OutputPortStatus getOutputPortStatus(long port) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return OutputPortStatus.of(getMgr().runCommand(IHomeCommandFactory.cmdGetRelayStatus(port)));
+    protected OutputPortStatus getOutputPortStatus(ModuleConfigElementEntry port) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+        return OutputPortStatus.of(getMgr().runCommand(IHomeCommandFactory.cmdGetRelayStatus(port.getPort())));
     }
 
     @Override
-    protected OutputPortStatus updateOutputPortState(long port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
-        return OutputPortStatus.of(getMgr().runCommand(IHomeCommandFactory.cmdSetRelayStatus(port, status.isEnabled() ? BinaryPortStatus.ENABLED : BinaryPortStatus.DISABLED)));
+    protected OutputPortStatus updateOutputPortState(ModuleConfigElementEntry port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
+        return OutputPortStatus.of(getMgr().runCommand(IHomeCommandFactory.cmdSetRelayStatus(port.getPort(), status.isEnabled() ? BinaryPortStatus.ENABLED : BinaryPortStatus.DISABLED)));
     }
 
     @Override

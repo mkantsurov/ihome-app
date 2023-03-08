@@ -111,16 +111,16 @@ public class HeatingSystemPumpControlModule extends AbstractRelayBasedIHomeModul
 
 
     private double getBoilerTemperature() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(boilerTemperatureSensorPort)).getData();
+        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(controllerPort(boilerTemperatureSensorPort))).getData();
     }
 
     private double getIndoorTemperature(UiControlType indoorTemperatureSensorType) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         if (UiControlType.DS18B20_TEMP_SENSOR.equals(indoorTemperatureSensorType)) {
-            return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(indoorTemperatureSensorPort)).getData();
+            return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(controllerPort(indoorTemperatureSensorPort))).getData();
         } else if (UiControlType.DHT21_TEMP_HUMIDITY_SENSOR.equals(indoorTemperatureSensorType)) {
-            return getMgr().runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(indoorTemperatureSensorPort)).getTemperature();
+            return getMgr().runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(controllerPort(indoorTemperatureSensorPort))).getTemperature();
         } else if (UiControlType.BME280_TEMP_HUMIDITY_PRESS_SENSOR.equals(indoorTemperatureSensorType)) {
-            return getMgr().runCommand(IHomeCommandFactory.cmdGetBme280TempHumidityPressureSensorReading(indoorTemperatureSensorPort)).getTemperature();
+            return getMgr().runCommand(IHomeCommandFactory.cmdGetBme280TempHumidityPressureSensorReading(controllerPort(indoorTemperatureSensorPort))).getTemperature();
         } else {
             throw new IllegalStateException("Unsupported sensor type");
         }

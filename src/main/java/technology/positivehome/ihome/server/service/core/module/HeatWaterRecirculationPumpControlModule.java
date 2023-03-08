@@ -94,11 +94,11 @@ public class HeatWaterRecirculationPumpControlModule extends AbstractRelayBasedI
     }
 
     private double getBoilerTemperature() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(boilerTemperatureSensorPort)).getData();
+        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(controllerPort(boilerTemperatureSensorPort))).getData();
     }
 
     private double getWaterTemperature() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(waterTemperatureSensorPort)).getData();
+        return getMgr().runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(controllerPort(waterTemperatureSensorPort))).getData();
     }
 
     @Override
