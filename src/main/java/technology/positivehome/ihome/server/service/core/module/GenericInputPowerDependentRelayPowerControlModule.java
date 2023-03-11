@@ -20,6 +20,8 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
 
     public static final int POWER_SENSOR_PORT_ID = 29;
 
+    public static final int POWER_METER_PORT_ID = 85;
+
     private final CronModuleJob[] moduleJobs;
 
     private final AtomicLong lastPowerOkTs = new AtomicLong(System.currentTimeMillis());
@@ -34,21 +36,19 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                         switch (getMode()) {
                             case AUTO:
                                 OutputPortStatus status = getOutputPortStatus();
-                                BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
+                                double voltage = getMgr().runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage();
+                                boolean powerSupplyOk = voltage > 170 && voltage < 245;
                                 long now = System.currentTimeMillis();
-                                switch (state) {
-                                    case ENABLED:
-                                        lastPowerOkTs.set(System.currentTimeMillis());
-                                        if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get()) {
-                                            setOutputStatus(OutputPortStatus.enabled());
-                                        }
-                                        break;
-                                    case DISABLED:
-                                        lastPowerFailTs.set(System.currentTimeMillis());
-                                        if (status.isEnabled() && now - MAX_POWER_ABSENT_DELAY > lastPowerOkTs.get()) {
-                                            setOutputStatus(OutputPortStatus.disabled());
-                                        }
-                                        break;
+                                if (powerSupplyOk) {
+                                    lastPowerOkTs.set(System.currentTimeMillis());
+                                    if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get()) {
+                                        setOutputStatus(OutputPortStatus.enabled());
+                                    }
+                                } else {
+                                    lastPowerFailTs.set(System.currentTimeMillis());
+                                    if (status.isEnabled() && now - MAX_POWER_ABSENT_DELAY > lastPowerOkTs.get()) {
+                                        setOutputStatus(OutputPortStatus.disabled());
+                                    }
                                 }
                                 break;
                         }

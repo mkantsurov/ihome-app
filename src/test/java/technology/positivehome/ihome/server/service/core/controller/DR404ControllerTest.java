@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class DR404ControllerTest {
@@ -25,11 +26,14 @@ public class DR404ControllerTest {
                         int read;
                         do {
                             read = is.read(buffer);
-                            System.out.println("Read: " + read);
-                            System.out.print(Arrays.toString(buffer));
                         } while (read < 0);
+                        System.out.println("Read: " + read);
+                        System.out.print(Arrays.toString(buffer));
+                        ByteBuffer bb = ByteBuffer.allocate(buffer.length).put(buffer);
+                        bb.position(4);
+                        System.out.println("Voltage:" + ByteBuffer.wrap(buffer, 3, 2).getShort());
+//                        Float.intBitsToFloat()
                     }
-
                 }
                 Thread.sleep(1000L);
             } catch (Exception ex) {

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static technology.positivehome.ihome.server.processor.ModuleMapper.from;
+import static technology.positivehome.ihome.server.service.core.module.GenericInputPowerDependentRelayPowerControlModule.POWER_METER_PORT_ID;
 import static technology.positivehome.ihome.server.service.core.module.GenericInputPowerDependentRelayPowerControlModule.POWER_SENSOR_PORT_ID;
 
 @Component
@@ -55,10 +56,10 @@ public class SystemProcessor {
     public PowerSummaryInfo getPowerSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return new PowerSummaryInfo(
                 systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000),
-                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID))) ? 1 : 0,
+                (int) Math.round(systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage() * 10),
                 BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0,
-                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0,
-                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(CONVERTER_POWER_SUPPLY_PORT))) ? 1 : 0
+                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0,
+                BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(CONVERTER_POWER_SUPPLY_PORT))) ? 1 : 0
         );
     }
 
@@ -83,7 +84,7 @@ public class SystemProcessor {
                 .garageData(systemManager.runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID)))
                 .boilerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(BOILER_TEMP_SENSOR_ID)))
                 .luminosityData(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000))
-                .powerData(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID))) ? 1 : 0)
+                .powerData((int) Math.round(systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage() * 10))
                 .securityMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0)
                 .pwSrcDirectModeMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0)
                 .pwSrcConverterMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(CONVERTER_POWER_SUPPLY_PORT))) ? 1: 0)

@@ -3,12 +3,12 @@ package technology.positivehome.ihome.server.service.core.controller;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import technology.positivehome.ihome.domain.constant.IHomePortType;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.server.model.PortInfo;
 import technology.positivehome.ihome.server.model.command.*;
 import technology.positivehome.ihome.server.service.core.controller.input.*;
 import technology.positivehome.ihome.server.service.core.controller.output.DimmerOutput;
@@ -146,25 +146,6 @@ public abstract class AbstractMegadController implements IHomeController {
 
     protected String getModuleUrl() {
         return moduleUrl;
-    }
-
-    private class PortInfo {
-
-        private long portId;
-        private IHomePortType portType;
-
-        public PortInfo(long portId, IHomePortType portType) {
-            this.portId = portId;
-            this.portType = portType;
-        }
-
-        public long getPortId() {
-            return portId;
-        }
-
-        public IHomePortType getPortType() {
-            return portType;
-        }
     }
 
     private void tryLockOrThrowExcption() throws InterruptedException, IOException {

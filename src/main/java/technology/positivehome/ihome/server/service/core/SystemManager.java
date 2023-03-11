@@ -83,9 +83,18 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
                     configEntity, controllerPortConfigRepository.findByControllerId(configEntity.id()));
             IHomeController cnt;
             if (sysConfig.getControllerMode() == ControllerMode.LIVE) {
-                cnt = new MegadControllerImpl(eventPublisher, entry);
+                switch (configEntity.type()) {
+                    case MEGAD -> cnt = new MegadControllerImpl(eventPublisher, entry);
+                    case USR404 -> cnt = new DR404ControllerImpl(eventPublisher, entry);
+                    default -> throw new IllegalStateException("Invalid controller type: " + configEntity.type());
+                }
             } else {
-                cnt = new EmulatedMegadControllerImpl(eventPublisher, entry);
+                switch (configEntity.type()) {
+                    case MEGAD -> cnt = new EmulatedMegadControllerImpl(eventPublisher, entry);
+                    case USR404 -> cnt = new DR404EmulatedControllerImpl(eventPublisher, entry);
+                    default -> throw new IllegalStateException("Invalid controller type: " + configEntity.type());
+                }
+
             }
 
             controllerById.put(entry.id(), cnt);
