@@ -57,11 +57,11 @@ public class LiveDimmerOutput extends MegadPort implements DimmerOutput {
         try {
             //?pt=27&pwm=100
             StringBuilder urlWithQuery = new StringBuilder(moduleUrl).append("?")
-                    .append(MegadRequestParam.pt.name()).append("=").append(Integer.toString(getAddress())).append("&")
-                    .append(MegadRequestParam.pwm.name()).append("=").append(value);
+                    .append(MegadRequestParam.pt.name()).append("=").append(getAddress()).append("&")
+                    .append(MegadRequestParam.pwm.name()).append("=").append(value.hwValue());
 
             HttpUriRequest megadRequest = RequestBuilder.get().setUri(new URI(urlWithQuery.toString())).build();
-            String response = makeRequest("", megadRequest);
+            makeRequest("", megadRequest);
             Thread.sleep(100L);
             lastRequestTs.set(0);
             return getStatus();

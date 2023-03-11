@@ -2,6 +2,7 @@ DELETE FROM module_config_element_entry WHERE module_id = 12;
 DELETE FROM module_config_entry where id=12;
 
 UPDATE controller_port_config_entry SET description = 'Bath Room 2-nd Floor Mirror Light PS' WHERE id=24;
+UPDATE controller_port_config_entry SET type = 5 WHERE id=25;
 INSERT INTO controller_port_config_entry (id, controller_id, port_address, type, description) VALUES (83, 3, 12, 1, 'Children room #2 PS #2');
 
 INSERT INTO controller_port_config_entry(id, controller_id, port_address, type, description) VALUES (84, 3, 19, 2, 'Bath Room 2-nd Floor Mirror Light SW');

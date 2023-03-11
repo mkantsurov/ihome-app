@@ -27,9 +27,10 @@ public class ModuleMapper {
         ModuleSummary res = new ModuleSummary(
                 iHomeModule.getModuleId(),
                 iHomeModule.getName(),
+                iHomeModule.dimmableOutput(),
                 iHomeModule.getMode().ordinal(),
                 iHomeModule.getStartupMode().ordinal(),
-                iHomeModule.getOutputPortStatus().getValue(),
+                iHomeModule.getOutputPortStatus().value(),
                 iHomeModule.getAssignment(),
                 iHomeModule.getGroupId());
 
@@ -47,9 +48,10 @@ public class ModuleMapper {
         ModuleEntry data = new ModuleEntry(
                 moduleSummary.getModuleId(),
                 moduleSummary.getName(),
+                moduleSummary.dimmableOutput(),
                 moduleSummary.getMode().ordinal(),
                 moduleSummary.getStartupMode().ordinal(),
-                moduleSummary.getOutputPortStatus().getValue(),
+                moduleSummary.getOutputPortStatus().value(),
                 moduleSummary.getAssignment(),
                 moduleSummary.getGroupId());
 

@@ -35,6 +35,10 @@ public interface IHomeModuleSummary {
 
     String getName();
 
+    default boolean dimmableOutput() {
+        return false;
+    }
+
     List<ModuleConfigElementEntry> getInputPorts();
 
     OutputPortStatus getOutputPortStatus() throws URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, MegadApiMallformedUrlException, InterruptedException;

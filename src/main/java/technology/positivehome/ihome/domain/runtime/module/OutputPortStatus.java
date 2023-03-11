@@ -1,48 +1,26 @@
 package technology.positivehome.ihome.domain.runtime.module;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.constant.DimmerPortStatus;
 
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by maxim on 7/1/19.
- **/
-public class OutputPortStatus {
-
-    private int value = 0;
-
-    public OutputPortStatus() {
-    }
-
-    public OutputPortStatus(int value) {
-        this.value = value;
-    }
-
+public record OutputPortStatus(int value) {
     public static OutputPortStatus undefined() {
         return new OutputPortStatus(-1);
     }
 
     public static OutputPortStatus disabled() {
-        return new OutputPortStatus(0);
+        return new OutputPortStatus(DimmerPortStatus.OFF.ordinal());
     }
 
     public static OutputPortStatus enabled() {
-        return new OutputPortStatus(255);
-    }
-
-    public static OutputPortStatus enabled(int value) {
-        return new OutputPortStatus(value);
-    }
-
-    public static OutputPortStatus intension(int percentage) {
-        return new OutputPortStatus((255 * percentage) / 100);
+        return new OutputPortStatus(DimmerPortStatus.MAX.ordinal());
     }
 
     public static OutputPortStatus of(DimmerPortStatus status) {
-        return new OutputPortStatus(status.intValue());
+        return new OutputPortStatus(status.ordinal());
     }
 
     public static OutputPortStatus of(BinaryPortStatus status) {
@@ -53,75 +31,51 @@ public class OutputPortStatus {
         };
     }
 
-    @JsonIgnore
-    public boolean isEnabled() {
-        return value > 0;
-    }
-
-    @JsonIgnore
-    public boolean isDisabled() {
-        return value == 0;
-    }
-
-    @JsonIgnore
-    public boolean isUndefined() {
-        return value < 0;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
-    }
-
-    @JsonIgnore
-    public int calcIntension() {
-        if (value == 0) {
-            return 0;
-        } else if (value == 255) {
-            return 100;
-        } else if (value > 0 && value <= 25) {
-            return 10;
-        } else if (value > 25 && value <= 76) {
-            return 30;
-        } else if (value > 76 && value <= 204) {
-            return 80;
+    public static OutputPortStatus of(boolean dimmableOutput, int outputValue) {
+        if (dimmableOutput) {
+            return OutputPortStatus.of(DimmerPortStatus.of(outputValue));
         } else {
-            return 100;
+            return outputValue > 0 ? OutputPortStatus.enabled() : OutputPortStatus.disabled();
         }
     }
 
-    @JsonIgnore
     public static OutputPortStatus summarize(List<OutputPortStatus> statusList) {
-
         if (statusList.isEmpty()) {
             return OutputPortStatus.undefined();
         }
 
         if (statusList.size() == 1) {
-            return new OutputPortStatus(statusList.get(0).getValue());
+            return new OutputPortStatus(statusList.get(0).value());
         }
 
         Iterator<OutputPortStatus> it = statusList.iterator();
 
-        OutputPortStatus resStatus = new OutputPortStatus(it.next().getValue());
-
+        int resStatus = it.next().value();
         while (it.hasNext()) {
             OutputPortStatus nextStatus = it.next();
-            if (resStatus.isUndefined() || nextStatus.isUndefined()) {
+            if (resStatus < 0 || nextStatus.isUndefined()) {
                 return OutputPortStatus.undefined();
             }
-            if (resStatus.isEnabled() && !nextStatus.isEnabled()) {
+            if (resStatus > 0 && !nextStatus.isEnabled()) {
                 return OutputPortStatus.undefined();
             }
-            if (!resStatus.isEnabled() && nextStatus.isEnabled()) {
+            if (resStatus == 0 && nextStatus.isEnabled()) {
                 return OutputPortStatus.undefined();
             }
-            resStatus.setValue((resStatus.getValue() + nextStatus.getValue()) / 2);
+            resStatus = resStatus + nextStatus.value() / 2;
         }
-        return resStatus;
+        return new OutputPortStatus(DimmerPortStatus.of(resStatus).ordinal());
     }
 
+    public boolean isEnabled() {
+        return value > 0;
+    }
+
+    public boolean isUndefined() {
+        return value < 0;
+    }
+
+    public boolean isDisabled() {
+        return value == 0;
+    }
 }

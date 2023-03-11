@@ -38,11 +38,15 @@ public class HomeLightDimmerBasedPowerControlModule extends AbstractDimmerBasedI
         if (portsToListen.contains(event.getPortId())) {
             try {
                 boolean wasEnabled = lightState.get() > 0;
-                lightState.set(setOutputStatus(wasEnabled ? OutputPortStatus.disabled() : OutputPortStatus.enabled()).getValue());
+                lightState.set(setOutputStatus(wasEnabled ? OutputPortStatus.disabled() : OutputPortStatus.enabled()).value());
             } catch (Exception ex) {
                 log.error("Unable to switch light", ex);
             }
         }
     }
 
+    @Override
+    public boolean dimmableOutput() {
+        return true;
+    }
 }

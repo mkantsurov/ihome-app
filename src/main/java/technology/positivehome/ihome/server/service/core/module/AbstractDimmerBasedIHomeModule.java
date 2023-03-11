@@ -41,7 +41,7 @@ public abstract class AbstractDimmerBasedIHomeModule extends AbstractIHomeModule
 
     @Override
     protected OutputPortStatus updateOutputPortState(ModuleConfigElementEntry port, OutputPortStatus status) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, InterruptedException, IOException {
-        DimmerPortStatus newStatus = getMgr().runCommand(IHomeCommandFactory.cmdSetDimmerStatus(port.getPort(), DimmerPortStatus.of(status.getValue())));
+        DimmerPortStatus newStatus = getMgr().runCommand(IHomeCommandFactory.cmdSetDimmerStatus(port.getPort(), DimmerPortStatus.of(status.value())));
         return OutputPortStatus.of(newStatus);
     }
 

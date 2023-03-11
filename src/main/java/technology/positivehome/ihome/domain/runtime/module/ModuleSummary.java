@@ -13,10 +13,9 @@ public class ModuleSummary {
 
     private final long moduleId;
     private final String name;
+    private final boolean dimmableOutput;
     private final int mode;
-
     private final int startupMode;
-
     private final int outputPortState;
     private final ModuleAssignment assignment;
     private final long group;
@@ -25,6 +24,7 @@ public class ModuleSummary {
 
     public ModuleSummary(@JsonProperty("moduleId") long moduleId,
                          @JsonProperty("name") String name,
+                         @JsonProperty("dimmableOutput") boolean dimmableOutput,
                          @JsonProperty("mode") int mode,
                          @JsonProperty("startupMode")int startupMode,
                          @JsonProperty("outputPortState") int outputPortState,
@@ -32,6 +32,7 @@ public class ModuleSummary {
                          @JsonProperty("group") long group) {
         this.moduleId = moduleId;
         this.name = name;
+        this.dimmableOutput = dimmableOutput;
         this.mode = mode;
         this.startupMode = startupMode;
         this.outputPortState = outputPortState;
@@ -45,6 +46,10 @@ public class ModuleSummary {
 
     public String getName() {
         return name;
+    }
+
+    public boolean isDimmableOutput() {
+        return dimmableOutput;
     }
 
     public int getMode() {

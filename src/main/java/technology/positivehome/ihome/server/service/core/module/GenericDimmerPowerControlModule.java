@@ -16,4 +16,10 @@ public class GenericDimmerPowerControlModule extends AbstractDimmerBasedIHomeMod
     protected CronModuleJob[] getJobList() {
         return new CronModuleJob[0];
     }
+
+    @Override
+    public boolean dimmableOutput() {
+        return true;
+    }
+
 }

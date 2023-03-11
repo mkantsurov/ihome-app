@@ -4,33 +4,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
-/**
- * Created by maxim on 3/7/21.
- **/
-public class ModuleUpdateRequest implements Serializable {
-
-    private final boolean enabledOnStartup;
-    private final boolean moduleActive;
-    private final boolean outputPortEnabled;
+public record ModuleUpdateRequest(boolean enabledOnStartup,
+                                  boolean moduleActive,
+                                  int outputValue) implements Serializable {
 
     public ModuleUpdateRequest(
             @JsonProperty("enabledOnStartup") boolean enabledOnStartup,
             @JsonProperty("moduleActive") boolean moduleActive,
-            @JsonProperty("outputPortEnabled") boolean outputPortEnabled) {
+            @JsonProperty("outputValue") int outputValue) {
         this.enabledOnStartup = enabledOnStartup;
         this.moduleActive = moduleActive;
-        this.outputPortEnabled = outputPortEnabled;
+        this.outputValue = outputValue;
     }
-
-    public boolean isEnabledOnStartup() {
-        return enabledOnStartup;
-    }
-    public boolean isModuleActive() {
-        return moduleActive;
-    }
-
-    public boolean isOutputPortEnabled() {
-        return outputPortEnabled;
-    }
-
 }

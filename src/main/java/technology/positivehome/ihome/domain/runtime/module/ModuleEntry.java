@@ -16,8 +16,8 @@ public class ModuleEntry extends ModuleSummary {
     private final List<Bme280TempHumidityPressureSensorReadingData> bme280TempHumidityPressureSensorData = new ArrayList<>();
     private final List<Tsl2591LuminositySensorReadingData> tsl2591LuminositySensorData = new ArrayList<>();
 
-    public ModuleEntry(long moduleId, String name, int mode, int startupMode, int outputPortState, ModuleAssignment assignment, long group) {
-        super(moduleId, name, mode, startupMode, outputPortState, assignment, group);
+    public ModuleEntry(long moduleId, String name, boolean dimmableOutput, int mode, int startupMode, int outputPortState, ModuleAssignment assignment, long group) {
+        super(moduleId, name, dimmableOutput, mode, startupMode, outputPortState, assignment, group);
     }
 
     public List<BinarySensorData> getBinarySensorData() {

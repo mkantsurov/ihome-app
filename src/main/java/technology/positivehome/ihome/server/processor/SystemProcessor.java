@@ -134,7 +134,8 @@ public class SystemProcessor {
             } catch (Exception e) {
                 throw new IllegalStateException("Unable to load module status", e);
             }
-        }).sorted(Comparator.comparingInt((ModuleSummary ms) -> ms.getAssignment().ordinal()).thenComparingLong(ModuleSummary::getGroup))
+        }).sorted(Comparator.comparingInt((ModuleSummary ms) -> ms.getAssignment().ordinal())
+                        .thenComparing(ModuleSummary::getName).thenComparingLong(ModuleSummary::getGroup))
                 .toArray(ModuleSummary[]::new);
     }
 
@@ -145,8 +146,9 @@ public class SystemProcessor {
     }
 
     public void updateModuleProps(long moduleId, ModuleUpdateRequest moduleUpdateRequest) throws InterruptedException, MegadApiMallformedUrlException, IOException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, URISyntaxException {
-        systemManager.updateModuleStartupMode(moduleId, moduleUpdateRequest.isEnabledOnStartup() ? ModuleStartupMode.ENABLED : ModuleStartupMode.DISABLED);
-        systemManager.updateModuleMode(moduleId, moduleUpdateRequest.isModuleActive() ? ModuleOperationMode.AUTO : ModuleOperationMode.MANUAL);
-        systemManager.updateModuleOutputState(moduleId, moduleUpdateRequest.isOutputPortEnabled() ? OutputPortStatus.enabled() : OutputPortStatus.disabled());
+        systemManager.updateModuleStartupMode(moduleId, moduleUpdateRequest.enabledOnStartup() ? ModuleStartupMode.ENABLED : ModuleStartupMode.DISABLED);
+        systemManager.updateModuleMode(moduleId, moduleUpdateRequest.moduleActive() ? ModuleOperationMode.AUTO : ModuleOperationMode.MANUAL);
+        IHomeModuleSummary moduleSummary = systemManager.getModuleSummary(moduleId);
+        systemManager.updateModuleOutputState(moduleId, OutputPortStatus.of(moduleSummary.dimmableOutput(), moduleUpdateRequest.outputValue()));
     }
 }

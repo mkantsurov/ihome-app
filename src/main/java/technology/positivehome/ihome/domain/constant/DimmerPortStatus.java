@@ -15,17 +15,20 @@ public enum DimmerPortStatus {
         if (value == 0) {
             return OFF;
         }
+        if (value > DimmerPortStatus.MAX.ordinal()) {
+            return  DimmerPortStatus.MAX;
+        }
         int startValue = 0;
         for (DimmerPortStatus status : values()) {
-            if (value > startValue && value <= status.intValue()) {
+            if (value > startValue && value <= status.ordinal()) {
                 return status;
             }
-            startValue = status.intValue();
+            startValue = status.ordinal();
         }
         return OFF;
     }
 
-    public int intValue() {
+    public int hwValue() {
         return switch (this) {
             case OFF -> 0;
             case MINIMUM -> 40;
