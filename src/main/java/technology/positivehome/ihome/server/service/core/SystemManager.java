@@ -215,6 +215,9 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
             inputPowerSupplySourceCalc.dataUpdate(
                     getController(controllerIdByPort.get(LUMINOSITY_SENSOR_ID))
                             .runCommand(IHomeCommandFactory.cmdGetADCSensorReading(LUMINOSITY_SENSOR_ID)));
+//            OutputPortStatus status = getOutputPortStatus();
+//            double voltage = getMgr().runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage();
+//            boolean powerSupplyOk = voltage > 170 && voltage < 245;
         } catch (Exception ex) {
             log.error("Error reading luminosity data ", ex);
         }

@@ -21,7 +21,7 @@ public class DirectInputPowerSupplyControlModule extends AbstractRelayBasedIHome
     public DirectInputPowerSupplyControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
         log.info("Initializing ConverterInputPowerSupplyControlModule");
-        final long checkPeriod = TimeUnit.SECONDS.toMillis(120);
+        final long checkPeriod = TimeUnit.SECONDS.toMillis(60);
 
         moduleJobs = new CronModuleJob[] {new CronModuleJob(checkPeriod) {
             @Override
