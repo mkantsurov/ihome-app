@@ -2,6 +2,7 @@ package technology.positivehome.ihome.server.service.core.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import technology.positivehome.ihome.server.service.core.controller.input.LiveDds238PowerMeterImpl;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,7 +19,7 @@ public class DR404ControllerTest {
             try {
                 try (Socket clientSocket = new Socket("192.168.88.75", 8899)) {
                     try (OutputStream os = clientSocket.getOutputStream()) {
-                        byte[] cmd = new byte[]{0x01, 0x03, 0, 0x0c, 0, 0x01, 0x44, 0x09};
+                        byte[] cmd = LiveDds238PowerMeterImpl.createReadCommand(0x01, 0x0c, 1);
                         os.write(cmd);
 //                    os.flush();
                         InputStream is = clientSocket.getInputStream();
