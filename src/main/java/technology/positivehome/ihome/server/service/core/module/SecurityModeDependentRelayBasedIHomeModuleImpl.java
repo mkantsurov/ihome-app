@@ -30,7 +30,7 @@ public class SecurityModeDependentRelayBasedIHomeModuleImpl extends AbstractRela
     public SecurityModeDependentRelayBasedIHomeModuleImpl(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
         moduleJobs = new CronModuleJob[]{
-                new CronModuleJob(TimeUnit.MINUTES.toMillis(15)) {
+                new CronModuleJob(TimeUnit.MINUTES.toMillis(3)) {
                     @Override
                     protected void execute() throws Exception {
                         switch (getMode()) {

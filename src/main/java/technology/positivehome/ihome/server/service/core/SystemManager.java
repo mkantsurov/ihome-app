@@ -165,6 +165,9 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
                 case RECUPERATOR_POWER_SUPPLY_CONTROL_MODULE:
                     moduleToInit = new RecuperationPowerControlModule(this, configEntry);
                     break;
+                case SOLAR_SYSTEM_PUMP_POWER_CONTROL_MODULE:
+                    moduleToInit = new SolarSystemPumpPowerControlModule(this, configEntry);
+                    break;
                 default:
                     throw new IllegalStateException("Module with #" + configEntry.getId() + " can't be initialized. (no config available)");
             }
