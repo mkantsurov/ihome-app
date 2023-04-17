@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMeter {
     public LiveDds238PowerMeterImpl(DR404RequestExecutor requestExecutor, int port) {
@@ -55,43 +57,38 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
         0x44,0x84,0x85,0x45,0x87,0x47,0x46,0x86,0x82,0x42,0x43,0x83,0x41,0x81,0x80,0x40
     };
 
-    public static int calcCRC(byte[] data, int len) {
+    public static byte[] addCRC(byte[] data) {
+        byte[] result = Arrays.copyOf(data, data.length + 2);
         int uchCRCHi = 0xff;
         int uchCHCLo = 0xff;
-        for (int i=0; i<len; i++) {
+        for (int i=0; i<data.length; i++) {
             int uIndex = uchCRCHi ^ data[i];
             uchCRCHi = uchCHCLo ^ auchCRCHi[uIndex];
             uchCHCLo = auchCRCLo[uIndex];
         }
-        return uchCRCHi << 8 | uchCHCLo;
-    }
-
-    public static byte[] createReadCommand(int port, int registerAdr, int data) {
-        byte[] result = {(byte) port, 0x03, (byte) (registerAdr >> 8), (byte) (registerAdr & 0xff), (byte) (data >> 8), (byte) (data & 0xff), 0, 0};
-        int crc = calcCRC(result, 6);
-        result[6] = (byte) (crc >> 8);
-        result[7] = (byte) (crc & 0xff);
+        result[data.length] = (byte) uchCRCHi;
+        result[data.length + 1] = (byte) uchCHCLo;
         return result;
     }
 
-//    public static byte[] createWriteCommand(int port, int registerAdr, int data) {
-//        byte[] result = {
-//                (byte) port,
-//                0x10,
-//                (byte) (registerAdr >> 8),
-//                (byte) (registerAdr & 0xff),
-//                0,
-//                1,
-//                2,
-//                (byte) (data >> 8),
-//                (byte) (data & 0xff),
-//                0,
-//                0};
-//        int crc = calcCRC(result, 9);
-//        result[9] = (byte) (crc >> 8);
-//        result[10] = (byte) (crc & 0xff);
-//        return result;
-//    }
+    public static byte[] createReadCommand(int port, int registerAdr, int data) {
+        byte[] result = {(byte) port, 0x03, (byte) (registerAdr >> 8), (byte) (registerAdr & 0xff), (byte) (data >> 8), (byte) (data & 0xff)};
+        return addCRC(result);
+    }
+
+    public static byte[] createWriteCommand(int port, int registerAdr, int data) {
+        byte[] result = {
+                (byte) port,
+                0x10,
+                (byte) (registerAdr >> 8),
+                (byte) (registerAdr & 0xff),
+                0,
+                1,
+                2,
+                (byte) (data >> 8),
+                (byte) (data & 0xff)};
+        return addCRC(result);
+    }
     @Override
     public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
         return getRequestExecutor().performRequest(socket -> {
