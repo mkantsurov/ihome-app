@@ -33,7 +33,7 @@ public record OutputPortStatus(int value) {
 
     public static OutputPortStatus of(boolean dimmableOutput, int outputValue) {
         if (dimmableOutput) {
-            return OutputPortStatus.of(DimmerPortStatus.of(outputValue));
+            return OutputPortStatus.of(DimmerPortStatus.ofHwValue(outputValue));
         } else {
             return outputValue > 0 ? OutputPortStatus.enabled() : OutputPortStatus.disabled();
         }

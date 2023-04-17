@@ -28,6 +28,23 @@ public enum DimmerPortStatus {
         return OFF;
     }
 
+    public static DimmerPortStatus ofHwValue(int value) {
+        if (value == 0) {
+            return OFF;
+        }
+        if (value > DimmerPortStatus.MAX.hwValue()) {
+            return  DimmerPortStatus.MAX;
+        }
+        int startValue = 0;
+        for (DimmerPortStatus status : values()) {
+            if (value > startValue && value <= status.hwValue()) {
+                return status;
+            }
+            startValue = status.hwValue();
+        }
+        return OFF;
+    }
+
     public int hwValue() {
         return switch (this) {
             case OFF -> 0;
