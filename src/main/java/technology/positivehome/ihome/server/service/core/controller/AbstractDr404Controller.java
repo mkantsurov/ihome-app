@@ -51,6 +51,7 @@ public abstract class AbstractDr404Controller implements DR404Controller, DR404R
     @Override
     public <R> R performRequest(SocketExecutor<R> executor) throws IOException {
         try (Socket clientSocket = new Socket(socketIpAddress, socketPortAddress)) {
+            clientSocket.setSoTimeout(3000);
             return executor.run(clientSocket);
         }
     }

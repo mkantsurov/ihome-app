@@ -103,7 +103,7 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
                     System.out.println("Read: " + read);
                     System.out.print(Arrays.toString(buffer));
                 } while (read < 0);
-                return new Dds238PowerMeterData(ByteBuffer.wrap(buffer, 3, 2).getShort()/10.0);
+                return new Dds238PowerMeterData(ByteBuffer.wrap(buffer, 3, 2).getShort()/10.0, .0,.0,.0);
             }
         });
     }
