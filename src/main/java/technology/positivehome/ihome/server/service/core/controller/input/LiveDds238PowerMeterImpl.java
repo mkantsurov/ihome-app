@@ -141,17 +141,18 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
             try (OutputStream os = socket.getOutputStream()) {
                 InputStream is = socket.getInputStream();
                 Dds238PowerMeterData.Builder result = Dds238PowerMeterData.builder();
-                requestData(os, is, port, Dds238Command.READ_TOTAL_ENERGY, bytes -> {
-                    result.total(ByteBuffer.wrap(bytes, 3, 4).getShort()/10.0);
+                LiveDds238PowerMeterImpl.requestData(os, is, port, Dds238Command.READ_VOLTAGE, bytes -> {
+                    result.voltage(ByteBuffer.wrap(bytes, 3, 2).getShort() / 10.0);
                 });
-                requestData(os, is, port, Dds238Command.READ_VOLTAGE, bytes -> {
-                    result.voltage(ByteBuffer.wrap(bytes, 3, 2).getShort()/10.0);
+                LiveDds238PowerMeterImpl.requestData(os, is, port, Dds238Command.READ_CURRENT, bytes -> {
+                    result.current(ByteBuffer.wrap(bytes, 3, 2).getShort() / 100.0);
                 });
-                requestData(os, is, port, Dds238Command.READ_CURRENT, bytes -> {
-                    result.voltage(ByteBuffer.wrap(bytes, 3, 2).getShort()/10.0);
+                LiveDds238PowerMeterImpl.requestData(os, is, port, Dds238Command.READ_FREQUENCY, bytes -> {
+                    result.freq(ByteBuffer.wrap(bytes, 3, 2).getShort() / 100.0);
                 });
-                requestData(os, is, port, Dds238Command.READ_FREQUENCY, bytes -> {
-                    result.voltage(ByteBuffer.wrap(bytes, 3, 2).getShort()/10.0);
+                LiveDds238PowerMeterImpl.requestData(os, is, port, Dds238Command.READ_TOTAL_ENERGY, bytes -> {
+                    byte[] data = new byte[]{0, 0, 0, 0, bytes[3], bytes[4], bytes[5], bytes[6]};
+                    result.total(ByteBuffer.wrap(data, 0, 8).getLong() / 100.0);
                 });
                 return result.build();
             }
