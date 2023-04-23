@@ -74,25 +74,24 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
     }
 
     public static boolean checkCRC(byte[] data, int length) {
+        if (data.length + 2 < length) {
+            throw new IllegalArgumentException("Data length (" + data.length + ") is less than requested length + (" + length + ")");
+        }
+
+        int uchCRCHi = 0xff;
+        int uchCHCLo = 0xff;
+        for (int i=0; i<length; i++) {
+            int uIndex = uchCRCHi ^ Byte.toUnsignedInt(data[i]);
+            uchCRCHi = uchCHCLo ^ auchCRCHi[uIndex];
+            uchCHCLo = auchCRCLo[uIndex];
+        }
+        if (data[length] != (byte) uchCRCHi) {
+            return false;
+        }
+        if (data[length+1] != (byte) uchCHCLo) {
+            return false;
+        }
         return true;
-//        if (data.length + 2 < length) {
-//            throw new IllegalArgumentException("Data length (" + data.length + ") is less than requested length + (" + length + ")");
-//        }
-//
-//        int uchCRCHi = 0xff;
-//        int uchCHCLo = 0xff;
-//        for (int i=0; i<length; i++) {
-//            int uIndex = uchCRCHi ^ data[i];
-//            uchCRCHi = uchCHCLo ^ auchCRCHi[uIndex];
-//            uchCHCLo = auchCRCLo[uIndex];
-//        }
-//        if (data[length] != (byte) uchCRCHi) {
-//            return false;
-//        }
-//        if (data[length+1] != (byte) uchCHCLo) {
-//            return false;
-//        }
-//        return true;
     }
 
     public static byte[] createReadCommand(int port, int registerAdr, int data) {

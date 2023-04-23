@@ -17,7 +17,7 @@ public class DR404ControllerTest {
     private static final Log log = LogFactory.getLog(DR404ControllerTest.class);
     public static void main(String[] argv) {
 
-        for (int i=0; i<10; i++) {
+        for (int i=0; i<3; i++) {
             System.out.println("test: " + i);
             queryDs238(1, "Input sensor: ");
 
