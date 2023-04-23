@@ -14,6 +14,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMeter {
     public LiveDds238PowerMeterImpl(DR404RequestExecutor requestExecutor, int port) {
@@ -71,9 +73,54 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
         return result;
     }
 
+    public static boolean checkCRC(byte[] data, int length) {
+        return true;
+//        if (data.length + 2 < length) {
+//            throw new IllegalArgumentException("Data length (" + data.length + ") is less than requested length + (" + length + ")");
+//        }
+//
+//        int uchCRCHi = 0xff;
+//        int uchCHCLo = 0xff;
+//        for (int i=0; i<length; i++) {
+//            int uIndex = uchCRCHi ^ data[i];
+//            uchCRCHi = uchCHCLo ^ auchCRCHi[uIndex];
+//            uchCHCLo = auchCRCLo[uIndex];
+//        }
+//        if (data[length] != (byte) uchCRCHi) {
+//            return false;
+//        }
+//        if (data[length+1] != (byte) uchCHCLo) {
+//            return false;
+//        }
+//        return true;
+    }
+
     public static byte[] createReadCommand(int port, int registerAdr, int data) {
         byte[] result = {(byte) port, 0x03, (byte) (registerAdr >> 8), (byte) (registerAdr & 0xff), (byte) (data >> 8), (byte) (data & 0xff)};
         return addCRC(result);
+    }
+
+    public static void requestData(OutputStream os, InputStream is, int port, Dds238Command command, Consumer<byte[]> result) throws IOException {
+        byte[] cmd = createReadCommand(port, command.getRegister(), command.getData());
+        os.write(cmd);
+        byte[] buffer = new byte[32];
+        int read;
+        do {
+            read = is.read(buffer);
+        } while (read < 0);
+        if (!checkCRC(buffer, command.getExpectedLen() - 2)) {
+            //perform next attempt to read to correct CRC error
+            os.write(cmd);
+            do {
+                read = is.read(buffer);
+            } while (read < 0);
+            if (!checkCRC(buffer, command.getExpectedLen() - 2)) {
+                System.out.println("Read: " + read);
+                System.out.print(Arrays.toString(buffer));
+                throw new IllegalStateException("Malformed response " + Arrays.toString(buffer));
+            }
+        }
+        result.accept(buffer);
     }
 
     public static byte[] createWriteCommand(int port, int registerAdr, int data) {
@@ -93,17 +140,21 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
     public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
         return getRequestExecutor().performRequest(socket -> {
             try (OutputStream os = socket.getOutputStream()) {
-                byte[] cmd = createReadCommand(port, 0x0c, 1);
-                os.write(cmd);
                 InputStream is = socket.getInputStream();
-                byte[] buffer = new byte[32];
-                int read;
-                do {
-                    read = is.read(buffer);
-                    System.out.println("Read: " + read);
-                    System.out.print(Arrays.toString(buffer));
-                } while (read < 0);
-                return new Dds238PowerMeterData(ByteBuffer.wrap(buffer, 3, 2).getShort()/10.0, .0,.0,.0);
+                Dds238PowerMeterData.Builder result = Dds238PowerMeterData.builder();
+                requestData(os, is, port, Dds238Command.READ_TOTAL_ENERGY, bytes -> {
+                    result.total(ByteBuffer.wrap(bytes, 3, 4).getShort()/10.0);
+                });
+                requestData(os, is, port, Dds238Command.READ_VOLTAGE, bytes -> {
+                    result.voltage(ByteBuffer.wrap(bytes, 3, 2).getShort()/10.0);
+                });
+                requestData(os, is, port, Dds238Command.READ_CURRENT, bytes -> {
+                    result.voltage(ByteBuffer.wrap(bytes, 3, 2).getShort()/10.0);
+                });
+                requestData(os, is, port, Dds238Command.READ_FREQUENCY, bytes -> {
+                    result.voltage(ByteBuffer.wrap(bytes, 3, 2).getShort()/10.0);
+                });
+                return result.build();
             }
         });
     }
