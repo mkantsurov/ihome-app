@@ -64,7 +64,7 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
         int uchCRCHi = 0xff;
         int uchCHCLo = 0xff;
         for (int i=0; i<data.length; i++) {
-            int uIndex = uchCRCHi ^ data[i];
+            int uIndex = uchCRCHi ^ Byte.toUnsignedInt(data[i]);
             uchCRCHi = uchCHCLo ^ auchCRCHi[uIndex];
             uchCHCLo = auchCRCLo[uIndex];
         }
