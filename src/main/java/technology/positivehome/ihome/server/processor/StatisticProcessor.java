@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.domain.runtime.*;
-import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntry;
+import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntity;
 import technology.positivehome.ihome.domain.shared.*;
 import technology.positivehome.ihome.server.persistence.MeasurementsLogRepository;
 
@@ -40,9 +40,9 @@ public class StatisticProcessor implements InitializingBean {
         LocalDateTime endTime = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).plusHours(1);
         LocalDateTime startTime = endTime.minusHours(48);
 
-        List<MeasurementLogEntry> res = measurementsLogRepository.readDataForPeriod(startTime, endTime);
-        for (MeasurementLogEntry entry : res) {
-            statCache.put(entry.getCreated(), new SystemSummaryInfo(entry));
+        List<MeasurementLogEntity> res = measurementsLogRepository.readDataForPeriod(startTime, endTime);
+        for (MeasurementLogEntity entry : res) {
+            statCache.put(entry.created(), SystemSummaryInfo.of(entry));
         }
     }
 
@@ -58,28 +58,7 @@ public class StatisticProcessor implements InitializingBean {
                 }
             }
             statCache.put(LocalDateTime.now(), si);
-            MeasurementLogEntry entry = new MeasurementLogEntry(0, LocalDateTime.now(),
-                    si.getLoadAvg(),
-                    si.getHeapMax(),
-                    si.getHeapUsage(),
-                    si.getPressure(),
-                    si.getOutDoorTemperature(),
-                    si.getOutDoorHumidity(),
-                    si.getSfTemperature(),
-                    si.getSfHumidity(),
-                    si.getGfTemperature(),
-                    si.getGarageTemperature(),
-                    si.getGarageHumidity(),
-                    si.getBoilerTemperature(),
-                    si.getLuminosity(),
-                    si.getPowerStatus(),
-                    si.getSecurityMode(),
-                    si.getPwSrcConverterMode(),
-                    si.getPwSrcDirectMode(),
-                    si.getHeatingPumpFFMode(),
-                    si.getHeatingPumpSFMode()
-            );
-            measurementsLogRepository.writeLogEntry(entry);
+            measurementsLogRepository.writeLogEntry(MeasurementLogEntity.of(si));
         } catch (Exception ex) {
             log.error("Problem collecting system stat", ex);
         }
@@ -155,7 +134,7 @@ public class StatisticProcessor implements InitializingBean {
                 data.add(new ChartPoint(ts, systemSummaryInfo.getHeapUsage()));
                 break;
             case POWER_STAT:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getPowerStatus()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.getExtPwrVoltage()));
                 break;
         }
     }

@@ -1,215 +1,39 @@
 package technology.positivehome.ihome.domain.runtime;
 
-import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntry;
+import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntity;
 import technology.positivehome.ihome.domain.runtime.sensor.Bme280TempHumidityPressureSensorData;
+import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
 import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
 import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
 
 /**
  * Created by maxim on 6/9/19.
  **/
-public class SystemSummaryInfo {
-
-    private long upTime;
-    private int loadAvg;
-    private int heapMax;
-    private int heapUsage;
-    private int sfTemperature;
-    private int sfHumidity;
-    private int pressure;
-    private int gfTemperature;
-    private int outDoorTemperature;
-    private int outDoorHumidity;
-    private int garageTemperature;
-    private int garageHumidity;
-    private int boilerTemperature;
-    private int luminosity;
-    private int powerStatus;
-    private int securityMode;
-    private int pwSrcConverterMode;
-    private int pwSrcDirectMode;
-    private int heatingPumpFFMode;
-    private int heatingPumpSFMode;
-
-    public SystemSummaryInfo() {
-    }
-
-    public SystemSummaryInfo(Builder bld) {
-        upTime = bld.upTime;
-        loadAvg = bld.loadAvg;
-        heapMax = bld.heapMax;
-        heapUsage = bld.heapUsage;
-        sfTemperature = bld.sfTemperature;
-        sfHumidity = bld.sfHumidity;
-        pressure = bld.pressure;
-        gfTemperature = bld.gfTemperature;
-        outDoorTemperature = bld.outDoorTemperature;
-        outDoorHumidity = bld.outDoorHumidity;
-        garageTemperature = bld.garageTemperature;
-        garageHumidity = bld.garageHumidity;
-        boilerTemperature = bld.boilerTemperature;
-        luminosity = bld.luminosity;
-        powerStatus = bld.powerStatus;
-        securityMode = bld.securityMode;
-        pwSrcConverterMode = bld.pwSrcConverterMode;
-        pwSrcDirectMode = bld.pwSrcDirectMode;
-        heatingPumpFFMode = bld.heatingPumpFFMode;
-        heatingPumpSFMode = bld.heatingPumpSFMode;
-    }
-
-    public SystemSummaryInfo(MeasurementLogEntry entry) {
-        loadAvg = entry.getLoadAvg();
-        heapMax = entry.getHeapMax();
-        heapUsage = entry.getHeapUsage();
-        sfTemperature = entry.getIndoorSfTemp();
-        sfHumidity = entry.getIndoorSfHumidity();
-        pressure = entry.getPressure();
-        gfTemperature = entry.getIndoorGfTemp();
-        outDoorTemperature = entry.getOutdoorTemp();
-        outDoorHumidity = entry.getOutdoorHumidity();
-        garageTemperature = entry.getGarageTemp();
-        garageHumidity = entry.getGarageHumidity();
-        boilerTemperature = entry.getBoilerTemperature();
-        luminosity = entry.getLuminosity();
-        powerStatus = entry.getPowerStatus();
-        securityMode = entry.getSecurityMode();
-    }
-
-    public long getUpTime() {
-        return upTime;
-    }
-
-    public int getLoadAvg() {
-        return loadAvg;
-    }
-
-    public void setLoadAvg(int loadAvg) {
-        this.loadAvg = loadAvg;
-    }
-
-    public int getHeapMax() {
-        return heapMax;
-    }
-
-    public void setHeapMax(int heapMax) {
-        this.heapMax = heapMax;
-    }
-
-    public int getHeapUsage() {
-        return heapUsage;
-    }
-
-    public void setHeapUsage(int heapUsage) {
-        this.heapUsage = heapUsage;
-    }
-
-    public int getSfTemperature() {
-        return sfTemperature;
-    }
-
-    public void setSfTemperature(int sfTemperature) {
-        this.sfTemperature = sfTemperature;
-    }
-
-    public void setSfHumidity(int sfHumidity) {
-        this.sfHumidity = sfHumidity;
-    }
-
-    public int getGfTemperature() {
-        return gfTemperature;
-    }
-
-    public void setGfTemperature(int gfTemperature) {
-        this.gfTemperature = gfTemperature;
-    }
-
-    public int getSfHumidity() {
-        return sfHumidity;
-    }
-
-    public void setPressure(int pressure) {
-        this.pressure = pressure;
-    }
-
-    public int getPressure() {
-        return pressure;
-    }
-
-    public int getOutDoorTemperature() {
-        return outDoorTemperature;
-    }
-
-    public void setOutDoorTemperature(int outDoorTemperature) {
-        this.outDoorTemperature = outDoorTemperature;
-    }
-
-    public int getOutDoorHumidity() {
-        return outDoorHumidity;
-    }
-
-    public void setOutDoorHumidity(int outDoorHumidity) {
-        this.outDoorHumidity = outDoorHumidity;
-    }
-
-    public int getGarageTemperature() {
-        return garageTemperature;
-    }
-
-    public void setGarageTemperature(int garageTemperature) {
-        this.garageTemperature = garageTemperature;
-    }
-
-    public int getGarageHumidity() {
-        return garageHumidity;
-    }
-
-    public void setGarageHumidity(int garageHumidity) {
-        this.garageHumidity = garageHumidity;
-    }
-
-    public int getBoilerTemperature() {
-        return boilerTemperature;
-    }
-
-    public int getLuminosity() {
-        return luminosity;
-    }
-
-    public void setLuminosity(int luminosity) {
-        this.luminosity = luminosity;
-    }
-
-    public int getPowerStatus() {
-        return this.powerStatus;
-    }
-
-    public int getSecurityMode() {
-        return securityMode;
-    }
-
-    public int getPwSrcConverterMode() {
-        return pwSrcConverterMode;
-    }
-
-    public int getPwSrcDirectMode() {
-        return pwSrcDirectMode;
-    }
-
-    public int getHeatingPumpFFMode() {
-        return heatingPumpFFMode;
-    }
-
-    public int getHeatingPumpSFMode() {
-        return heatingPumpSFMode;
-    }
+public record SystemSummaryInfo(long upTime, int loadAvg, int heapMax, int heapUsage, int sfTemperature, int sfHumidity,
+                                int pressure, int gfTemperature, int outDoorTemperature, int outDoorHumidity,
+                                int garageTemperature,
+                                int garageHumidity, int boilerTemperature, int luminosity,
+                                int extPwrVoltage, int extPwrCurrent, int extPwrFrequency, int extPwrConsumption,
+                                int intPwrVoltage, int intPwrCurrent, int intPwrFrequency, int intPwrConsumption,
+                                int securityMode, int pwSrcConverterMode, int pwSrcDirectMode, int heatingPumpFFMode,
+                                int heatingPumpSFMode) {
 
     public static Builder builder(long startTime) {
         return new Builder(startTime);
     }
+    public static SystemSummaryInfo of(MeasurementLogEntity entry) {
+        return new SystemSummaryInfo(0, entry.loadAvg(), entry.heapMax(), entry.heapUsage(),
+                entry.indoorSfTemp(), entry.indoorSfHumidity(), entry.pressure(), entry.indoorGfTemp(),
+                entry.outdoorTemp(), entry.outdoorHumidity(), entry.garageTemp(), entry.garageHumidity(),
+                entry.boilerTemperature(), entry.luminosity(),
+                entry.extPwrVoltage(), entry.extPwrCurrent(), entry.extPwrFrequency(), entry.extPwrConsumption(),
+                entry.intPwrVoltage(), entry.intPwrCurrent(), entry.intPwrFrequency(), entry.intPwrConsumption(),
+                entry.securityMode(), entry.pwSrcConverterMode(), entry.pwSrcDirectMode(),
+                entry.heatingPumpFFMode(), entry.heatingPumpSFMode());
+    }
 
     public static class Builder {
-
-        public long upTime;
+        private long upTime;
         private int loadAvg;
         private int heapMax;
         private int heapUsage;
@@ -223,7 +47,14 @@ public class SystemSummaryInfo {
         private int garageHumidity;
         private int boilerTemperature;
         private int luminosity;
-        private int powerStatus;
+        private int extPwrVoltage;
+        private int extPwrCurrent;
+        private int extPwrFrequency;
+        private int extPwrConsumption;
+        private int intPwrVoltage;
+        private int intPwrCurrent;
+        private int intPwrFrequency;
+        private int intPwrConsumption;
         private int securityMode;
         private int pwSrcConverterMode;
         private int pwSrcDirectMode;
@@ -264,8 +95,19 @@ public class SystemSummaryInfo {
             return this;
         }
 
-        public Builder powerData(int powerSensorReading) {
-            powerStatus = powerSensorReading;
+        public Builder extPowerData(Dds238PowerMeterData powerSensorReading) {
+            extPwrVoltage = (int) Math.round(powerSensorReading.voltage() * 10);
+            extPwrCurrent = (int) Math.round(powerSensorReading.current() * 10);
+            extPwrFrequency = (int) Math.round(powerSensorReading.freq() * 10);
+            extPwrConsumption = (int) Math.round(powerSensorReading.total() * 10);
+            return this;
+        }
+
+        public Builder intPowerData(Dds238PowerMeterData powerSensorReading) {
+            intPwrVoltage = (int) Math.round(powerSensorReading.voltage() * 10);
+            intPwrCurrent = (int) Math.round(powerSensorReading.current() * 10);
+            intPwrFrequency = (int) Math.round(powerSensorReading.freq() * 10);
+            intPwrConsumption = (int) Math.round(powerSensorReading.total() * 10);
             return this;
         }
 
@@ -302,9 +144,13 @@ public class SystemSummaryInfo {
         }
 
         public SystemSummaryInfo build() {
-            return new SystemSummaryInfo(this);
+            return new SystemSummaryInfo(upTime, loadAvg, heapMax, heapUsage, sfTemperature, sfHumidity, pressure,
+                    gfTemperature, outDoorTemperature, outDoorHumidity,
+                    garageTemperature, garageHumidity, boilerTemperature, luminosity,
+                    extPwrVoltage, extPwrCurrent, extPwrFrequency, extPwrConsumption,
+                    intPwrVoltage, intPwrCurrent, intPwrFrequency, intPwrConsumption,
+                    securityMode, pwSrcConverterMode, pwSrcDirectMode, heatingPumpFFMode, heatingPumpSFMode);
         }
-
 
     }
 }
