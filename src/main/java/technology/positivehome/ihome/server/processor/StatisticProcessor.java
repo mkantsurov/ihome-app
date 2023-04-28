@@ -75,7 +75,7 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.GARAGE_TEMP, res.getGarage(), entry.getKey(), entry.getValue());
         }
         if (res.getOutdoor().isEmpty()) {
-            SystemSummaryInfo ssi = new SystemSummaryInfo();
+            SystemSummaryInfo ssi = SystemSummaryInfo.builder(System.currentTimeMillis()).build();
             addChartPoint(ChartType.INDOOR_TEMP, res.getIndoor(), LocalDateTime.now(), ssi);
             addChartPoint(ChartType.INDOOR_GF_TEMP, res.getIndoorGf(), LocalDateTime.now(), ssi);
             addChartPoint(ChartType.OUTDOOR_TEMP, res.getOutdoor(), LocalDateTime.now(), ssi);
@@ -95,7 +95,7 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.PRESSURE, res.getPressure(), entry.getKey(), entry.getValue());
         }
         if (res.getPressure().isEmpty()) {
-            addChartPoint(ChartType.PRESSURE, res.getPressure(), LocalDateTime.now(), new SystemSummaryInfo());
+            addChartPoint(ChartType.PRESSURE, res.getPressure(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
         }
         res.getPressure().sort(Comparator.comparing(ChartPoint::getDt));
         return DataMapper.from(res);
@@ -104,37 +104,46 @@ public class StatisticProcessor implements InitializingBean {
     private void addChartPoint(ChartType type, List<ChartPoint> data, LocalDateTime ts, SystemSummaryInfo systemSummaryInfo) {
         switch (type) {
             case INDOOR_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getSfTemperature()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.sfTemperature()));
                 break;
             case INDOOR_GF_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getGfTemperature()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.gfTemperature()));
                 break;
             case OUTDOOR_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getOutDoorTemperature()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.outDoorTemperature()));
                 break;
             case GARAGE_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getGarageTemperature()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.garageTemperature()));
                 break;
             case PRESSURE:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getPressure()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.pressure()));
                 break;
             case BOILER_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getBoilerTemperature()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.boilerTemperature()));
                 break;
             case LUMINOSITY:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getLuminosity()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.luminosity()));
                 break;
             case SYSTEM_LA:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getLoadAvg()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.loadAvg()));
                 break;
             case SYSTEM_HEAP_MAX:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getHeapMax()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.heapMax()));
                 break;
             case SYSTEM_HEAP_USAGE:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getHeapUsage()));
+                data.add(new ChartPoint(ts, systemSummaryInfo.heapUsage()));
                 break;
-            case POWER_STAT:
-                data.add(new ChartPoint(ts, systemSummaryInfo.getExtPwrVoltage()));
+            case EXT_POWER_VOLTAGE:
+                data.add(new ChartPoint(ts, systemSummaryInfo.extPwrVoltage()));
+                break;
+            case INT_POWER_VOLTAGE:
+                data.add(new ChartPoint(ts, systemSummaryInfo.intPwrVoltage()));
+                break;
+            case EXT_POWER_CONSUMPTION:
+                data.add(new ChartPoint(ts, systemSummaryInfo.extPwrConsumption()));
+                break;
+            case INT_POWER_CONSUMPTION:
+                data.add(new ChartPoint(ts, systemSummaryInfo.intPwrConsumption()));
                 break;
         }
     }
@@ -146,7 +155,7 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.BOILER_TEMP, res.getTemperature(), entry.getKey(), entry.getValue());
         }
         if (res.getTemperature().isEmpty()) {
-            addChartPoint(ChartType.BOILER_TEMP, res.getTemperature(), LocalDateTime.now(), new SystemSummaryInfo());
+            addChartPoint(ChartType.BOILER_TEMP, res.getTemperature(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
         }
         res.getTemperature().sort(Comparator.comparing(ChartPoint::getDt));
         return DataMapper.from(res);
@@ -159,7 +168,7 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.LUMINOSITY, res.getLuminosity(), entry.getKey(), entry.getValue());
         }
         if (res.getLuminosity().isEmpty()) {
-            addChartPoint(ChartType.LUMINOSITY, res.getLuminosity(), LocalDateTime.now(), new SystemSummaryInfo());
+            addChartPoint(ChartType.LUMINOSITY, res.getLuminosity(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
         }
         res.getLuminosity().sort(Comparator.comparing(ChartPoint::getDt));
         return DataMapper.from(res);
@@ -173,8 +182,8 @@ public class StatisticProcessor implements InitializingBean {
             addChartPoint(ChartType.SYSTEM_HEAP_USAGE, res.getHeapUsage(), entry.getKey(), entry.getValue());
         }
         if (res.getHeapMax().isEmpty()) {
-            addChartPoint(ChartType.SYSTEM_HEAP_MAX, res.getHeapMax(), LocalDateTime.now(), new SystemSummaryInfo());
-            addChartPoint(ChartType.SYSTEM_HEAP_USAGE, res.getHeapUsage(), LocalDateTime.now(), new SystemSummaryInfo());
+            addChartPoint(ChartType.SYSTEM_HEAP_MAX, res.getHeapMax(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
+            addChartPoint(ChartType.SYSTEM_HEAP_USAGE, res.getHeapUsage(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
         }
         res.getHeapMax().sort(Comparator.comparing(ChartPoint::getDt));
         res.getHeapUsage().sort(Comparator.comparing(ChartPoint::getDt));
@@ -190,7 +199,7 @@ public class StatisticProcessor implements InitializingBean {
         }
 
         if (res.getLa().isEmpty()) {
-            addChartPoint(ChartType.SYSTEM_LA, res.getLa(), LocalDateTime.now(), new SystemSummaryInfo());
+            addChartPoint(ChartType.SYSTEM_LA, res.getLa(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
         }
         res.getLa().sort(Comparator.comparing(ChartPoint::getDt));
         return DataMapper.from(res);
@@ -206,15 +215,41 @@ public class StatisticProcessor implements InitializingBean {
         res.getTemperature().sort(Comparator.comparing(ChartPoint::getDt));
         return DataMapper.from(res);
     }
-
-    public PowerStatInfo getPowerStat() {
-        PowerStat res = new PowerStat();
+    public PowerVoltageExtStatInfo getPowerVoltageExtStat() {
+        PowerVoltageStat res = new PowerVoltageStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.POWER_STAT, res.getPower(), entry.getKey(), entry.getValue());
+            addChartPoint(ChartType.EXT_POWER_VOLTAGE, res.getExtVoltage(), entry.getKey(), entry.getValue());
+            addChartPoint(ChartType.INT_POWER_VOLTAGE, res.getIntVoltage(), entry.getKey(), entry.getValue());
         }
-        res.getPower().sort(Comparator.comparing(ChartPoint::getDt));
+        res.getExtVoltage().sort(Comparator.comparing(ChartPoint::getDt));
+        res.getIntVoltage().sort(Comparator.comparing(ChartPoint::getDt));
+        return new PowerVoltageExtStatInfo(DataMapper.from(res).getExtVoltage());
+    }
+    public PowerVoltageStatInfo getPowerVoltageStat() {
+        PowerVoltageStat res = new PowerVoltageStat();
+        Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
+
+        for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
+            addChartPoint(ChartType.EXT_POWER_VOLTAGE, res.getExtVoltage(), entry.getKey(), entry.getValue());
+            addChartPoint(ChartType.INT_POWER_VOLTAGE, res.getIntVoltage(), entry.getKey(), entry.getValue());
+        }
+        res.getExtVoltage().sort(Comparator.comparing(ChartPoint::getDt));
+        res.getIntVoltage().sort(Comparator.comparing(ChartPoint::getDt));
+        return DataMapper.from(res);
+    }
+
+    public PowerConsumptionStatInfo getPowerConsumptionStat() {
+        PowerConsumptionStat res = new PowerConsumptionStat();
+        Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
+
+        for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
+            addChartPoint(ChartType.EXT_POWER_CONSUMPTION, res.getExtConsumption(), entry.getKey(), entry.getValue());
+            addChartPoint(ChartType.INT_POWER_CONSUMPTION, res.getIntConsumption(), entry.getKey(), entry.getValue());
+        }
+        res.getExtConsumption().sort(Comparator.comparing(ChartPoint::getDt));
+        res.getIntConsumption().sort(Comparator.comparing(ChartPoint::getDt));
         return DataMapper.from(res);
     }
 
@@ -229,6 +264,14 @@ public class StatisticProcessor implements InitializingBean {
         SYSTEM_LA,
         SYSTEM_HEAP_MAX,
         SYSTEM_HEAP_USAGE,
-        POWER_STAT
+        EXT_POWER_VOLTAGE,
+        EXT_POWER_CURRENT,
+        EXT_POWER_FREQUENCY,
+        EXT_POWER_CONSUMPTION,
+        INT_POWER_VOLTAGE,
+        INT_POWER_CURRENT,
+        INT_POWER_FREQUENCY,
+        INT_POWER_CONSUMPTION
+
     }
 }

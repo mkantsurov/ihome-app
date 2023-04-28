@@ -5,7 +5,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import technology.positivehome.ihome.domain.shared.OutDoorTempStatInfo;
-import technology.positivehome.ihome.domain.shared.PowerStatInfo;
+import technology.positivehome.ihome.domain.shared.PowerVoltageExtStatInfo;
+import technology.positivehome.ihome.domain.shared.PowerVoltageStatInfo;
 import technology.positivehome.ihome.domain.shared.PressureStatInfo;
 import technology.positivehome.ihome.server.processor.StatisticProcessor;
 
@@ -32,8 +33,8 @@ public class GuestController {
     }
 
     @GetMapping(path = "/power-stat")
-    public PowerStatInfo getPowerStat() {
-        return statisticProcessor.getPowerStat();
+    public PowerVoltageExtStatInfo getPowerStat() {
+        return statisticProcessor.getPowerVoltageExtStat();
     }
 
 }

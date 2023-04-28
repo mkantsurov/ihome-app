@@ -86,6 +86,18 @@ public class SystemController {
     }
 
     @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/power-voltage-stat")
+    public PowerVoltageStatInfo getPowerVoltageStat() {
+        return statisticProcessor.getPowerVoltageStat();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/power-consumption-stat")
+    public PowerConsumptionStatInfo getPowerConsumptionStat() {
+        return statisticProcessor.getPowerConsumptionStat();
+    }
+
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/modulelist/{group}")
     public List<ModuleSummary> getModuleList(@PathVariable long group) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException {
         return systemProcessor.getModuleListByGroup(group);

@@ -16,10 +16,24 @@ public class DataMapper {
         return result;
     }
 
-    public static PowerStatInfo from(PowerStat res) {
-        PowerStatInfo result = new PowerStatInfo();
-        res.getPower().forEach(chartPoint -> {
-            result.getPower().add(from(chartPoint));
+    public static PowerVoltageStatInfo from(PowerVoltageStat res) {
+        PowerVoltageStatInfo result = new PowerVoltageStatInfo();
+        res.getExtVoltage().forEach(chartPoint -> {
+            result.getExtVoltage().add(from(chartPoint));
+        });
+        res.getIntVoltage().forEach(chartPoint -> {
+            result.getIntVoltage().add(from(chartPoint));
+        });
+        return result;
+    }
+
+    public static PowerConsumptionStatInfo from(PowerConsumptionStat res) {
+        PowerConsumptionStatInfo result = new PowerConsumptionStatInfo();
+        res.getExtConsumption().forEach(chartPoint -> {
+            result.getExtConsumption().add(from(chartPoint));
+        });
+        res.getIntConsumption().forEach(chartPoint -> {
+            result.getIntConsumption().add(from(chartPoint));
         });
         return result;
     }
