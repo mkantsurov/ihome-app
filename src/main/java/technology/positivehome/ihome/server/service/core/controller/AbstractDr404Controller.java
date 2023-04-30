@@ -57,7 +57,7 @@ public abstract class AbstractDr404Controller implements DR404Controller, DR404R
     }
 
     @Override
-    public <R> R runCommand(IHomeCommand<R> iHomeCommand) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException, InterruptedException {
+    public synchronized  <R> R runCommand(IHomeCommand<R> iHomeCommand) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException, InterruptedException {
         return iHomeCommand.dispatch(IHomePorts.of(dds238Ports));
     }
 

@@ -244,13 +244,42 @@ public class StatisticProcessor implements InitializingBean {
         PowerConsumptionStat res = new PowerConsumptionStat();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
+        List<ChartPoint> extConsumption = new ArrayList<>();
+        List<ChartPoint> intConsumption = new ArrayList<>();
+
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.EXT_POWER_CONSUMPTION, res.getExtConsumption(), entry.getKey(), entry.getValue());
-            addChartPoint(ChartType.INT_POWER_CONSUMPTION, res.getIntConsumption(), entry.getKey(), entry.getValue());
+            extConsumption.add(new ChartPoint(entry.getKey(), entry.getValue().extPwrConsumption()));
+            intConsumption.add(new ChartPoint(entry.getKey(), entry.getValue().intPwrConsumption()));
         }
-        res.getExtConsumption().sort(Comparator.comparing(ChartPoint::getDt));
-        res.getIntConsumption().sort(Comparator.comparing(ChartPoint::getDt));
+        extConsumption.sort(Comparator.comparing(ChartPoint::getDt));
+        intConsumption.sort(Comparator.comparing(ChartPoint::getDt));
+
+        res.setExtConsumption(normalize(extConsumption));
+        res.setIntConsumption(normalize(intConsumption));
         return DataMapper.from(res);
+    }
+
+    private List<ChartPoint> normalize(List<ChartPoint> data) {
+        data.sort(Comparator.comparing(ChartPoint::getDt));
+        List<ChartPoint> res = new ArrayList<>();
+
+        int curValue = 0;
+        int startPoint;
+
+        for (startPoint = 0; startPoint < data.size() && curValue <= 0; startPoint ++) {
+            curValue = data.get(startPoint).getValue();
+        }
+
+        for (int i = startPoint + 1; i < data.size(); i++) {
+            int diff = data.get(i).getValue() - curValue;
+            if (diff >= 0 && diff < 50) {
+                res.add(new ChartPoint(data.get(i).getDt(), data.get(i).getValue() - curValue));
+                curValue = data.get(i).getValue();
+            } else {
+                log.warn("Invalid diff value: " + diff + " Prev Value: " + curValue + " Current value: " + data.get(i).getValue());
+            }
+        }
+        return res;
     }
 
     private enum ChartType {

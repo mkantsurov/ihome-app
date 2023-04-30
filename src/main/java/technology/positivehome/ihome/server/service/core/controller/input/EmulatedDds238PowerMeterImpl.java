@@ -24,17 +24,22 @@ public class EmulatedDds238PowerMeterImpl extends DR404Port implements Dds238Pow
     public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
         return getRequestExecutor().performRequest(socket -> {
             try (OutputStream os = socket.getOutputStream()) {
-                byte[] cmd = new byte[]{(byte) port, 0x03, 0, 0x0c, 0, 0x01, 0x44, 0x09};
-                os.write(cmd);
                 InputStream is = socket.getInputStream();
-                byte[] buffer = new byte[32];
-                int read;
-                do {
-                    read = is.read(buffer);
-                    System.out.println("Read: " + read);
-                    System.out.print(Arrays.toString(buffer));
-                } while (read < 0);
-                return new Dds238PowerMeterData(ByteBuffer.wrap(buffer, 3, 2).getShort()/10.0, .0,.0,.0);
+                Dds238PowerMeterData.Builder result = Dds238PowerMeterData.builder();
+                LiveDds238PowerMeterImpl.requestData(os, is, port, Dds238Command.READ_VOLTAGE, bytes -> {
+                    result.voltage(ByteBuffer.wrap(bytes, 3, 2).getShort() / 10.0);
+                });
+                LiveDds238PowerMeterImpl.requestData(os, is, port, Dds238Command.READ_CURRENT, bytes -> {
+                    result.current(ByteBuffer.wrap(bytes, 3, 2).getShort() / 100.0);
+                });
+                LiveDds238PowerMeterImpl.requestData(os, is, port, Dds238Command.READ_FREQUENCY, bytes -> {
+                    result.freq(ByteBuffer.wrap(bytes, 3, 2).getShort() / 100.0);
+                });
+                LiveDds238PowerMeterImpl.requestData(os, is, port, Dds238Command.READ_TOTAL_ENERGY, bytes -> {
+                    byte[] data = new byte[]{0, 0, 0, 0, bytes[3], bytes[4], bytes[5], bytes[6]};
+                    result.total(ByteBuffer.wrap(data, 0, 8).getLong() / 100.0);
+                });
+                return result.build();
             }
         });
     }
