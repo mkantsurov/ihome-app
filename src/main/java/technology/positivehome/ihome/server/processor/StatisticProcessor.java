@@ -272,7 +272,7 @@ public class StatisticProcessor implements InitializingBean {
 
         for (int i = startPoint + 1; i < data.size(); i++) {
             int diff = data.get(i).getValue() - curValue;
-            if (diff >= 0 && diff < 50) {
+            if (diff >= 0 && diff < 200) {
                 res.add(new ChartPoint(data.get(i).getDt(), data.get(i).getValue() - curValue));
                 curValue = data.get(i).getValue();
             } else {

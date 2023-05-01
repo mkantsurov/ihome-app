@@ -11,8 +11,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class EmulatedDds238PowerMeterImpl extends DR404Port implements Dds238PowerMeter {
+    private static final long DATA_TTL = TimeUnit.MINUTES.toMillis(1);
+    private AtomicLong lastRequestTs = new AtomicLong(0);
+    private AtomicReference<Dds238PowerMeterData> dataCache = new AtomicReference<>();
 
     public EmulatedDds238PowerMeterImpl(DR404RequestExecutor requestExecutor, int port) {
         super(requestExecutor, port);
@@ -20,7 +26,10 @@ public class EmulatedDds238PowerMeterImpl extends DR404Port implements Dds238Pow
 
     @Override
     public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException {
-        return getRequestExecutor().performRequest(socket -> {
+        if (lastRequestTs.get() + DATA_TTL > System.currentTimeMillis()) {
+            return dataCache.get();
+        }
+        dataCache.set(getRequestExecutor().performRequest(socket -> {
             try (OutputStream os = socket.getOutputStream()) {
                 InputStream is = socket.getInputStream();
                 Dds238PowerMeterData.Builder result = Dds238PowerMeterData.builder();
@@ -39,6 +48,8 @@ public class EmulatedDds238PowerMeterImpl extends DR404Port implements Dds238Pow
                 });
                 return result.build();
             }
-        });
+        }));
+        lastRequestTs.set(System.currentTimeMillis());
+        return dataCache.get();
     }
 }

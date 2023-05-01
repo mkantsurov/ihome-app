@@ -7,9 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.domain.runtime.sensor.ADCConnectedSensorData;
-import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
+import technology.positivehome.ihome.server.processor.SystemProcessor;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -17,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class InputPowerSupplySourceCalc implements InitializingBean {
+public class InputPowerSupplySourceCalc {
 
     private static Logger logger = LoggerFactory.getLogger(InputPowerSupplySourceCalc.class);
 
@@ -28,8 +27,7 @@ public class InputPowerSupplySourceCalc implements InitializingBean {
 
     private final Map<Integer, DayTime> dayTimePerMonth = new HashMap<>();
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    public InputPowerSupplySourceCalc() {
         dayTimePerMonth.put(Calendar.JANUARY, new DayTime(7, 40, 16, 20));
         dayTimePerMonth.put(Calendar.FEBRUARY, new DayTime(7, 21, 16, 59));
         dayTimePerMonth.put(Calendar.MARCH, new DayTime(6, 35, 17, 43));

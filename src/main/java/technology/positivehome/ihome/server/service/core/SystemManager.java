@@ -10,7 +10,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import technology.positivehome.ihome.domain.constant.*;
+import technology.positivehome.ihome.domain.constant.ControllerMode;
+import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
 import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
@@ -20,7 +22,6 @@ import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedF
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleState;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
-import technology.positivehome.ihome.domain.runtime.sensor.*;
 import technology.positivehome.ihome.server.model.command.IHomeCommand;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.persistence.ModuleConfigRepository;

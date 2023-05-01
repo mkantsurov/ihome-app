@@ -4,6 +4,7 @@ import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformed
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
+import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
 import technology.positivehome.ihome.server.service.core.controller.DR404Port;
 import technology.positivehome.ihome.server.service.core.controller.DR404RequestExecutor;
 
@@ -14,10 +15,17 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMeter {
+
+    private static final long DATA_TTL = TimeUnit.SECONDS.toMillis(30);
+    private AtomicLong lastRequestTs = new AtomicLong(0);
+    private AtomicReference<Dds238PowerMeterData> dataCache = new AtomicReference<>();
     public LiveDds238PowerMeterImpl(DR404RequestExecutor requestExecutor, int port) {
         super(requestExecutor, port);
     }
@@ -141,7 +149,10 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
     }
     @Override
     public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException {
-        return getRequestExecutor().performRequest(socket -> {
+        if (lastRequestTs.get() + DATA_TTL > System.currentTimeMillis()) {
+            return dataCache.get();
+        }
+        dataCache.set(getRequestExecutor().performRequest(socket -> {
             try (OutputStream os = socket.getOutputStream()) {
                 InputStream is = socket.getInputStream();
                 Dds238PowerMeterData.Builder result = Dds238PowerMeterData.builder();
@@ -160,7 +171,9 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
                 });
                 return result.build();
             }
-        });
+        }));
+        lastRequestTs.set(System.currentTimeMillis());
+        return dataCache.get();
     }
 
     public enum PortAccessMode {
