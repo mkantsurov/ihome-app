@@ -99,9 +99,10 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
         return addCRC(result);
     }
 
-    public static void requestData(OutputStream os, InputStream is, int port, Dds238Command command, Consumer<byte[]> result) throws IOException {
+    public static void requestData(OutputStream os, InputStream is, int port, Dds238Command command, Consumer<byte[]> result) throws IOException, InterruptedException {
         byte[] cmd = createReadCommand(port, command.getRegister(), command.getData());
         os.write(cmd);
+        os.flush();
         byte[] buffer = new byte[32];
         int read;
         do {
@@ -109,7 +110,10 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
         } while (read < 0);
         if (!checkCRC(buffer, command.getExpectedLen() - 2)) {
             //perform next attempt to read to correct CRC error
+            Thread.sleep(300L);
+            buffer = new byte[32];
             os.write(cmd);
+            os.flush();
             do {
                 read = is.read(buffer);
             } while (read < 0);
@@ -136,7 +140,7 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
         return addCRC(result);
     }
     @Override
-    public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
+    public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException {
         return getRequestExecutor().performRequest(socket -> {
             try (OutputStream os = socket.getOutputStream()) {
                 InputStream is = socket.getInputStream();

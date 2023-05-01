@@ -49,7 +49,7 @@ public abstract class AbstractDr404Controller implements DR404Controller, DR404R
     }
 
     @Override
-    public synchronized <R> R performRequest(SocketExecutor<R> executor) throws IOException {
+    public synchronized <R> R performRequest(SocketExecutor<R> executor) throws IOException, InterruptedException {
         try (Socket clientSocket = new Socket(socketIpAddress, socketPortAddress)) {
             clientSocket.setSoTimeout(10000);
             return executor.run(clientSocket);

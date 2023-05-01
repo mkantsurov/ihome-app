@@ -10,9 +10,7 @@ import technology.positivehome.ihome.server.service.core.controller.DR404Request
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 public class EmulatedDds238PowerMeterImpl extends DR404Port implements Dds238PowerMeter {
 
@@ -21,7 +19,7 @@ public class EmulatedDds238PowerMeterImpl extends DR404Port implements Dds238Pow
     }
 
     @Override
-    public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException {
+    public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException {
         return getRequestExecutor().performRequest(socket -> {
             try (OutputStream os = socket.getOutputStream()) {
                 InputStream is = socket.getInputStream();

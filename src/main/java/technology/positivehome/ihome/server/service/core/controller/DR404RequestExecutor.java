@@ -5,9 +5,9 @@ import java.net.Socket;
 import java.util.function.Consumer;
 
 public interface DR404RequestExecutor {
-    <R> R performRequest(SocketExecutor<R> executor) throws IOException;
+    <R> R performRequest(SocketExecutor<R> executor) throws IOException, InterruptedException;
 
     interface SocketExecutor<R> {
-        R run(Socket socket) throws IOException;
+        R run(Socket socket) throws IOException, InterruptedException;
     }
 }

@@ -15,7 +15,7 @@ public class CmdGetDds238Reading extends IHomeCommand<Dds238PowerMeterData> {
     }
 
     @Override
-    public Dds238PowerMeterData dispatch(IHomePorts homePorts) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException {
+    public Dds238PowerMeterData dispatch(IHomePorts homePorts) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException, InterruptedException {
         return Optional.ofNullable(homePorts.dds238PowerMeterPorts().get(getPortAddress())).orElseThrow().getData();
     }
 }
