@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
 import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
+import technology.positivehome.ihome.domain.runtime.ExternalPowerSummaryInfo;
 import technology.positivehome.ihome.domain.runtime.HeatingSummaryInfo;
 import technology.positivehome.ihome.domain.runtime.PowerSummaryInfo;
 import technology.positivehome.ihome.domain.runtime.SystemSummaryInfo;
@@ -13,6 +14,7 @@ import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformed
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.module.*;
+import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 import technology.positivehome.ihome.server.service.core.module.IHomeModuleSummary;
@@ -41,8 +43,8 @@ public class SystemProcessor {
     public static final long BOILER_TEMP_SENSOR_ID = 9L;
     public static final long LUMINOSITY_SENSOR_ID = 77L;
     public static final long SECURITY_MODE_SENSOR_PORT_ID = 73L;
-    public static final long DIRECT_POWER_SUPPLY_PORT= 56L;
-    public static final long CONVERTER_POWER_SUPPLY_PORT= 57L;
+    public static final long DIRECT_POWER_SUPPLY_PORT = 56L;
+    public static final long CONVERTER_POWER_SUPPLY_PORT = 57L;
 
     private final SystemManager systemManager;
     private final AtomicLong startTime = new AtomicLong(System.currentTimeMillis());
@@ -53,10 +55,26 @@ public class SystemProcessor {
         this.systemManager = systemManager;
     }
 
+    public ExternalPowerSummaryInfo getExtPowerSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+        Dds238PowerMeterData data = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
+        return new ExternalPowerSummaryInfo(
+                (int) Math.round(data.voltage() * 10),
+                (int) Math.round(data.freq() * 100));
+    }
+
     public PowerSummaryInfo getPowerSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+        Dds238PowerMeterData extData = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
+        Dds238PowerMeterData intData = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(INT_POWER_METER_PORT_ID));
         return new PowerSummaryInfo(
-                systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000),
-                (int) Math.round(systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage() * 10),
+                (int) Math.round(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000) * 100),
+                (int) Math.round(extData.voltage() * 10),
+                (int) Math.round(extData.current() * 10),
+                (int) Math.round(extData.freq() * 100),
+                (int) Math.round(extData.total() * 10),
+                (int) Math.round(intData.voltage() * 10),
+                (int) Math.round(intData.current() * 10),
+                (int) Math.round(intData.freq() * 100),
+                (int) Math.round(intData.total() * 10),
                 BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0,
                 BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0,
                 BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(CONVERTER_POWER_SUPPLY_PORT))) ? 1 : 0
@@ -88,7 +106,7 @@ public class SystemProcessor {
                 .intPowerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(INT_POWER_METER_PORT_ID)))
                 .securityMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0)
                 .pwSrcDirectModeMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0)
-                .pwSrcConverterMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(CONVERTER_POWER_SUPPLY_PORT))) ? 1: 0)
+                .pwSrcConverterMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(CONVERTER_POWER_SUPPLY_PORT))) ? 1 : 0)
                 .systemLoadStatsData(
                         (int) Math.round(ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage() * 100),
                         (int) (ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax() / 1048576L),
@@ -96,7 +114,7 @@ public class SystemProcessor {
                 .build();
     }
 
-@Deprecated
+    @Deprecated
     public List<ModuleSummary> getModuleListByGroup(long group) {
         List<IHomeModuleSummary> moduleList = systemManager.getModuleList();
         List<ModuleSummary> result = new ArrayList<>();
@@ -122,21 +140,21 @@ public class SystemProcessor {
 
     public ModuleSummary[] getModuleList(@Nullable Integer assignment, @Nullable Long group) {
         return systemManager.getModuleList().stream().filter(iHomeModuleSummary -> {
-            boolean testRes = true;
-            if (assignment != null && !assignment.equals(iHomeModuleSummary.getAssignment().ordinal())) {
-                testRes = false;
-            }
-            if (testRes && group != null && !group.equals(iHomeModuleSummary.getGroupId())) {
-                testRes = false;
-            }
-            return testRes;
-        }).map(iHomeModuleSummary -> {
-            try {
-                return from(iHomeModuleSummary);
-            } catch (Exception e) {
-                throw new IllegalStateException("Unable to load module status", e);
-            }
-        }).sorted(Comparator.comparingInt((ModuleSummary ms) -> ms.getAssignment().ordinal())
+                    boolean testRes = true;
+                    if (assignment != null && !assignment.equals(iHomeModuleSummary.getAssignment().ordinal())) {
+                        testRes = false;
+                    }
+                    if (testRes && group != null && !group.equals(iHomeModuleSummary.getGroupId())) {
+                        testRes = false;
+                    }
+                    return testRes;
+                }).map(iHomeModuleSummary -> {
+                    try {
+                        return from(iHomeModuleSummary);
+                    } catch (Exception e) {
+                        throw new IllegalStateException("Unable to load module status", e);
+                    }
+                }).sorted(Comparator.comparingInt((ModuleSummary ms) -> ms.getAssignment().ordinal())
                         .thenComparing(ModuleSummary::getName).thenComparingLong(ModuleSummary::getGroup))
                 .toArray(ModuleSummary[]::new);
     }
