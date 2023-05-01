@@ -49,15 +49,15 @@ public abstract class AbstractDr404Controller implements DR404Controller, DR404R
     }
 
     @Override
-    public <R> R performRequest(SocketExecutor<R> executor) throws IOException {
+    public synchronized <R> R performRequest(SocketExecutor<R> executor) throws IOException {
         try (Socket clientSocket = new Socket(socketIpAddress, socketPortAddress)) {
-            clientSocket.setSoTimeout(3000);
+            clientSocket.setSoTimeout(10000);
             return executor.run(clientSocket);
         }
     }
 
     @Override
-    public synchronized  <R> R runCommand(IHomeCommand<R> iHomeCommand) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException, InterruptedException {
+    public  <R> R runCommand(IHomeCommand<R> iHomeCommand) throws MegadApiMallformedResponseException, PortNotSupporttedFunctionException, IOException, MegadApiMallformedUrlException, InterruptedException {
         return iHomeCommand.dispatch(IHomePorts.of(dds238Ports));
     }
 
