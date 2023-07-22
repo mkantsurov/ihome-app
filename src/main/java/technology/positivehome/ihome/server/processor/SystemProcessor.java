@@ -29,8 +29,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static technology.positivehome.ihome.server.processor.ModuleMapper.from;
-import static technology.positivehome.ihome.server.service.core.module.GenericInputPowerDependentRelayPowerControlModule.INT_POWER_METER_PORT_ID;
-import static technology.positivehome.ihome.server.service.core.module.GenericInputPowerDependentRelayPowerControlModule.POWER_METER_PORT_ID;
+import static technology.positivehome.ihome.server.service.core.module.GenericInputPowerDependentRelayPowerControlModule.*;
 
 @Component
 public class SystemProcessor {
@@ -56,14 +55,26 @@ public class SystemProcessor {
     }
 
     public ExternalPowerSummaryInfo getExtPowerSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        Dds238PowerMeterData data = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
+        BinaryPortStatus state = systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
+        Dds238PowerMeterData data;
+        if (BinaryPortStatus.ENABLED.equals(state)) {
+            data = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
+        } else {
+            data = new Dds238PowerMeterData(.0, .0, .0, .0);
+        }
         return new ExternalPowerSummaryInfo(
                 (int) Math.round(data.voltage() * 10),
                 (int) Math.round(data.freq() * 100));
     }
 
     public PowerSummaryInfo getPowerSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        Dds238PowerMeterData extData = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
+        BinaryPortStatus state = systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
+        Dds238PowerMeterData extData;
+        if (BinaryPortStatus.ENABLED.equals(state)) {
+            extData = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
+        } else {
+            extData = new Dds238PowerMeterData(.0, .0, .0, .0);
+        }
         Dds238PowerMeterData intData = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(INT_POWER_METER_PORT_ID));
         return new PowerSummaryInfo(
                 (int) Math.round(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000) * 100),
@@ -93,6 +104,13 @@ public class SystemProcessor {
     }
 
     public SystemSummaryInfo getSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
+        BinaryPortStatus state = systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
+        Dds238PowerMeterData extPwrData;
+        if (BinaryPortStatus.ENABLED.equals(state)) {
+            extPwrData = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
+        } else {
+            extPwrData = new Dds238PowerMeterData(.0, .0, .0, .0);
+        }
         return SystemSummaryInfo.builder(startTime.get())
                 .indoorData(
                         systemManager.runCommand(IHomeCommandFactory.cmdGetBme280TempHumidityPressureSensorReading(SFLOOR_PRESS_TEMP_SENSOR_ID)),
@@ -102,7 +120,7 @@ public class SystemProcessor {
                 .garageData(systemManager.runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(GARAGE_TEMP_HUMIDITY_SENSOR_ID)))
                 .boilerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDs1820TemperatureSensorReading(BOILER_TEMP_SENSOR_ID)))
                 .luminosityData(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000))
-                .extPowerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)))
+                .extPowerData(extPwrData)
                 .intPowerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(INT_POWER_METER_PORT_ID)))
                 .securityMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0)
                 .pwSrcDirectModeMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0)

@@ -37,7 +37,13 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                         switch (getMode()) {
                             case AUTO:
                                 OutputPortStatus status = getOutputPortStatus();
-                                double voltage = getMgr().runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage();
+                                BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
+                                double voltage;
+                                if (BinaryPortStatus.ENABLED.equals(state)) {
+                                    voltage = getMgr().runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage();
+                                } else {
+                                    voltage = 0;
+                                }
                                 boolean powerSupplyOk = voltage > 170 && voltage < 245;
                                 long now = System.currentTimeMillis();
                                 if (powerSupplyOk) {
