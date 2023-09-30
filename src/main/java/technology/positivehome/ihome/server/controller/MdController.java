@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import technology.positivehome.ihome.server.service.core.ControllerEventListener;
 import technology.positivehome.ihome.server.service.core.controller.ControllerEventInfo;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Created by maxim on 8/1/19.

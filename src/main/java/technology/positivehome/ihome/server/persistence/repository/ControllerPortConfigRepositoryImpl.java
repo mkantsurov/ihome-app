@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import technology.positivehome.ihome.server.persistence.mapper.ControllerPortConfigEntryRowMapper;
 import technology.positivehome.ihome.server.persistence.model.ControllerPortConfigEntity;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 

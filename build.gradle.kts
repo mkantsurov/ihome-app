@@ -14,8 +14,7 @@ plugins {
     java
     id("org.springframework.boot")
     id("io.spring.dependency-management") version "1.0.5.RELEASE"
-    id("com.palantir.docker") version "0.32.0"
-    id("org.sonarqube") version "2.6.2"
+    id("com.palantir.docker") version "0.35.0"
     id("org.flywaydb.flyway") version "7.5.2"
 }
 

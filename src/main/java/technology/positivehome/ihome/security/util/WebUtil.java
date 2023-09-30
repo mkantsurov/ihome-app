@@ -2,7 +2,7 @@ package technology.positivehome.ihome.security.util;
 
 import org.springframework.security.web.savedrequest.SavedRequest;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Created by maxim on 12/20/18.

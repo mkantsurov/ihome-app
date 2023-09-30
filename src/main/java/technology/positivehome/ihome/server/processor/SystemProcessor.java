@@ -19,7 +19,7 @@ import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 import technology.positivehome.ihome.server.service.core.module.IHomeModuleSummary;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.URISyntaxException;

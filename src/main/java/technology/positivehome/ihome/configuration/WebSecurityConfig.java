@@ -1,16 +1,19 @@
 package technology.positivehome.ihome.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -28,9 +31,11 @@ import technology.positivehome.ihome.security.service.SecurityPermissionEvaluato
 import java.util.Arrays;
 import java.util.List;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
     public static final String AUTHENTICATION_HEADER_NAME = "Authorization";
     public static final String AUTHENTICATION_URL = "/auth/login";
@@ -123,6 +128,43 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 // disable page caching
                 .headers().cacheControl();
     }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        List<String> permitAllEndpointList = Arrays.asList(
+                AUTHENTICATION_URL,
+                REFRESH_TOKEN_URL,
+                LISTENER_URL,
+                GUEST_API_URL
+        );
+//        http
+//                .authorizeHttpRequests((authz) -> authz
+//                        .anyRequest().authenticated()
+//                )
+//                .httpBasic(withDefaults());
+        http
+                .csrf(AbstractHttpConfigurer::disable) // We don't need CSRF for JWT based authentication
+                .exceptionHandling((exceptionHandling) -> exceptionHandling.authenticationEntryPoint(this.authenticationEntryPoint))
+                .sessionManagement((sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests((authorizeRequests) ->
+                        authorizeRequests.requestMatchers(permitAllEndpointList.toArray(new String[0])).permitAll()
+                                .requestMatchers(API_ROOT_URL).authenticated().anyRequest().permitAll()
+                )
+                .addFilterBefore(new CustomCorsFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildAjaxLoginProcessingFilter(AUTHENTICATION_URL), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(permitAllEndpointList, API_ROOT_URL), UsernamePasswordAuthenticationFilter.class)
+                // disable page caching
+                .headers((headers) ->
+                        headers
+                                .contentTypeOptions(withDefaults())
+                                .xssProtection(withDefaults())
+                                .cacheControl(withDefaults())
+                                .httpStrictTransportSecurity(withDefaults())
+                                .frameOptions(withDefaults()));
+        return http.build();
+    }
+
+
 
     @Override
     public void configure(WebSecurity web) throws Exception {

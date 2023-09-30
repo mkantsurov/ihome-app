@@ -6,7 +6,7 @@ import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

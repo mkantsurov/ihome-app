@@ -1,5 +1,5 @@
 pluginManagement {
-    val springBootVersion: String = "2.7.5"
+    val springBootVersion: String = "3.1.4"
     plugins {
         id("org.springframework.boot") version springBootVersion
     }

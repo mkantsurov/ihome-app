@@ -3,7 +3,7 @@ package technology.positivehome.ihome.server.persistence.repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.io.Serializable;
 
 /**

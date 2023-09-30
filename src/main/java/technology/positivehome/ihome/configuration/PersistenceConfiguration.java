@@ -11,7 +11,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 
-import javax.sql.DataSource;
+import jakarta.sql.DataSource;
 
 /**
  * The accounts Spring configuration.
