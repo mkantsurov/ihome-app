@@ -60,11 +60,11 @@ public class IHomeMethodSecurityExpressionRoot extends SecurityExpressionRoot im
     }
 
     public boolean hasAccessPermission(String targetType, String accessType, Serializable... ids) {
-        return iHomeSecurityPermissionEvaluator.hasPermission(authentication, IHomeApiTargetType.of(targetType), IHomeApiTargetAccessType.of(accessType), ids);
+        return iHomeSecurityPermissionEvaluator.hasPermission(getAuthentication(), IHomeApiTargetType.of(targetType), IHomeApiTargetAccessType.of(accessType), ids);
     }
 
     public boolean hasAccessPermission(String accessType, Object targetDomainObject) {
-        return iHomeSecurityPermissionEvaluator.hasPermission(authentication, targetDomainObject, IHomeApiTargetAccessType.of(accessType));
+        return iHomeSecurityPermissionEvaluator.hasPermission(getAuthentication(), targetDomainObject, IHomeApiTargetAccessType.of(accessType));
     }
 
     public void setIHomeSecurityPermissionEvaluator(IHomeSecurityPermissionEvaluator iotSecurityPermissionEvaluator) {
