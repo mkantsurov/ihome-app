@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -53,9 +54,13 @@ public class WebSecurityConfig {
     private final SecurityPermissionEvaluator securityPermissionEvaluator;
 
     @Autowired
-    public WebSecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint, AuthenticationSuccessHandler successHandler, AuthenticationFailureHandler failureHandler,
-                             AjaxAuthenticationProvider ajaxAuthenticationProvider, JwtAuthenticationProvider jwtAuthenticationProvider,
-                             TokenExtractor tokenExtractor, ObjectMapper objectMapper,
+    public WebSecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint,
+                             AuthenticationSuccessHandler successHandler,
+                             AuthenticationFailureHandler failureHandler,
+                             AjaxAuthenticationProvider ajaxAuthenticationProvider,
+                             JwtAuthenticationProvider jwtAuthenticationProvider,
+                             TokenExtractor tokenExtractor,
+                             ObjectMapper objectMapper,
                              SecurityPermissionEvaluator securityPermissionEvaluator) {
 
         this.authenticationEntryPoint = authenticationEntryPoint;
@@ -68,8 +73,19 @@ public class WebSecurityConfig {
         this.securityPermissionEvaluator = securityPermissionEvaluator;
     }
 
+    @Autowired
+    void registerProvider(AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(ajaxAuthenticationProvider)
+                .authenticationProvider(jwtAuthenticationProvider);
+    }
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfiguration) throws Exception {
+        return authConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         List<String> permitAllEndpointList = Arrays.asList(
                 AUTHENTICATION_URL,
                 REFRESH_TOKEN_URL,
@@ -85,8 +101,8 @@ public class WebSecurityConfig {
                                 .requestMatchers(API_ROOT_URL).authenticated().anyRequest().permitAll()
                 )
                 .addFilterBefore(new CustomCorsFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(buildAjaxLoginProcessingFilter(http.getSharedObject(AuthenticationManager.class), AUTHENTICATION_URL), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(http.getSharedObject(AuthenticationManager.class), permitAllEndpointList, API_ROOT_URL), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildAjaxLoginProcessingFilter(authenticationManager, AUTHENTICATION_URL), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(authenticationManager, permitAllEndpointList, API_ROOT_URL), UsernamePasswordAuthenticationFilter.class)
                 // disable page caching
                 .headers((headers) ->
                         headers

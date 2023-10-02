@@ -18,9 +18,11 @@ logging:
 
 ---
 spring:
+  config:
+    activate:
+      on-profile: default
   thymeleaf:
     enabled: false
-  profiles: default
   application:
     name: i-home
   servlet:
