@@ -22,11 +22,12 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
 
     private static final Log log = LogFactory.getLog(GarageLightPowerControlModule.class);
 
-    public static final long LIGHT_TTL = TimeUnit.MINUTES.toMillis(10L);
+    public static final long LIGHT_TTL = TimeUnit.SECONDS.toMillis(90L);
 
     private static final long GARAGE_LIGHT_SW_BT = 6L;
     private static final long GARAGE_DORS_SENSOR = 7L;
     private static final long GARAGE_GATE_SENSOR = 8L;
+    private static final long GARAGE_MOTION_SENSOR = 86L;
 
     private final CronModuleJob[] moduleJobs;
     private AtomicLong timeWhenLiteEnabled = new AtomicLong(0L);
@@ -73,9 +74,11 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
                 } catch (Exception ex) {
                     log.error("Unable to switch light", ex);
                 }
-            } else if (GARAGE_DORS_SENSOR == event.getPortId()) { // garage dor sensor
+            } else if (GARAGE_DORS_SENSOR == event.getPortId()) { // garage door sensor
                 enableLightByDorsEvent(event);
             } else if (GARAGE_GATE_SENSOR == event.getPortId()) { // garage gate sensor
+                enableLightByDorsEvent(event);
+            } else if (GARAGE_MOTION_SENSOR == event.getPortId()) {
                 enableLightByDorsEvent(event);
             }
         }
