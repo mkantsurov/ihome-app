@@ -27,7 +27,7 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
     private static final long GARAGE_LIGHT_SW_BT = 6L;
     private static final long GARAGE_DORS_SENSOR = 7L;
     private static final long GARAGE_GATE_SENSOR = 8L;
-    private static final long GARAGE_MOTION_SENSOR = 86L;
+    private static final long GARAGE_MOTION_SENSOR = 87L;
 
     private final CronModuleJob[] moduleJobs;
     private AtomicLong timeWhenLiteEnabled = new AtomicLong(0L);
