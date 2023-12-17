@@ -1,5 +1,5 @@
 INSERT INTO controller_port_config_entry (id, controller_id, port_address, type, description)
-VALUES (86, 1, 9, 2, 'Garage motion sensor');
+VALUES (87, 1, 9, 2, 'Garage motion sensor');
 
 -- display_mode  id            module_id     name          port          type
 -- ihome=> select * from module_config_element_entry where name like '%motion%';
