@@ -62,19 +62,19 @@ public class SystemController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/luminositystat")
+    @GetMapping(path = "/luminosity-stat")
     public LuminosityStatInfo getLuminosityStat() {
         return statisticProcessor.getLuminosityStat();
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/systemstat")
+    @GetMapping(path = "/system-stat")
     public SystemStatInfo getSystemStat() {
         return statisticProcessor.getSystemStat();
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/lastat")
+    @GetMapping(path = "/la-stat")
     public LaStatInfo getLaStat() {
         return statisticProcessor.getLaStat();
     }
