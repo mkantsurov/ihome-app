@@ -17,19 +17,19 @@ public class DR404ControllerChangeAddress {
 
     public static void main(String[] argv) {
         try {
-            readPortAddr((byte) 0x01);
-            readPortAddr((byte) 0x02);
+//            readPortAddr((byte) 0x01);
+//            readPortAddr((byte) 0x02);
 //            System.out.println("Write register 0x15");
 //            try (Socket clientSocket = new Socket("192.168.88.75", 8899)) {
 //                try (OutputStream os = clientSocket.getOutputStream()) {
-//                    byte[] cmd = createWriteCommand(0x02, 0x15, 0x0201);
+//                    byte[] cmd = createWriteCommand(0x01, 0x15, 0x0301); //data 2 bytes. High byte - address, low byte speed (9600)
 //                    os.write(cmd);
 //                }
 //            }
 //            System.out.println("Done");
 //            System.out.println("Check result");
-//            readPortAddr((byte) 0x00);
-//            Thread.sleep(1000L);
+            readPortAddr((byte) 0x03);
+            Thread.sleep(1000L);
         } catch (Exception ex) {
             ex.printStackTrace();
             log.error(ex);
