@@ -5,5 +5,6 @@ package technology.positivehome.ihome.domain.runtime;
  **/
 public record PowerSummaryInfo(int luminosity, int extVoltage, int extCurrent, int extFrequency, int extConsumption,
                                int intVoltage, int intCurrent, int intFrequency, int intConsumption,
+                               int intBckVoltage, int intBckCurrent, int intBckFrequency, int intBckConsumption,
                                int securityMode, int pwSrcConverterMode, int pwSrcDirectMode) {
 }

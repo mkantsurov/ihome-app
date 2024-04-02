@@ -6,24 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PowerConsumptionStatInfo {
-
-    private List<ChartPointInfo> extConsumption = new ArrayList<>();
-    private List<ChartPointInfo> intConsumption = new ArrayList<>();
-
-    public List<ChartPointInfo> getExtConsumption() {
-        return extConsumption;
-    }
-
-    public void setExtConsumption(List<ChartPointInfo> extConsumption) {
-        this.extConsumption = extConsumption;
-    }
-
-    public List<ChartPointInfo> getIntConsumption() {
-        return intConsumption;
-    }
-
-    public void setIntConsumption(List<ChartPointInfo> intConsumption) {
-        this.intConsumption = intConsumption;
+public record PowerConsumptionStatInfo(List<ChartPointInfo> extConsumption,
+                                       List<ChartPointInfo> intConsumption,
+                                       List<ChartPointInfo> intBckConsumption) {
+    public static PowerConsumptionStatInfo newInstance() {
+        return new PowerConsumptionStatInfo(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     }
 }

@@ -1,29 +1,52 @@
 package technology.positivehome.ihome.domain.runtime;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * Created by maxim on 8/17/19.
  **/
-public class PowerVoltageStat {
-    private List<ChartPoint> extVoltage = new ArrayList<>();
-    private List<ChartPoint> intVoltage = new ArrayList<>();
-
-    public List<ChartPoint> getIntVoltage() {
-        return intVoltage;
+public record PowerVoltageStat(List<ChartPoint> extVoltage, List<ChartPoint> intVoltage,
+                               List<ChartPoint> intBckVoltage) {
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public void setIntVoltage(List<ChartPoint> intVoltage) {
-        this.intVoltage = intVoltage;
-    }
+    public static class Builder {
+        private final List<ChartPoint> extVoltage = new ArrayList<>();
+        private final List<ChartPoint> intVoltage = new ArrayList<>();
+        private final List<ChartPoint> intBckVoltage = new ArrayList<>();
 
-    public List<ChartPoint> getExtVoltage() {
-        return extVoltage;
-    }
+        public PowerVoltageStat build() {
+            if (extVoltage.isEmpty()) {
+                extVoltage.add(ChartPoint.of(LocalDateTime.now(), 0));
+            }
+            if (intVoltage.isEmpty()) {
+                intVoltage.add(ChartPoint.of(LocalDateTime.now(), 0));
+            }
+            if (intBckVoltage.isEmpty()) {
+                intBckVoltage.add(ChartPoint.of(LocalDateTime.now(), 0));
+            }
+            extVoltage.sort(Comparator.comparing(ChartPoint::dt));
+            intVoltage.sort(Comparator.comparing(ChartPoint::dt));
+            intBckVoltage.sort(Comparator.comparing(ChartPoint::dt));
+            return new PowerVoltageStat(extVoltage, intVoltage, intBckVoltage);
+        }
 
-    public void setExtVoltage(List<ChartPoint> extVoltage) {
-        this.extVoltage = extVoltage;
-    }
+        public Builder withExtVoltageChartPoint(ChartPoint chartPoint) {
+            extVoltage.add(chartPoint);
+            return this;
+        }
+        public Builder withIntVoltageChartPoint(ChartPoint chartPoint) {
+            intVoltage.add(chartPoint);
+            return this;
+        }
+        public Builder withIntBckVoltageChartPoint(ChartPoint chartPoint) {
+            intBckVoltage.add(chartPoint);
+            return this;
+        }
 
+    }
 }

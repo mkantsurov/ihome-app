@@ -76,6 +76,8 @@ public class SystemProcessor {
             extData = new Dds238PowerMeterData(.0, .0, .0, .0);
         }
         Dds238PowerMeterData intData = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(INT_POWER_METER_PORT_ID));
+
+        Dds238PowerMeterData intBckData = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(INT_BCK_POWER_METER_PORT_ID));
         return new PowerSummaryInfo(
                 (int) Math.round(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000) * 100),
                 (int) Math.round(extData.voltage() * 10),
@@ -86,6 +88,10 @@ public class SystemProcessor {
                 (int) Math.round(intData.current() * 10),
                 (int) Math.round(intData.freq() * 100),
                 (int) Math.round(intData.total() * 10),
+                (int) Math.round(intBckData.voltage() * 10),
+                (int) Math.round(intBckData.current() * 10),
+                (int) Math.round(intBckData.freq() * 100),
+                (int) Math.round(intBckData.total() * 10),
                 BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0,
                 BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0,
                 BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(CONVERTER_POWER_SUPPLY_PORT))) ? 1 : 0
@@ -122,6 +128,7 @@ public class SystemProcessor {
                 .luminosityData(systemManager.getInputPowerSupplySourceCalc().getAvgValue(60000))
                 .extPowerData(extPwrData)
                 .intPowerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(INT_POWER_METER_PORT_ID)))
+                .intBckPowerData(systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(INT_BCK_POWER_METER_PORT_ID)))
                 .securityMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(SECURITY_MODE_SENSOR_PORT_ID))) ? 1 : 0)
                 .pwSrcDirectModeMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(DIRECT_POWER_SUPPLY_PORT))) ? 1 : 0)
                 .pwSrcConverterMode(BinaryPortStatus.ENABLED.equals(systemManager.runCommand(IHomeCommandFactory.cmdGetRelayStatus(CONVERTER_POWER_SUPPLY_PORT))) ? 1 : 0)

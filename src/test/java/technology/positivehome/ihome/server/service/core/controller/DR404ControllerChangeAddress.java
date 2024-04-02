@@ -28,6 +28,8 @@ public class DR404ControllerChangeAddress {
 //            }
 //            System.out.println("Done");
 //            System.out.println("Check result");
+            readPortAddr((byte) 0x01);
+            readPortAddr((byte) 0x02);
             readPortAddr((byte) 0x03);
             Thread.sleep(1000L);
         } catch (Exception ex) {

@@ -22,6 +22,7 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
 
     public static final int POWER_METER_PORT_ID = 85;
     public static final int INT_POWER_METER_PORT_ID = 86;
+    public static final int INT_BCK_POWER_METER_PORT_ID = 88;
 
     private final CronModuleJob[] moduleJobs;
 

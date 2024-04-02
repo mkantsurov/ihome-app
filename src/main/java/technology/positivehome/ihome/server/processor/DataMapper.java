@@ -5,87 +5,95 @@ import technology.positivehome.ihome.domain.shared.*;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 
 public class DataMapper {
 
     public static OutDoorTempStatInfo from(OutDoorTempStat res) {
         OutDoorTempStatInfo result = new OutDoorTempStatInfo();
-        res.getTemperature().forEach(chartPoint -> {
+        res.temperature().forEach(chartPoint -> {
             result.getTemperature().add(from(chartPoint));
         });
         return result;
     }
 
     public static PowerVoltageStatInfo from(PowerVoltageStat res) {
-        PowerVoltageStatInfo result = new PowerVoltageStatInfo();
-        res.getExtVoltage().forEach(chartPoint -> {
-            result.getExtVoltage().add(from(chartPoint));
+        PowerVoltageStatInfo result = PowerVoltageStatInfo.newInstance();
+
+        res.extVoltage().forEach(chartPoint -> {
+            result.extVoltage().add(from(chartPoint));
         });
-        res.getIntVoltage().forEach(chartPoint -> {
-            result.getIntVoltage().add(from(chartPoint));
+        res.intVoltage().forEach(chartPoint -> {
+            result.intVoltage().add(from(chartPoint));
+        });
+        res.intBckVoltage().forEach(chartPoint -> {
+            result.intBckVoltage().add(from(chartPoint));
         });
         return result;
     }
 
     public static PowerConsumptionStatInfo from(PowerConsumptionStat res) {
-        PowerConsumptionStatInfo result = new PowerConsumptionStatInfo();
-        res.getExtConsumption().forEach(chartPoint -> {
-            result.getExtConsumption().add(from(chartPoint));
+        PowerConsumptionStatInfo result = PowerConsumptionStatInfo.newInstance();
+        res.extConsumption().forEach(chartPoint -> {
+            result.extConsumption().add(from(chartPoint));
         });
-        res.getIntConsumption().forEach(chartPoint -> {
-            result.getIntConsumption().add(from(chartPoint));
+        res.intConsumption().forEach(chartPoint -> {
+            result.intConsumption().add(from(chartPoint));
+        });
+        res.intBckConsumption().forEach(chartPoint -> {
+            result.intBckConsumption().add(from(chartPoint));
         });
         return result;
     }
 
     public static PressureStatInfo from(PressureStat res) {
-        PressureStatInfo result = new PressureStatInfo();
-        res.getPressure().forEach(chartPoint -> {
-            result.getPressure().add(from(chartPoint));
+        PressureStatInfo result = new PressureStatInfo(new ArrayList<>());
+        res.pressure().forEach(chartPoint -> {
+            result.pressure().add(from(chartPoint));
         });
         return result;
     }
 
     public static TempStatInfo from(TempStat res) {
-        TempStatInfo result = new TempStatInfo();
-        res.getGarage().forEach(chartPoint -> result.getGarage().add(from(chartPoint)));
-        res.getIndoor().forEach(chartPoint -> result.getIndoor().add(from(chartPoint)));
-        res.getIndoorGf().forEach(chartPoint -> result.getIndoorGf().add(from(chartPoint)));
-        res.getOutdoor().forEach(chartPoint -> result.getOutdoor().add(from(chartPoint)));
+        TempStatInfo result = TempStatInfo.newInstance();
+        res.garage().forEach(chartPoint -> result.garage().add(from(chartPoint)));
+        res.indoorSf().forEach(chartPoint -> result.indoorSf().add(from(chartPoint)));
+        res.indoorGf().forEach(chartPoint -> result.indoorGf().add(from(chartPoint)));
+        res.outdoor().forEach(chartPoint -> result.outdoor().add(from(chartPoint)));
         return result;
     }
 
     public static LuminosityStatInfo from(LuminosityStat res) {
-        LuminosityStatInfo result = new LuminosityStatInfo();
-        res.getLuminosity().forEach(chartPoint -> {
-            result.getLuminosity().add(from(chartPoint));
+        LuminosityStatInfo result = new LuminosityStatInfo(new ArrayList<>());
+        res.luminosity().forEach(chartPoint -> {
+            result.luminosity().add(from(chartPoint));
         });
         return result;
     }
 
     public static BoilerTempStatInfo from(BoilerTempStat res) {
-        BoilerTempStatInfo result = new BoilerTempStatInfo();
-        res.getTemperature().forEach(chartPoint -> result.getTemperature().add(from(chartPoint)));
+        BoilerTempStatInfo result = new BoilerTempStatInfo(new ArrayList<>());
+        res.temperature().forEach(chartPoint -> result.temperature().add(from(chartPoint)));
         return result;
     }
 
     public static SystemStatInfo from(SystemStat res) {
-        SystemStatInfo result = new SystemStatInfo();
-        res.getHeapMax().forEach(chartPoint -> result.getHeapMax().add(from(chartPoint)));
-        res.getHeapUsage().forEach(chartPoint -> result.getHeapUsage().add(from(chartPoint)));
+        SystemStatInfo result = SystemStatInfo.newInstance();
+        res.heapMax().forEach(chartPoint -> result.heapMax().add(from(chartPoint)));
+        res.heapUsage().forEach(chartPoint -> result.heapUsage().add(from(chartPoint)));
         return result;
     }
 
     public static LaStatInfo from(LaStat res) {
-        LaStatInfo result = new LaStatInfo();
-        res.getLa().forEach(chartPoint -> result.getLa().add(from(chartPoint)));
+        LaStatInfo result = new LaStatInfo(new ArrayList<>());
+        res.la().forEach(chartPoint -> result.la().add(from(chartPoint)));
         return result;
     }
 
     private static ChartPointInfo from(ChartPoint chartPoint) {
         return new ChartPointInfo(
-                ZonedDateTime.of(chartPoint.getDt(), ZoneId.of("UTC")),
-                chartPoint.getValue()
+                ZonedDateTime.of(chartPoint.dt(), ZoneId.of("UTC")),
+                chartPoint.value()
         );
     }
 

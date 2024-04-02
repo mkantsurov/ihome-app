@@ -12,6 +12,7 @@ public record MeasurementLogEntity(long id, LocalDateTime created, int loadAvg, 
                                    int indoorGfTemp, int garageTemp, int garageHumidity, int boilerTemperature, int luminosity,
                                    int extPwrVoltage, int extPwrCurrent, int extPwrFrequency, int extPwrConsumption,
                                    int intPwrVoltage, int intPwrCurrent, int intPwrFrequency, int intPwrConsumption,
+                                   int intBckPwrVoltage, int intBckPwrCurrent, int intBckPwrFrequency, int intBckPwrConsumption,
                                    int securityMode, int pwSrcConverterMode, int pwSrcDirectMode,
                                    int heatingPumpFFMode, int heatingPumpSFMode) {
 
@@ -33,6 +34,7 @@ public record MeasurementLogEntity(long id, LocalDateTime created, int loadAvg, 
                 si.luminosity(),
                 si.extPwrVoltage(), si.extPwrCurrent(), si.extPwrFrequency(), si.extPwrConsumption(),
                 si.intPwrVoltage(), si.intPwrCurrent(), si.intPwrFrequency(), si.intPwrConsumption(),
+                si.intBckPwrVoltage(), si.intBckPwrCurrent(), si.intBckPwrFrequency(), si.intBckPwrConsumption(),
                 si.securityMode(), si.pwSrcConverterMode(), si.pwSrcDirectMode(), si.heatingPumpFFMode(),
                 si.heatingPumpSFMode());
     }

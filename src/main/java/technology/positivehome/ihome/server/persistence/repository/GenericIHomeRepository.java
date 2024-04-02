@@ -9,7 +9,7 @@ import java.io.Serializable;
 /**
  * Generic repository interface that declares base methods that should be present in the repositories
  */
-public interface IHomeRepository<T, K extends Serializable> {
+public interface GenericIHomeRepository<T, K extends Serializable> {
 
     /**
      * Gets entity by ID.

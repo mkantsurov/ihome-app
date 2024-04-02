@@ -27,7 +27,7 @@ public class StatisticProcessor implements InitializingBean {
     private final SystemProcessor systemProcessor;
     private final MeasurementsLogRepository measurementsLogRepository;
 
-    private Map<LocalDateTime, SystemSummaryInfo> statCache = new ConcurrentHashMap<>();
+    private final Map<LocalDateTime, SystemSummaryInfo> statCache = new ConcurrentHashMap<>();
 
     public StatisticProcessor(SystemProcessor systemProcessor, MeasurementsLogRepository measurementsLogRepository) {
         this.systemProcessor = systemProcessor;
@@ -46,7 +46,7 @@ public class StatisticProcessor implements InitializingBean {
         }
     }
 
-    @Scheduled(cron = "0 */15 * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     protected void collectStat() {
         try {
             SystemSummaryInfo si = systemProcessor.getSummaryInfo();
@@ -65,242 +65,130 @@ public class StatisticProcessor implements InitializingBean {
     }
 
     public TempStatInfo getTempStat() {
-        TempStat res = new TempStat();
+        TempStat.Builder res = TempStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.INDOOR_TEMP, res.getIndoor(), entry.getKey(), entry.getValue());
-            addChartPoint(ChartType.INDOOR_GF_TEMP, res.getIndoorGf(), entry.getKey(), entry.getValue());
-            addChartPoint(ChartType.OUTDOOR_TEMP, res.getOutdoor(), entry.getKey(), entry.getValue());
-            addChartPoint(ChartType.GARAGE_TEMP, res.getGarage(), entry.getKey(), entry.getValue());
+            res.withIndoorSfTempChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().sfTemperature()))
+                    .withIndoorGfTempChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().gfTemperature()))
+                    .withOutDoorTempChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().outDoorTemperature()))
+                    .withGarageTempChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().garageTemperature()));
         }
-        if (res.getOutdoor().isEmpty()) {
-            SystemSummaryInfo ssi = SystemSummaryInfo.builder(System.currentTimeMillis()).build();
-            addChartPoint(ChartType.INDOOR_TEMP, res.getIndoor(), LocalDateTime.now(), ssi);
-            addChartPoint(ChartType.INDOOR_GF_TEMP, res.getIndoorGf(), LocalDateTime.now(), ssi);
-            addChartPoint(ChartType.OUTDOOR_TEMP, res.getOutdoor(), LocalDateTime.now(), ssi);
-            addChartPoint(ChartType.GARAGE_TEMP, res.getGarage(), LocalDateTime.now(), ssi);
-        }
-        res.getIndoor().sort(Comparator.comparing(ChartPoint::getDt));
-        res.getIndoorGf().sort(Comparator.comparing(ChartPoint::getDt));
-        res.getOutdoor().sort(Comparator.comparing(ChartPoint::getDt));
-        res.getGarage().sort(Comparator.comparing(ChartPoint::getDt));
-        return DataMapper.from(res);
+        return DataMapper.from(res.build());
     }
 
     public PressureStatInfo getPressureStat() {
-        PressureStat res = new PressureStat();
+        ChartDataBuilder<PressureStat> res = PressureStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.PRESSURE, res.getPressure(), entry.getKey(), entry.getValue());
+            res.withChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().pressure()));
         }
-        if (res.getPressure().isEmpty()) {
-            addChartPoint(ChartType.PRESSURE, res.getPressure(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
-        }
-        res.getPressure().sort(Comparator.comparing(ChartPoint::getDt));
-        return DataMapper.from(res);
-    }
-
-    private void addChartPoint(ChartType type, List<ChartPoint> data, LocalDateTime ts, SystemSummaryInfo systemSummaryInfo) {
-        switch (type) {
-            case INDOOR_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.sfTemperature()));
-                break;
-            case INDOOR_GF_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.gfTemperature()));
-                break;
-            case OUTDOOR_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.outDoorTemperature()));
-                break;
-            case GARAGE_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.garageTemperature()));
-                break;
-            case PRESSURE:
-                data.add(new ChartPoint(ts, systemSummaryInfo.pressure()));
-                break;
-            case BOILER_TEMP:
-                data.add(new ChartPoint(ts, systemSummaryInfo.boilerTemperature()));
-                break;
-            case LUMINOSITY:
-                data.add(new ChartPoint(ts, systemSummaryInfo.luminosity()));
-                break;
-            case SYSTEM_LA:
-                data.add(new ChartPoint(ts, systemSummaryInfo.loadAvg()));
-                break;
-            case SYSTEM_HEAP_MAX:
-                data.add(new ChartPoint(ts, systemSummaryInfo.heapMax()));
-                break;
-            case SYSTEM_HEAP_USAGE:
-                data.add(new ChartPoint(ts, systemSummaryInfo.heapUsage()));
-                break;
-            case EXT_POWER_VOLTAGE:
-                data.add(new ChartPoint(ts, systemSummaryInfo.extPwrVoltage()));
-                break;
-            case INT_POWER_VOLTAGE:
-                data.add(new ChartPoint(ts, systemSummaryInfo.intPwrVoltage()));
-                break;
-            case EXT_POWER_CONSUMPTION:
-                data.add(new ChartPoint(ts, systemSummaryInfo.extPwrConsumption()));
-                break;
-            case INT_POWER_CONSUMPTION:
-                data.add(new ChartPoint(ts, systemSummaryInfo.intPwrConsumption()));
-                break;
-        }
+        return DataMapper.from(res.build(PressureStat::new));
     }
 
     public BoilerTempStatInfo getBoilerTempStat() {
-        BoilerTempStat res = new BoilerTempStat();
+        ChartDataBuilder<BoilerTempStat> res = BoilerTempStat.builder();
+
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.BOILER_TEMP, res.getTemperature(), entry.getKey(), entry.getValue());
+            res.withChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().boilerTemperature()));
         }
-        if (res.getTemperature().isEmpty()) {
-            addChartPoint(ChartType.BOILER_TEMP, res.getTemperature(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
-        }
-        res.getTemperature().sort(Comparator.comparing(ChartPoint::getDt));
-        return DataMapper.from(res);
+        return DataMapper.from(res.build(BoilerTempStat::new));
     }
 
     public LuminosityStatInfo getLuminosityStat() {
-        LuminosityStat res = new LuminosityStat();
+        ChartDataBuilder<LuminosityStat> res = LuminosityStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.LUMINOSITY, res.getLuminosity(), entry.getKey(), entry.getValue());
+            res.withChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().luminosity()));
         }
-        if (res.getLuminosity().isEmpty()) {
-            addChartPoint(ChartType.LUMINOSITY, res.getLuminosity(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
-        }
-        res.getLuminosity().sort(Comparator.comparing(ChartPoint::getDt));
-        return DataMapper.from(res);
+        return DataMapper.from(res.build(LuminosityStat::new));
     }
 
     public SystemStatInfo getSystemStat() {
-        SystemStat res = new SystemStat();
+        SystemStat.Builder res = SystemStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.SYSTEM_HEAP_MAX, res.getHeapMax(), entry.getKey(), entry.getValue());
-            addChartPoint(ChartType.SYSTEM_HEAP_USAGE, res.getHeapUsage(), entry.getKey(), entry.getValue());
+            res.withChartPoint(entry.getKey(), entry.getValue().heapMax(), entry.getValue().heapUsage());
         }
-        if (res.getHeapMax().isEmpty()) {
-            addChartPoint(ChartType.SYSTEM_HEAP_MAX, res.getHeapMax(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
-            addChartPoint(ChartType.SYSTEM_HEAP_USAGE, res.getHeapUsage(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
-        }
-        res.getHeapMax().sort(Comparator.comparing(ChartPoint::getDt));
-        res.getHeapUsage().sort(Comparator.comparing(ChartPoint::getDt));
-        return DataMapper.from(res);
+        return DataMapper.from(res.build());
     }
 
     public LaStatInfo getLaStat() {
-        LaStat res = new LaStat();
+        ChartDataBuilder<LaStat> res = LaStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.SYSTEM_LA, res.getLa(), entry.getKey(), entry.getValue());
+            res.withChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().loadAvg()));
         }
-
-        if (res.getLa().isEmpty()) {
-            addChartPoint(ChartType.SYSTEM_LA, res.getLa(), LocalDateTime.now(), SystemSummaryInfo.builder(System.currentTimeMillis()).build());
-        }
-        res.getLa().sort(Comparator.comparing(ChartPoint::getDt));
-        return DataMapper.from(res);
+        return DataMapper.from(res.build(LaStat::new));
     }
 
     public OutDoorTempStatInfo getTemperatureStat() {
-        OutDoorTempStat res = new OutDoorTempStat();
+        ChartDataBuilder<OutDoorTempStat> res = OutDoorTempStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.OUTDOOR_TEMP, res.getTemperature(), entry.getKey(), entry.getValue());
+            res.withChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().outDoorTemperature()));
         }
-        res.getTemperature().sort(Comparator.comparing(ChartPoint::getDt));
-        return DataMapper.from(res);
+        return DataMapper.from(res.build(OutDoorTempStat::new));
     }
     public PowerVoltageExtStatInfo getPowerVoltageExtStat() {
-        PowerVoltageStat res = new PowerVoltageStat();
+        PowerVoltageStat.Builder res = PowerVoltageStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.EXT_POWER_VOLTAGE, res.getExtVoltage(), entry.getKey(), entry.getValue());
-            addChartPoint(ChartType.INT_POWER_VOLTAGE, res.getIntVoltage(), entry.getKey(), entry.getValue());
+            res.withExtVoltageChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().extPwrVoltage()))
+                    .withIntVoltageChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intPwrVoltage()))
+                    .withIntBckVoltageChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intBckPwrVoltage()));
         }
-        res.getExtVoltage().sort(Comparator.comparing(ChartPoint::getDt));
-        res.getIntVoltage().sort(Comparator.comparing(ChartPoint::getDt));
-        return new PowerVoltageExtStatInfo(DataMapper.from(res).getExtVoltage());
+        return new PowerVoltageExtStatInfo(DataMapper.from(res.build()).extVoltage());
     }
     public PowerVoltageStatInfo getPowerVoltageStat() {
-        PowerVoltageStat res = new PowerVoltageStat();
+        PowerVoltageStat.Builder res = PowerVoltageStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            addChartPoint(ChartType.EXT_POWER_VOLTAGE, res.getExtVoltage(), entry.getKey(), entry.getValue());
-            addChartPoint(ChartType.INT_POWER_VOLTAGE, res.getIntVoltage(), entry.getKey(), entry.getValue());
+            res.withExtVoltageChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().extPwrVoltage()))
+                    .withIntVoltageChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intPwrVoltage()))
+                    .withIntBckVoltageChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intBckPwrVoltage()));
         }
-        res.getExtVoltage().sort(Comparator.comparing(ChartPoint::getDt));
-        res.getIntVoltage().sort(Comparator.comparing(ChartPoint::getDt));
-        return DataMapper.from(res);
+        return DataMapper.from(res.build());
     }
 
     public PowerConsumptionStatInfo getPowerConsumptionStat() {
-        PowerConsumptionStat res = new PowerConsumptionStat();
+        PowerConsumptionStat.Builder res = PowerConsumptionStat.builder();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
-        List<ChartPoint> extConsumption = new ArrayList<>();
-        List<ChartPoint> intConsumption = new ArrayList<>();
-
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            extConsumption.add(new ChartPoint(entry.getKey(), entry.getValue().extPwrConsumption()));
-            intConsumption.add(new ChartPoint(entry.getKey(), entry.getValue().intPwrConsumption()));
+            res.withExtConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().extPwrVoltage()))
+                    .withIntConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intPwrVoltage()))
+                    .withIntBckConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intBckPwrVoltage()));
         }
-        extConsumption.sort(Comparator.comparing(ChartPoint::getDt));
-        intConsumption.sort(Comparator.comparing(ChartPoint::getDt));
-
-        res.setExtConsumption(normalize(extConsumption));
-        res.setIntConsumption(normalize(intConsumption));
-        return DataMapper.from(res);
+        return DataMapper.from(res.build());
     }
 
     private List<ChartPoint> normalize(List<ChartPoint> data) {
-        data.sort(Comparator.comparing(ChartPoint::getDt));
+        data.sort(Comparator.comparing(ChartPoint::dt));
         List<ChartPoint> res = new ArrayList<>();
 
         int curValue = 0;
         int startPoint;
 
         for (startPoint = 0; startPoint < data.size() && curValue <= 0; startPoint ++) {
-            curValue = data.get(startPoint).getValue();
+            curValue = data.get(startPoint).value();
         }
 
         for (int i = startPoint + 1; i < data.size(); i++) {
-            int diff = data.get(i).getValue() - curValue;
+            int diff = data.get(i).value() - curValue;
             if (diff >= 0 && diff < 200) {
-                res.add(new ChartPoint(data.get(i).getDt(), data.get(i).getValue() - curValue));
-                curValue = data.get(i).getValue();
+                res.add(new ChartPoint(data.get(i).dt(), data.get(i).value() - curValue));
+                curValue = data.get(i).value();
             } else {
-                log.warn("Invalid diff value: " + diff + " Prev Value: " + curValue + " Current value: " + data.get(i).getValue());
+                log.warn("Invalid diff value: " + diff + " Prev Value: " + curValue + " Current value: " + data.get(i).value());
             }
         }
         return res;
     }
 
-    private enum ChartType {
-        INDOOR_TEMP,
-        INDOOR_GF_TEMP,
-        OUTDOOR_TEMP,
-        GARAGE_TEMP,
-        PRESSURE,
-        BOILER_TEMP,
-        LUMINOSITY,
-        SYSTEM_LA,
-        SYSTEM_HEAP_MAX,
-        SYSTEM_HEAP_USAGE,
-        EXT_POWER_VOLTAGE,
-        EXT_POWER_CURRENT,
-        EXT_POWER_FREQUENCY,
-        EXT_POWER_CONSUMPTION,
-        INT_POWER_VOLTAGE,
-        INT_POWER_CURRENT,
-        INT_POWER_FREQUENCY,
-        INT_POWER_CONSUMPTION
-
-    }
 }

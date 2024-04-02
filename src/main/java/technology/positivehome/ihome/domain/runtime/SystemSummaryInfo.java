@@ -15,6 +15,7 @@ public record SystemSummaryInfo(long upTime, int loadAvg, int heapMax, int heapU
                                 int garageHumidity, int boilerTemperature, int luminosity,
                                 int extPwrVoltage, int extPwrCurrent, int extPwrFrequency, int extPwrConsumption,
                                 int intPwrVoltage, int intPwrCurrent, int intPwrFrequency, int intPwrConsumption,
+                                int intBckPwrVoltage, int intBckPwrCurrent, int intBckPwrFrequency, int intBckPwrConsumption,
                                 int securityMode, int pwSrcConverterMode, int pwSrcDirectMode, int heatingPumpFFMode,
                                 int heatingPumpSFMode) {
 
@@ -28,6 +29,7 @@ public record SystemSummaryInfo(long upTime, int loadAvg, int heapMax, int heapU
                 entry.boilerTemperature(), entry.luminosity(),
                 entry.extPwrVoltage(), entry.extPwrCurrent(), entry.extPwrFrequency(), entry.extPwrConsumption(),
                 entry.intPwrVoltage(), entry.intPwrCurrent(), entry.intPwrFrequency(), entry.intPwrConsumption(),
+                entry.intBckPwrVoltage(), entry.intBckPwrCurrent(), entry.intBckPwrFrequency(), entry.intBckPwrConsumption(),
                 entry.securityMode(), entry.pwSrcConverterMode(), entry.pwSrcDirectMode(),
                 entry.heatingPumpFFMode(), entry.heatingPumpSFMode());
     }
@@ -55,6 +57,10 @@ public record SystemSummaryInfo(long upTime, int loadAvg, int heapMax, int heapU
         private int intPwrCurrent;
         private int intPwrFrequency;
         private int intPwrConsumption;
+        private int intBckPwrVoltage;
+        private int intBckPwrCurrent;
+        private int intBckPwrFrequency;
+        private int intBckPwrConsumption;
         private int securityMode;
         private int pwSrcConverterMode;
         private int pwSrcDirectMode;
@@ -110,6 +116,13 @@ public record SystemSummaryInfo(long upTime, int loadAvg, int heapMax, int heapU
             intPwrConsumption = (int) Math.round(powerSensorReading.total() * 10);
             return this;
         }
+        public Builder intBckPowerData(Dds238PowerMeterData powerSensorReading) {
+            intBckPwrVoltage = (int) Math.round(powerSensorReading.voltage() * 10);
+            intBckPwrCurrent = (int) Math.round(powerSensorReading.current() * 10);
+            intBckPwrFrequency = (int) Math.round(powerSensorReading.freq() * 10);
+            intBckPwrConsumption = (int) Math.round(powerSensorReading.total() * 10);
+            return this;
+        }
 
         public Builder securityMode(int securityModeSensorReading) {
             securityMode = securityModeSensorReading;
@@ -149,6 +162,7 @@ public record SystemSummaryInfo(long upTime, int loadAvg, int heapMax, int heapU
                     garageTemperature, garageHumidity, boilerTemperature, luminosity,
                     extPwrVoltage, extPwrCurrent, extPwrFrequency, extPwrConsumption,
                     intPwrVoltage, intPwrCurrent, intPwrFrequency, intPwrConsumption,
+                    intBckPwrVoltage, intBckPwrCurrent, intBckPwrFrequency, intBckPwrConsumption,
                     securityMode, pwSrcConverterMode, pwSrcDirectMode, heatingPumpFFMode, heatingPumpSFMode);
         }
 
