@@ -23,7 +23,7 @@ public class ErrorMessageLogServiceImpl implements ErrorMessageLogService {
 
     @Override
     public List<ErrorMessageLogEntryInfo> searchMessages(List<SearchParam> searchParams, Integer page, Integer size, List<ErrorMessageLogSortRule> sort) {
-        return errorMessageLogRepository.searchUserAuditLogEntries(searchParams, page, size, sort).stream()
+        return errorMessageLogRepository.searchErrorMessages(searchParams, page, size, sort).stream()
                 .map(ErrorMessageLogMapper::from).toList();
     }
 }

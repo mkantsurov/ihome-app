@@ -68,7 +68,7 @@ public class ErrorMessageLogRepositoryImpl implements ErrorMessageLogRepository 
     }
 
     @Override
-    public List<ErrorMessageLogEntity> searchUserAuditLogEntries(@Nullable List<SearchParam> filter, @Nullable Integer page, @Nullable Integer size, @Nullable List<ErrorMessageLogSortRule> sort) {
+    public List<ErrorMessageLogEntity> searchErrorMessages(@Nullable List<SearchParam> filter, @Nullable Integer page, @Nullable Integer size, @Nullable List<ErrorMessageLogSortRule> sort) {
         return ErrorMessageLogQueryExecutorImpl.getInstance(namedParameterJdbcTemplate, errorMessageLogRowMapper)
                 .filter(filter)
                 .order(sort)
