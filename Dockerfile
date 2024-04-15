@@ -1,7 +1,7 @@
 FROM openjdk:17-alpine
 COPY app.jar app.jar
 # Create a group and user
-RUN addgroup -S appgroup -g 666 && adduser -S appuser -G appgroup -u 999
+RUN addgroup -S appgroup -g 667 && adduser -S appuser -G appgroup -u 997
 # Set jar permission
 RUN chmod -R 444 app.jar
 # Switch user

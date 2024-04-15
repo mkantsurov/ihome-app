@@ -45,7 +45,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-actuator-autoconfigure")
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation("io.jsonwebtoken:jjwt:0.9.0")
-    implementation("org.postgresql:postgresql:42.4.3")
+    implementation("org.postgresql:postgresql:42.7.0")
     implementation("javax.xml.bind:jaxb-api:2.3.0")
     implementation("com.zaxxer:HikariCP:2.7.4")
     implementation("org.apache.commons:commons-lang3:3.11")
@@ -55,7 +55,7 @@ dependencies {
     implementation("commons-io:commons-io:2.11.0")
     implementation("net.logstash.logback:logstash-logback-encoder:6.4")
     implementation("com.fasterxml.uuid:java-uuid-generator:4.3.0")
-    testImplementation("com.jayway.jsonpath:json-path:2.4.0")
+    testImplementation("com.jayway.jsonpath:json-path:2.8.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     runtimeOnly("org.springframework.boot:spring-boot-devtools")
 }
