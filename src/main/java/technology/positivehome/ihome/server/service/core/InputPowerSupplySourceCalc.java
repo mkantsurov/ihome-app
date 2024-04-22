@@ -61,10 +61,7 @@ public class InputPowerSupplySourceCalc {
 
     public PreferredPowerSupplyMode getPreferredPowerSupplyMode() {
         double luminosity = getAvgValue(TimeUnit.MINUTES.toMillis(10));
-        if (!isDay() || luminosity < 300) {
-            return PreferredPowerSupplyMode.DIRECT;
-        }
-        if (luminosity < 480) {
+        if (!isDay() || luminosity < 480) {
             return PreferredPowerSupplyMode.CONVERTER;
         } else {
             return PreferredPowerSupplyMode.ONLY_LED;
