@@ -1,16 +1,20 @@
 package technology.positivehome.ihome.server.service.core.controller.input;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
 import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
 import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
 import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
+import technology.positivehome.ihome.server.processor.SystemProcessor;
 import technology.positivehome.ihome.server.service.core.controller.DR404Port;
 import technology.positivehome.ihome.server.service.core.controller.DR404RequestExecutor;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +27,8 @@ import java.util.function.Supplier;
 
 public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMeter {
 
-    private static final long DATA_TTL = TimeUnit.SECONDS.toMillis(30);
+    private static final Logger log = LoggerFactory.getLogger(LiveDds238PowerMeterImpl.class);
+    private static final long DATA_TTL = TimeUnit.SECONDS.toMillis(60);
     private AtomicLong lastRequestTs = new AtomicLong(0);
     private AtomicReference<Dds238PowerMeterData> dataCache = new AtomicReference<>();
     public LiveDds238PowerMeterImpl(DR404RequestExecutor requestExecutor, int port) {
@@ -170,6 +175,13 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
                     result.total(ByteBuffer.wrap(data, 0, 8).getLong() / 100.0);
                 });
                 return result.build();
+            }  catch (SocketTimeoutException ste) {
+                log.warn("Unable to execute request to DDS238 device. Port %s".formatted(port));
+                Dds238PowerMeterData prevValue = dataCache.get();
+                if (prevValue != null) {
+                    return new Dds238PowerMeterData(.0, .0, .0, prevValue.total());
+                }
+                return new Dds238PowerMeterData(.0, .0, .0, .0);
             }
         }));
         lastRequestTs.set(System.currentTimeMillis());

@@ -55,13 +55,7 @@ public class SystemProcessor {
     }
 
     public ExternalPowerSummaryInfo getExtPowerSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
-        BinaryPortStatus state = systemManager.runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
-        Dds238PowerMeterData data;
-        if (BinaryPortStatus.ENABLED.equals(state)) {
-            data = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
-        } else {
-            data = new Dds238PowerMeterData(.0, .0, .0, .0);
-        }
+        Dds238PowerMeterData data = systemManager.runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID));
         return new ExternalPowerSummaryInfo(
                 (int) Math.round(data.voltage() * 10),
                 (int) Math.round(data.freq() * 100));

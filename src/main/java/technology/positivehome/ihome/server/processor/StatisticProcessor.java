@@ -161,34 +161,11 @@ public class StatisticProcessor implements InitializingBean {
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {
-            res.withExtConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().extPwrVoltage()))
-                    .withIntConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intPwrVoltage()))
-                    .withIntBckConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intBckPwrVoltage()));
+            res.withExtConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().extPwrConsumption()))
+                    .withIntConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intPwrConsumption()))
+                    .withIntBckConsumptionChartPoint(ChartPoint.of(entry.getKey(), entry.getValue().intBckPwrConsumption()));
         }
         return DataMapper.from(res.build());
-    }
-
-    private List<ChartPoint> normalize(List<ChartPoint> data) {
-        data.sort(Comparator.comparing(ChartPoint::dt));
-        List<ChartPoint> res = new ArrayList<>();
-
-        int curValue = 0;
-        int startPoint;
-
-        for (startPoint = 0; startPoint < data.size() && curValue <= 0; startPoint ++) {
-            curValue = data.get(startPoint).value();
-        }
-
-        for (int i = startPoint + 1; i < data.size(); i++) {
-            int diff = data.get(i).value() - curValue;
-            if (diff >= 0 && diff < 200) {
-                res.add(new ChartPoint(data.get(i).dt(), data.get(i).value() - curValue));
-                curValue = data.get(i).value();
-            } else {
-                log.warn("Invalid diff value: " + diff + " Prev Value: " + curValue + " Current value: " + data.get(i).value());
-            }
-        }
-        return res;
     }
 
 }

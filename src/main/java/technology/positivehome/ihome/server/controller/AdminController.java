@@ -32,9 +32,9 @@ public class AdminController {
                            PasswordEncoder encoder, ErrorMessageLogService errorMessageLogService) {
         this.errorMessageLogService = errorMessageLogService;
     }
-    @PreAuthorize("isAuthenticated() && hasAuthority('MANAGEMENT')")
+    @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/errors", method = {RequestMethod.HEAD})
-    public ResponseEntity<Void> countUsers(@RequestParam(required = false) List<String> filter) {
+    public ResponseEntity<Void> errorCount(@RequestParam(required = false) List<String> filter) {
         HttpHeaders headers = new HttpHeaders();
 
         long count = errorMessageLogService.countMessages(FilterMapper.fromErrorMessageFilter(filter));
@@ -45,12 +45,12 @@ public class AdminController {
                 .body(null);
     }
 
-    @PreAuthorize("isAuthenticated() && hasAuthority('MANAGEMENT')")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/errors")
-    public List<ErrorMessageLogEntryInfo> searchUsers(@RequestParam(required = false) List<String> filter,
-                                                      @RequestParam(required = false, defaultValue = "0") @Min(0) Integer page,
-                                                      @RequestParam(required = false, defaultValue = "100") @Min(1) @Max(100) Integer size,
-                                                      @RequestParam(required = false) List<ErrorMessageLogSortRule> sort) {
+    public List<ErrorMessageLogEntryInfo> searchErrors(@RequestParam(required = false) List<String> filter,
+                                                       @RequestParam(required = false, defaultValue = "0") @Min(0) Integer page,
+                                                       @RequestParam(required = false, defaultValue = "100") @Min(1) @Max(100) Integer size,
+                                                       @RequestParam(required = false) List<ErrorMessageLogSortRule> sort) {
         return errorMessageLogService.searchMessages(FilterMapper.fromErrorMessageFilter(filter), page, size, sort);
     }
 
