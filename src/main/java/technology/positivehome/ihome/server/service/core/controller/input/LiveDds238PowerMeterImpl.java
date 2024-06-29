@@ -159,7 +159,7 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
     public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException {
         if (lastRequestTs.get() + DATA_TTL > System.currentTimeMillis()) {
             return dataCache.get();
-        } else if (lastFailRequestTs.get() + DATA_TTL/2 > System.currentTimeMillis()) {
+        } else if (dataCache.get() != null && lastFailRequestTs.get() + DATA_TTL/2 > System.currentTimeMillis()) {
             return new Dds238PowerMeterData(.0, .0, .0, dataCache.get().total());
         }
         return getRequestExecutor().performRequest(socket -> {
