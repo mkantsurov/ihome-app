@@ -2,6 +2,7 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
 import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
@@ -10,6 +11,7 @@ import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,13 +33,11 @@ public class HomeLightRelayLightDependentBasedPowerControlModule extends Abstrac
                 new CronModuleJob(TimeUnit.MINUTES.toMillis(15)) {
                     @Override
                     protected void execute() throws Exception {
-                        switch (getMode()) {
-                            case AUTO:
-                                lightState.set(getOutputPortStatus().isEnabled());
-                                if (lightState.get() && !PreferredPowerSupplyMode.DIRECT.equals(getMgr().getInputPowerSupplySourceCalc().getPreferredPowerSupplyMode())) {
-                                    lightState.set(setOutputStatus(OutputPortStatus.disabled()).isEnabled());
-                                }
-                                break;
+                        if (Objects.requireNonNull(getMode()) == ModuleOperationMode.AUTO) {
+                            lightState.set(getOutputPortStatus().isEnabled());
+                            if (lightState.get() && !isExternalLightRequired()) {
+                                lightState.set(setOutputStatus(OutputPortStatus.disabled()).isEnabled());
+                            }
                         }
                     }
                 }
@@ -59,12 +59,16 @@ public class HomeLightRelayLightDependentBasedPowerControlModule extends Abstrac
                 boolean wasEnabled = lightState.get();
                 if (wasEnabled) {
                     lightState.set(setOutputStatus(OutputPortStatus.disabled()).isEnabled());
-                } else if (!PreferredPowerSupplyMode.ONLY_LED.equals(getMgr().getInputPowerSupplySourceCalc().getPreferredPowerSupplyMode())) {
+                } else if (isExternalLightRequired()) {
                     lightState.set(setOutputStatus(OutputPortStatus.enabled()).isEnabled());
                 }
             } catch (Exception ex) {
                 log.error("Unable to switch light", ex);
             }
         }
+    }
+
+    private boolean isExternalLightRequired() {
+        return getMgr().getInputPowerSupplySourceCalc().getAvgValue(TimeUnit.MINUTES.toMillis(20)) > 50;
     }
 }

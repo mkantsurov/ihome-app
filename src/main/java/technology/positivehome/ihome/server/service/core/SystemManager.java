@@ -121,6 +121,9 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
                 case GENERIC_INPUT_POWER_DEPENDENT_RELAY_POWER_CONTROL_MODULE:
                     moduleToInit = new GenericInputPowerDependentRelayPowerControlModule(this, configEntry);
                     break;
+                case GENERIC_INPUT_POWER_DEPENDENT_BACKUP_RELAY_POWER_CONTROL_MODULE:
+                    moduleToInit = new BackupInputPowerDependentRelayPowerControlModule(this, configEntry);
+                    break;
                 case GARAGE_LIGHT__POWER_CONTROL_MODULE:
                     moduleToInit = new GarageLightPowerControlModule(this, configEntry);
                     break;

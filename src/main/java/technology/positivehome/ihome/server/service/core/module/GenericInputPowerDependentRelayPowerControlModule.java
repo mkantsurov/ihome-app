@@ -1,11 +1,13 @@
 package technology.positivehome.ihome.server.service.core.module;
 
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
+import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -35,30 +37,28 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                 new CronModuleJob(POWER_CHECK_INTERVAL) {
                     @Override
                     protected void execute() throws Exception {
-                        switch (getMode()) {
-                            case AUTO:
-                                OutputPortStatus status = getOutputPortStatus();
-                                BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
-                                double voltage;
-                                if (BinaryPortStatus.ENABLED.equals(state)) {
-                                    voltage = getMgr().runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage();
-                                } else {
-                                    voltage = 0;
+                        if (Objects.requireNonNull(getMode()) == ModuleOperationMode.AUTO) {
+                            OutputPortStatus status = getOutputPortStatus();
+                            BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
+                            double voltage;
+                            if (BinaryPortStatus.ENABLED.equals(state)) {
+                                voltage = getMgr().runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage();
+                            } else {
+                                voltage = 0;
+                            }
+                            boolean powerSupplyOk = voltage > 170 && voltage < 245;
+                            long now = System.currentTimeMillis();
+                            if (powerSupplyOk) {
+                                lastPowerOkTs.set(System.currentTimeMillis());
+                                if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get()) {
+                                    setOutputStatus(OutputPortStatus.enabled());
                                 }
-                                boolean powerSupplyOk = voltage > 170 && voltage < 245;
-                                long now = System.currentTimeMillis();
-                                if (powerSupplyOk) {
-                                    lastPowerOkTs.set(System.currentTimeMillis());
-                                    if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get()) {
-                                        setOutputStatus(OutputPortStatus.enabled());
-                                    }
-                                } else {
-                                    lastPowerFailTs.set(System.currentTimeMillis());
-                                    if (status.isEnabled() && now - MAX_POWER_ABSENT_DELAY > lastPowerOkTs.get()) {
-                                        setOutputStatus(OutputPortStatus.disabled());
-                                    }
+                            } else {
+                                lastPowerFailTs.set(System.currentTimeMillis());
+                                if (status.isEnabled() && now - MAX_POWER_ABSENT_DELAY > lastPowerOkTs.get()) {
+                                    setOutputStatus(OutputPortStatus.disabled());
                                 }
-                                break;
+                            }
                         }
                     }
                 }};
