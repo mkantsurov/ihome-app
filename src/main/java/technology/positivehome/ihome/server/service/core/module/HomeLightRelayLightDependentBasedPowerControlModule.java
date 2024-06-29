@@ -69,6 +69,6 @@ public class HomeLightRelayLightDependentBasedPowerControlModule extends Abstrac
     }
 
     private boolean isExternalLightRequired() {
-        return getMgr().getInputPowerSupplySourceCalc().getAvgValue(TimeUnit.MINUTES.toMillis(20)) > 50;
+        return getMgr().getInputPowerSupplySourceCalc().getAvgValue(TimeUnit.MINUTES.toMillis(20)) < 50;
     }
 }
