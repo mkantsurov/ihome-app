@@ -30,6 +30,7 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
     private static final Logger log = LoggerFactory.getLogger(LiveDds238PowerMeterImpl.class);
     private static final long DATA_TTL = TimeUnit.SECONDS.toMillis(60);
     private final AtomicLong lastRequestTs = new AtomicLong(0);
+    private final AtomicLong lastFailRequestTs = new AtomicLong(0);
     private final AtomicReference<Dds238PowerMeterData> dataCache = new AtomicReference<>();
 
     public LiveDds238PowerMeterImpl(DR404RequestExecutor requestExecutor, int port) {
@@ -158,8 +159,9 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
     public Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException {
         if (lastRequestTs.get() + DATA_TTL > System.currentTimeMillis()) {
             return dataCache.get();
+        } else if (lastFailRequestTs.get() + DATA_TTL/2 > System.currentTimeMillis()) {
+            return new Dds238PowerMeterData(.0, .0, .0, dataCache.get().total());
         }
-
         return getRequestExecutor().performRequest(socket -> {
             try (OutputStream os = socket.getOutputStream()) {
                 InputStream is = socket.getInputStream();
@@ -186,6 +188,7 @@ public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMe
                 if (prevValue != null) {
                     return new Dds238PowerMeterData(.0, .0, .0, prevValue.total());
                 }
+                lastFailRequestTs.set(System.currentTimeMillis());
                 return new Dds238PowerMeterData(.0, .0, .0, .0);
             }
         });
