@@ -13,7 +13,9 @@ import technology.positivehome.ihome.server.processor.SystemProcessor;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class InputPowerSupplySourceCalc {
@@ -24,6 +26,8 @@ public class InputPowerSupplySourceCalc {
             .maximumSize(20)
             .expireAfterWrite(30, TimeUnit.MINUTES)
             .build();
+
+    private final AtomicReference<PreferredPowerSupplyMode> prevValue = new AtomicReference<>(PreferredPowerSupplyMode.CONVERTER);
 
     private final Map<Integer, DayTime> dayTimePerMonth = new HashMap<>();
 
@@ -61,13 +65,27 @@ public class InputPowerSupplySourceCalc {
 
     public PreferredPowerSupplyMode getPreferredPowerSupplyMode() {
         double luminosity = getAvgValue(TimeUnit.MINUTES.toMillis(10));
-        if (!isDay() || luminosity < 480) {
-            return PreferredPowerSupplyMode.CONVERTER;
+        PreferredPowerSupplyMode result = prevValue.get();
+        if (isDay()) {
+            if (PreferredPowerSupplyMode.ONLY_LED.equals(prevValue.get())) {
+                if (luminosity >= 530) {
+                    result = PreferredPowerSupplyMode.ONLY_LED;
+                } else {
+                    result = PreferredPowerSupplyMode.CONVERTER;
+                }
+            } else {
+                if (luminosity >= 590) {
+                    result = PreferredPowerSupplyMode.ONLY_LED;
+                } else {
+                    result = PreferredPowerSupplyMode.CONVERTER;
+                }
+            }
         } else {
-            return PreferredPowerSupplyMode.ONLY_LED;
+            result = PreferredPowerSupplyMode.CONVERTER;
         }
+        prevValue.set(result);
+        return result;
     }
-
     public void dataUpdate(ADCConnectedSensorData adcConnectedSensorData) {
         luminosityCache.put(System.currentTimeMillis(), adcConnectedSensorData.getData());
     }
