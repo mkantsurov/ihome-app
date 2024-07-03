@@ -14,8 +14,8 @@ import static technology.positivehome.ihome.domain.constant.PreferredPowerSupply
 public class BackupInputPowerDependentRelayPowerControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
 
     private static final long POWER_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
-    private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(15);
-    private static final long POWER_CHECKING_DELAY = TimeUnit.MINUTES.toMillis(5);
+    private static final long MAX_POWER_ABSENT_DELAY = TimeUnit.MINUTES.toMillis(7);
+    private static final long POWER_CHECKING_DELAY = TimeUnit.SECONDS.toMillis(90);
 
     public static final int POWER_SENSOR_PORT_ID = 29;
 
