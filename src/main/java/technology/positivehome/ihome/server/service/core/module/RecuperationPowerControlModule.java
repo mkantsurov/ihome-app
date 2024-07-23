@@ -30,29 +30,17 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
                         switch (getMode()) {
                             case AUTO:
                                 OutputPortStatus status = getOutputPortStatus();
-                                BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
                                 Dht21TempHumiditySensorData data = getMgr().runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(OUTDOOR_TEMPERATURE_SENS_PORT_ID));
                                 long now = System.currentTimeMillis();
                                 log.info("RecuperationModule: " +
-                                        "\n ext power state: " + state +
                                         "\n module out port state: " + status.isEnabled() +
                                         "\n temperature: " + data.getTemperature());
-                                switch (state) {
-                                    case ENABLED:
-                                        if (status.isDisabled()
-                                            && data.getTemperature() < 24.5) {
-                                            setOutputStatus(OutputPortStatus.enabled());
-                                        }  else if (status.isEnabled() && data.getTemperature() > 25) {
-                                            setOutputStatus(OutputPortStatus.disabled());
-                                        }
-                                        break;
-                                    case DISABLED:
-                                        if (status.isEnabled()) {
-                                            setOutputStatus(OutputPortStatus.disabled());
-                                        }
-                                        break;
+                                if (status.isDisabled()
+                                        && data.getTemperature() < 24.5) {
+                                    setOutputStatus(OutputPortStatus.enabled());
+                                } else if (status.isEnabled() && data.getTemperature() > 25) {
+                                    setOutputStatus(OutputPortStatus.disabled());
                                 }
-                                break;
                         }
                     }
                 }};
