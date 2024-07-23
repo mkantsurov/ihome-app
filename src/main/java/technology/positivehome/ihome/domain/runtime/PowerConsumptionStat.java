@@ -72,12 +72,8 @@ public record PowerConsumptionStat(List<ChartPoint> extConsumption, List<ChartPo
                     log.warn("Not Expected result of  substitute (startVal): " + diff + "\n    Prev Value: " + startValue + "\n    Current value: " + data.get(i));
                     startValue = data.get(i);
                 } else if (data.get(i).value() - minValue > 1000 || data.get(i).value() - minValue < 0) {
-                    log.warn("Not Expected result of  substitute (curVal): " + diff + "\n    Prev Value: " + startValue + "\n    Current value: " + data.get(i));
-                    int prevValue = 0;
-                    if (!res.isEmpty()) {
-                        prevValue = res.get(res.size() - 1).value();
-                    }
-                    res.add(new ChartPoint(data.get(i).dt(), prevValue));
+                    log.warn("Not Expected result of substitute (curVal): " + diff + "\n    Prev Value: " + startValue + "\n    Current value: " + data.get(i));
+                    res.add(new ChartPoint(data.get(i).dt(), 0));
                 } else {
                     long startTs = startValue.dt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                     long endTs = data.get(i).dt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
