@@ -3,12 +3,14 @@ package technology.positivehome.ihome.server.service.core.module;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
+import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
@@ -27,20 +29,19 @@ public class RecuperationPowerControlModule extends AbstractRelayBasedIHomeModul
                 new CronModuleJob(TEMPERATURE_CHECK_INTERVAL) {
                     @Override
                     protected void execute() throws Exception {
-                        switch (getMode()) {
-                            case AUTO:
-                                OutputPortStatus status = getOutputPortStatus();
-                                Dht21TempHumiditySensorData data = getMgr().runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(OUTDOOR_TEMPERATURE_SENS_PORT_ID));
-                                long now = System.currentTimeMillis();
-                                log.info("RecuperationModule: " +
-                                        "\n module out port state: " + status.isEnabled() +
-                                        "\n temperature: " + data.getTemperature());
-                                if (status.isDisabled()
-                                        && data.getTemperature() < 24.5) {
-                                    setOutputStatus(OutputPortStatus.enabled());
-                                } else if (status.isEnabled() && data.getTemperature() > 25) {
-                                    setOutputStatus(OutputPortStatus.disabled());
-                                }
+                        if (Objects.requireNonNull(getMode()) == ModuleOperationMode.AUTO) {
+                            OutputPortStatus status = getOutputPortStatus();
+                            Dht21TempHumiditySensorData data = getMgr().runCommand(IHomeCommandFactory.cmdGetDht21TempHumiditySensorReading(OUTDOOR_TEMPERATURE_SENS_PORT_ID));
+                            long now = System.currentTimeMillis();
+                            log.info("RecuperationModule: " +
+                                    "\n module out port state: " + status.isEnabled() +
+                                    "\n temperature: " + data.getTemperature());
+                            if (status.isDisabled()
+                                    && data.getTemperature() < 24.5) {
+                                setOutputStatus(OutputPortStatus.enabled());
+                            } else if (status.isEnabled() && data.getTemperature() > 25) {
+                                setOutputStatus(OutputPortStatus.disabled());
+                            }
                         }
                     }
                 }};
