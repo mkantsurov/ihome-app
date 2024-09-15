@@ -48,13 +48,11 @@ public class BedroomWallSconcesPowerControlModule extends AbstractRelayBasedIHom
     }
 
     private void enableLightByClickEvent(BinaryInputInitiatedHwEvent event) {
-        if (Objects.requireNonNull(event.getMode()) == BinaryPortStatus.ENABLED) {
-            try {
-                boolean wasEnabled = lightState.get();
-                lightState.set(setOutputStatus(!wasEnabled ? OutputPortStatus.enabled() : OutputPortStatus.disabled()).isEnabled());
-            } catch (Exception ex) {
-                log.error("Unable to switch light by event initiated by port# " + event.getPortId(), ex);
-            }
+        try {
+            boolean wasEnabled = lightState.get();
+            lightState.set(setOutputStatus(!wasEnabled ? OutputPortStatus.enabled() : OutputPortStatus.disabled()).isEnabled());
+        } catch (Exception ex) {
+            log.error("Unable to switch light by event initiated by port# " + event.getPortId(), ex);
         }
     }
 
