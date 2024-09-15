@@ -30,9 +30,9 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
     private static final long GARAGE_MOTION_SENSOR = 87L;
 
     private final CronModuleJob[] moduleJobs;
-    private AtomicLong timeWhenLiteEnabled = new AtomicLong(0L);
+    private final AtomicLong timeWhenLiteEnabled = new AtomicLong(0L);
     private final Set<Long> portsToListen = new HashSet<>();
-    private AtomicBoolean lightState = new AtomicBoolean(false);
+    private final AtomicBoolean lightState = new AtomicBoolean(false);
 
     public GarageLightPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);

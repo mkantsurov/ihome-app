@@ -111,75 +111,53 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
         //TODO: Implement initialization by type there
         for (ModuleConfigEntry configEntry : moduleConfigRepository.loadModuleConfig()) {
             log.info("Initializing " + configEntry.getType().name());
-            switch (configEntry.getType()) {
-                case GENERIC_RELAY_POWER_CONTROL_MODULE:
-                    moduleToInit = new GenericRelayPowerControlModule(this, configEntry);
-                    break;
-                case GENERIC_DIMMER_POWER_CONTROL_MODULE:
-                    moduleToInit = new GenericDimmerPowerControlModule(this, configEntry);
-                    break;
-                case GENERIC_INPUT_POWER_DEPENDENT_RELAY_POWER_CONTROL_MODULE:
-                    moduleToInit = new GenericInputPowerDependentRelayPowerControlModule(this, configEntry);
-                    break;
-                case GENERIC_INPUT_POWER_DEPENDENT_BACKUP_RELAY_POWER_CONTROL_MODULE:
-                    moduleToInit = new BackupInputPowerDependentRelayPowerControlModule(this, configEntry);
-                    break;
-                case GARAGE_LIGHT__POWER_CONTROL_MODULE:
-                    moduleToInit = new GarageLightPowerControlModule(this, configEntry);
-                    break;
-                case GARAGE_VENTILATION_POWER_CONTROL_MODULE:
-                    moduleToInit = new GarageVentilationControlModule(this, configEntry);
-                    break;
-                case HEATING_SYSTEM_PUMP_POWER_CONTROL_MODULE:
-                    moduleToInit = new HeatingSystemPumpControlModule(this, configEntry);
-                    break;
-                case HEAT_WATER_RECIRQULATION_POWER_CONTROL_MODULE:
-                    moduleToInit = new HeatWaterRecirculationPumpControlModule(this, configEntry);
-                    break;
-                case HOME_LIGHT_RELAY_POWER_CONTROL_MODULE:
-                    moduleToInit = new HomeLightRelayBasedPowerControlModule(this, configEntry);
-                    break;
-                case HOME_LIGHT_DIMMABLE_POWER_CONTROL_MODULE:
-                    moduleToInit = new HomeLightDimmerBasedPowerControlModule(this, configEntry);
-                    break;
-                case HOME_LIGHT_MOVENMENT_SENSOR_RELAY_BASED_CONTROL_MODULE:
-                    moduleToInit = new HomeLightMotionSensorRelayBasedControlModule(this, configEntry);
-                    break;
-                case HOME_LIGHT_DAYLIGHT_DEPENDENT_MOVENMENT_SENSOR_RELAY_BASED_CONTROL_MODULE:
-                    moduleToInit = new HomeLightDayLightDependentMotionSensorRelayBasedControlModule(this, configEntry);
-                    break;
-                case HOME_VENTILATION_MOVENMENT_HUMIDITY_SENSOR_RELAY_BASED_CONTROL_MODULE:
-                    moduleToInit = new BathRoomVentilationControlModule(this, configEntry);
-                    break;
-                case DIRECT_INPUT_POWER_SUPPLY_CONTROL_MODULE:
-                    moduleToInit = new DirectInputPowerSupplyControlModule(this, configEntry);
-                    break;
-                case CONVERTER_INPUT_POWER_SUPPLY_CONTROL_MODULE:
-                    moduleToInit = new ConverterInputPowerSupplyControlModule(this, configEntry);
-                    break;
-                case SECURITY_MODE_DEPENDENT_RELAY_BASED_IHOME_MODULE:
-                    moduleToInit = new SecurityModeDependentRelayBasedIHomeModuleImpl(this, configEntry);
-                    break;
-                case HOME_LIGHT_RELAY_LIGHT_DEPENDENT_POWER_CONTROL_MODULE:
-                    moduleToInit = new HomeLightRelayLightDependentBasedPowerControlModule(this, configEntry);
-                    break;
-                case GARAGE_INVERTER_COOLING_CONTROL_MODULE:
-                    moduleToInit = new GarageInverterCoolingControlModule(this, configEntry);
-                    break;
-                case RECUPERATOR_POWER_SUPPLY_CONTROL_MODULE:
-                    moduleToInit = new RecuperationPowerControlModule(this, configEntry);
-                    break;
-                case SOLAR_SYSTEM_PUMP_POWER_CONTROL_MODULE:
-                    moduleToInit = new SolarSystemPumpPowerControlModule(this, configEntry);
-                    break;
-                default:
-                    throw new IllegalStateException("Module with #" + configEntry.getId() + " can't be initialized. (no config available)");
-            }
+            moduleToInit = switch (configEntry.getType()) {
+                case GENERIC_RELAY_POWER_CONTROL_MODULE -> new GenericRelayPowerControlModule(this, configEntry);
+                case GENERIC_DIMMER_POWER_CONTROL_MODULE -> new GenericDimmerPowerControlModule(this, configEntry);
+                case GENERIC_INPUT_POWER_DEPENDENT_RELAY_POWER_CONTROL_MODULE ->
+                        new GenericInputPowerDependentRelayPowerControlModule(this, configEntry);
+                case GENERIC_INPUT_POWER_DEPENDENT_BACKUP_RELAY_POWER_CONTROL_MODULE ->
+                        new BackupInputPowerDependentRelayPowerControlModule(this, configEntry);
+                case GARAGE_LIGHT__POWER_CONTROL_MODULE -> new GarageLightPowerControlModule(this, configEntry);
+                case GARAGE_VENTILATION_POWER_CONTROL_MODULE -> new GarageVentilationControlModule(this, configEntry);
+                case HEATING_SYSTEM_PUMP_POWER_CONTROL_MODULE -> new HeatingSystemPumpControlModule(this, configEntry);
+                case HEAT_WATER_RECIRQULATION_POWER_CONTROL_MODULE ->
+                        new HeatWaterRecirculationPumpControlModule(this, configEntry);
+                case HOME_LIGHT_RELAY_POWER_CONTROL_MODULE ->
+                        new HomeLightRelayBasedPowerControlModule(this, configEntry);
+                case HOME_LIGHT_DIMMABLE_POWER_CONTROL_MODULE ->
+                        new HomeLightDimmerBasedPowerControlModule(this, configEntry);
+                case HOME_LIGHT_MOVENMENT_SENSOR_RELAY_BASED_CONTROL_MODULE ->
+                        new HomeLightMotionSensorRelayBasedControlModule(this, configEntry);
+                case HOME_LIGHT_DAYLIGHT_DEPENDENT_MOVENMENT_SENSOR_RELAY_BASED_CONTROL_MODULE ->
+                        new HomeLightDayLightDependentMotionSensorRelayBasedControlModule(this, configEntry);
+                case HOME_VENTILATION_MOVENMENT_HUMIDITY_SENSOR_RELAY_BASED_CONTROL_MODULE ->
+                        new BathRoomVentilationControlModule(this, configEntry);
+                case DIRECT_INPUT_POWER_SUPPLY_CONTROL_MODULE ->
+                        new DirectInputPowerSupplyControlModule(this, configEntry);
+                case CONVERTER_INPUT_POWER_SUPPLY_CONTROL_MODULE ->
+                        new ConverterInputPowerSupplyControlModule(this, configEntry);
+                case SECURITY_MODE_DEPENDENT_RELAY_BASED_IHOME_MODULE ->
+                        new SecurityModeDependentRelayBasedIHomeModuleImpl(this, configEntry);
+                case HOME_LIGHT_RELAY_LIGHT_DEPENDENT_POWER_CONTROL_MODULE ->
+                        new HomeLightRelayLightDependentBasedPowerControlModule(this, configEntry);
+                case GARAGE_INVERTER_COOLING_CONTROL_MODULE ->
+                        new GarageInverterCoolingControlModule(this, configEntry);
+                case RECUPERATOR_POWER_SUPPLY_CONTROL_MODULE -> new RecuperationPowerControlModule(this, configEntry);
+                case SOLAR_SYSTEM_PUMP_POWER_CONTROL_MODULE -> new SolarSystemPumpPowerControlModule(this, configEntry);
+                case BEDROOM_SCONCES_LIGHT_POWER_CONTROL_MODULE ->
+                        new BedroomWallSconcesPowerControlModule(this, configEntry);
+                case BATHROOM_MIRROR_LIGHT_POWER_CONTROL_MODULE ->
+                        new BathRoomMirrorLightPowerControlModule(this, configEntry);
+                default ->
+                        throw new IllegalStateException("Module with #" + configEntry.getId() + " can't be initialized. (no config available)");
+            };
             moduleById.put(moduleToInit.getModuleId(), moduleToInit);
         }
 
         //initialize default state
         for (AbstractIHomeModule module : moduleById.values()) {
+            log.info("Initializing module: %s".formatted(module.getName()));
             module.initDefaultState();
         }
     }
