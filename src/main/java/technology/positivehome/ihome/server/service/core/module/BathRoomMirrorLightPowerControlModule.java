@@ -54,7 +54,7 @@ public class BathRoomMirrorLightPowerControlModule extends AbstractRelayBasedIHo
     }
 
     public void handleEvent(BinaryInputInitiatedHwEvent event) {
-        Optional.ofNullable(portsToListen.get(event.getPortId())).filter(s -> s.contains("movenment")).ifPresent(uiControlType -> {
+        Optional.ofNullable(portsToListen.get(event.getPortId())).filter(s -> !s.contains("motion")).ifPresent(uiControlType -> {
             enableByClickEvent(event);
         });
     }
