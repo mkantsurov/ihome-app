@@ -4,15 +4,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
 import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.UiControlType;
 import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -23,12 +22,9 @@ public class BathRoomMirrorLightPowerControlModule extends AbstractRelayBasedIHo
 
     public static final long LIGHT_TTL = TimeUnit.MINUTES.toMillis(5L);
 
-    private static final long SCONCES_LIGHT_SW_BT_LEFT = 90L;
-    private static final long SCONCES_LIGHT_SW_BT_RIGHT = 91L;
-
     private final CronModuleJob[] moduleJobs;
     private final AtomicLong timeMotionDetected = new AtomicLong(0L);
-    private final Set<Long> portsToListen = new HashSet<>();
+    private final Map<Long, String> portsToListen = new HashMap<>();
     private final AtomicBoolean lightState = new AtomicBoolean(false);
 
     public BathRoomMirrorLightPowerControlModule(SystemManager mgr,
@@ -48,7 +44,7 @@ public class BathRoomMirrorLightPowerControlModule extends AbstractRelayBasedIHo
                 }
         };
         for (ModuleConfigElementEntry ent : getInputPorts()) {
-            portsToListen.add(ent.getPort());
+            portsToListen.put(ent.getPort(), ent.getName());
         }
     }
 
@@ -58,14 +54,9 @@ public class BathRoomMirrorLightPowerControlModule extends AbstractRelayBasedIHo
     }
 
     public void handleEvent(BinaryInputInitiatedHwEvent event) {
-        if (portsToListen.contains(event.getPortId())) {
-            if (SCONCES_LIGHT_SW_BT_LEFT == event.getPortId()) { // garage door sensor
-                enableByClickEvent(event);
-            } else if (SCONCES_LIGHT_SW_BT_RIGHT == event.getPortId()) { // garage gate sensor
-                enableByClickEvent(event);
-            }
-            timeMotionDetected.set(System.currentTimeMillis());
-        }
+        Optional.ofNullable(portsToListen.get(event.getPortId())).filter(s -> s.contains("movenment")).ifPresent(uiControlType -> {
+            enableByClickEvent(event);
+        });
     }
 
     private void enableByClickEvent(BinaryInputInitiatedHwEvent event) {
