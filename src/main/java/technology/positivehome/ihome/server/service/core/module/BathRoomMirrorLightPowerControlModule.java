@@ -67,4 +67,5 @@ public class BathRoomMirrorLightPowerControlModule extends AbstractRelayBasedIHo
             log.error("Unable to switch light by event initiated by port# " + event.getPortId(), ex);
         }
     }
+
 }
