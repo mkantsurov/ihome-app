@@ -40,15 +40,8 @@ public class GenericInputPowerDependentRelayPowerControlModule extends AbstractR
                         if (Objects.requireNonNull(getMode()) == ModuleOperationMode.AUTO) {
                             OutputPortStatus status = getOutputPortStatus();
                             BinaryPortStatus state = getMgr().runCommand(IHomeCommandFactory.cmdGetBinarySensorReading(POWER_SENSOR_PORT_ID));
-                            double voltage;
-                            if (BinaryPortStatus.ENABLED.equals(state)) {
-                                voltage = getMgr().runCommand(IHomeCommandFactory.cmdGetDds238Reading(POWER_METER_PORT_ID)).voltage();
-                            } else {
-                                voltage = 0;
-                            }
-                            boolean powerSupplyOk = voltage > 170 && voltage < 245;
                             long now = System.currentTimeMillis();
-                            if (powerSupplyOk) {
+                            if (BinaryPortStatus.ENABLED.equals(state)) {
                                 lastPowerOkTs.set(System.currentTimeMillis());
                                 if (status.isDisabled() && now - POWER_CHECKING_DELAY > lastPowerFailTs.get()) {
                                     setOutputStatus(OutputPortStatus.enabled());
