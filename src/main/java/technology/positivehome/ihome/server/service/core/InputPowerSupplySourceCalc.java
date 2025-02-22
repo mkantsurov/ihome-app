@@ -68,13 +68,13 @@ public class InputPowerSupplySourceCalc {
         PreferredPowerSupplyMode result = prevValue.get();
         if (isDay()) {
             if (PreferredPowerSupplyMode.ONLY_LED.equals(prevValue.get())) {
-                if (luminosity >= 530) {
+                if (luminosity >= 590) {
                     result = PreferredPowerSupplyMode.ONLY_LED;
                 } else {
                     result = PreferredPowerSupplyMode.CONVERTER;
                 }
             } else {
-                if (luminosity >= 590) {
+                if (luminosity >= 620) {
                     result = PreferredPowerSupplyMode.ONLY_LED;
                 } else {
                     result = PreferredPowerSupplyMode.CONVERTER;
