@@ -13,12 +13,12 @@ import java.util.Map;
  * Created by maxim on 2/26/23.
  **/
 @Repository
-public class ControllerPortConfigRepositoryImplGeneric implements ControllerPortConfigRepository {
+public class ControllerPortConfigRepositoryImpl implements ControllerPortConfigRepository {
     private static final String SELECT_CONTROLLER_PORT_CONFIG_BY_CONTROLLER_ID = "SELECT id, controller_id, port_address, type, description FROM controller_port_config_entry WHERE controller_id = :controller_id ORDER BY id";
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final ControllerPortConfigEntryRowMapper controllerPortConfigEntryRowMapper;
 
-    public ControllerPortConfigRepositoryImplGeneric(NamedParameterJdbcTemplate namedParameterJdbcTemplate, ControllerPortConfigEntryRowMapper controllerPortConfigEntryRowMapper) {
+    public ControllerPortConfigRepositoryImpl(NamedParameterJdbcTemplate namedParameterJdbcTemplate, ControllerPortConfigEntryRowMapper controllerPortConfigEntryRowMapper) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.controllerPortConfigEntryRowMapper = controllerPortConfigEntryRowMapper;
     }
