@@ -157,7 +157,7 @@ public class StatisticProcessor implements InitializingBean {
     }
 
     public PowerConsumptionStatInfo getPowerConsumptionStat() {
-        PowerConsumptionStat.Builder res = PowerConsumptionStat.builder();
+        PowerConsumptionStatBuilder res = PowerConsumptionStatBuilder.getInstance();
         Map<LocalDateTime, SystemSummaryInfo> data = new HashMap<>(statCache);
 
         for (Map.Entry<LocalDateTime, SystemSummaryInfo> entry : data.entrySet()) {

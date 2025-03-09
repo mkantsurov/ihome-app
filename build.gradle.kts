@@ -45,17 +45,23 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-actuator-autoconfigure")
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation("io.jsonwebtoken:jjwt:0.9.0")
-    implementation("org.postgresql:postgresql:42.7.0")
+    implementation("org.postgresql:postgresql:42.7.2")
     implementation("javax.xml.bind:jaxb-api:2.3.0")
     implementation("com.zaxxer:HikariCP:2.7.4")
     implementation("org.apache.commons:commons-lang3:3.11")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("com.google.guava:guava:33.0.0-jre")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
-    implementation("commons-io:commons-io:2.11.0")
+    implementation("commons-io:commons-io:2.14.0")
     implementation("net.logstash.logback:logstash-logback-encoder:6.4")
     implementation("com.fasterxml.uuid:java-uuid-generator:4.3.0")
-    testImplementation("com.jayway.jsonpath:json-path:2.8.0")
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc:3.0.1")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.3.1")
+    testImplementation(platform("org.junit:junit-bom:5.10.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("com.jayway.jsonpath:json-path:2.9.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     runtimeOnly("org.springframework.boot:spring-boot-devtools")
 }
@@ -105,7 +111,6 @@ configure<DockerExtension> {
     pull(true)
 }
 
-
 tasks.getByName("dockerClean").dependsOn("bootJar")
 tasks.getByName("build").dependsOn("dockerClean")
 //tasks.getByName("dockerfileZip").dependsOn("prepareDocker")
@@ -132,11 +137,31 @@ tasks.register<Test>("integrationTest") {
 }
 
 tasks.named("docker") {
+    dependsOn("test")
     dependsOn("build")
 }
 
 tasks.named("dockerPush") {
     dependsOn("dockerTag")
+}
+
+tasks {
+    "test"(Test::class) {
+        filter {
+            includeTestsMatching("technology.positivehome.ihome.server.processor.*")
+        }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    group = "tests"
+    useJUnitPlatform()
+    delete(layout.buildDirectory)
+    outputs.dir(layout.buildDirectory.dir("generated-snippets/v1"))
+    jvmArgs("-Dspring.config.additional-location=$testSpringConfLocation")
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+    }
 }
 
 idea {
