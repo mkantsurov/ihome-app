@@ -1,4 +1,4 @@
-FROM openjdk:17-alpine
+FROM eclipse-temurin:19-jdk-alpine
 COPY app.jar app.jar
 # Create a group and user
 RUN addgroup -S appgroup -g 667 && adduser -S appuser -G appgroup -u 997
