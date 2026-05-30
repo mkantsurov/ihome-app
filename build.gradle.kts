@@ -24,6 +24,26 @@ java {
     targetCompatibility = javaVersion
 }
 
+val ihomeVersion = run {
+    val vVersion = System.getenv("V_VER")
+    val vHash  = System.getenv("V_HASH")
+    val suffix = System.getenv("SUFFIX") ?: ""
+    if (!vVersion.isNullOrEmpty() && !vHash.isNullOrEmpty()) {
+        if (suffix.isEmpty()) {
+            vVersion
+        } else {
+            "$vVersion.$vHash$suffix"
+        }
+    } else {
+        val gitVersion = "git tag --sort=-committerdate".runCommand()
+        if (gitVersion.endsWith(".0")) {
+            "$gitVersion-SNAPSHOT"
+        } else {
+            gitVersion
+        }
+    }
+}
+
 repositories {
     mavenCentral()
     maven { setUrl("https://repo.spring.io/release/") }
