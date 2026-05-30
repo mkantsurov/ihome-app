@@ -6,7 +6,7 @@ import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +21,7 @@ public class DirectInputPowerSupplyControlModule extends AbstractRelayBasedIHome
     public DirectInputPowerSupplyControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
         log.info("Initializing ConverterInputPowerSupplyControlModule");
-        final long checkPeriod = TimeUnit.SECONDS.toMillis(120);
+        final long checkPeriod = TimeUnit.SECONDS.toMillis(60);
 
         moduleJobs = new CronModuleJob[] {new CronModuleJob(checkPeriod) {
             @Override

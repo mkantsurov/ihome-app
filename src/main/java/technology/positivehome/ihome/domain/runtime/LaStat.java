@@ -3,15 +3,8 @@ package technology.positivehome.ihome.domain.runtime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LaStat {
-
-    private List<ChartPoint> la = new ArrayList<>();
-
-    public List<ChartPoint> getLa() {
-        return la;
-    }
-
-    public void setLa(List<ChartPoint> la) {
-        this.la = la;
+public record LaStat(List<ChartPoint> la) {
+    public static ChartDataBuilder<LaStat> builder() {
+        return new ChartDataBuilder<>();
     }
 }

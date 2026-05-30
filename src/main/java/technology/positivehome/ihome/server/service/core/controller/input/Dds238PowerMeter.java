@@ -8,5 +8,5 @@ import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
 import java.io.IOException;
 
 public interface Dds238PowerMeter {
-    Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException;
+    Dds238PowerMeterData getData() throws PortNotSupporttedFunctionException, IOException, MegadApiMallformedResponseException, MegadApiMallformedUrlException, InterruptedException;
 }

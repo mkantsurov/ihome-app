@@ -1,48 +1,59 @@
 package technology.positivehome.ihome.domain.runtime;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+public record TempStat(List<ChartPoint> indoorSf, List<ChartPoint> indoorGf, List<ChartPoint> outdoor, List<ChartPoint> garage) {
 
-/**
- * Created by maxim on 8/17/19.
- **/
-public class TempStat {
-
-    private List<ChartPoint> indoor = new ArrayList<>();
-    private List<ChartPoint> indoorGf = new ArrayList<>();
-    private List<ChartPoint> outdoor = new ArrayList<>();
-    private List<ChartPoint> garage = new ArrayList<>();
-
-    public List<ChartPoint> getIndoor() {
-        return indoor;
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public void setIndoor(List<ChartPoint> indoor) {
-        this.indoor = indoor;
-    }
+    public static class Builder {
+        private final List<ChartPoint> indoorSf = new ArrayList<>();
+        private final List<ChartPoint> indoorGf = new ArrayList<>();
+        private final List<ChartPoint> outdoor = new ArrayList<>();
+        private final List<ChartPoint> garage = new ArrayList<>();
 
-    public List<ChartPoint> getIndoorGf() {
-        return indoorGf;
-    }
+        public Builder withIndoorSfTempChartPoint(ChartPoint cp) {
+            this.indoorSf.add(cp);
+            return this;
+        }
 
-    public void setIndoorGf(List<ChartPoint> indoorGf) {
-        this.indoorGf = indoorGf;
-    }
+        public Builder withIndoorGfTempChartPoint(ChartPoint cp) {
+            this.indoorGf.add(cp);
+            return this;
+        }
 
-    public List<ChartPoint> getOutdoor() {
-        return outdoor;
-    }
+        public Builder withOutDoorTempChartPoint(ChartPoint cp) {
+            this.outdoor.add(cp);
+            return this;
+        }
 
-    public void setOutdoor(List<ChartPoint> outdoor) {
-        this.outdoor = outdoor;
-    }
+        public Builder withGarageTempChartPoint(ChartPoint cp) {
+            this.garage.add(cp);
+            return this;
+        }
 
-    public List<ChartPoint> getGarage() {
-        return garage;
+        public TempStat build() {
+            if (indoorSf.isEmpty()) {
+                indoorSf.add(ChartPoint.of(LocalDateTime.now(), 0));
+            }
+            if (indoorGf.isEmpty()) {
+                indoorGf.add(ChartPoint.of(LocalDateTime.now(), 0));
+            }
+            if (outdoor.isEmpty()) {
+                outdoor.add(ChartPoint.of(LocalDateTime.now(), 0));
+            }
+            if (garage.isEmpty()) {
+                garage.add(ChartPoint.of(LocalDateTime.now(), 0));
+            }
+            indoorSf.sort(Comparator.comparing(ChartPoint::dt));
+            indoorGf.sort(Comparator.comparing(ChartPoint::dt));
+            outdoor.sort(Comparator.comparing(ChartPoint::dt));
+            garage.sort(Comparator.comparing(ChartPoint::dt));
+            return new TempStat(indoorSf, indoorGf, outdoor, garage);
+        }
     }
-
-    public void setGarage(List<ChartPoint> garage) {
-        this.garage = garage;
-    }
-
 }

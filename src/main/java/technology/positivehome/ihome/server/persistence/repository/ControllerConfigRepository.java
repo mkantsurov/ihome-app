@@ -7,6 +7,6 @@ import java.util.List;
 /**
  * Created by maxim on 2/26/23.
  **/
-public interface ControllerConfigRepository extends IHomeRepository<ControllerConfigEntity, Long>{
+public interface ControllerConfigRepository extends GenericIHomeRepository<ControllerConfigEntity, Long> {
     List<ControllerConfigEntity> findAll();
 }

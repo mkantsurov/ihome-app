@@ -12,6 +12,7 @@ import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedF
 import technology.positivehome.ihome.domain.runtime.module.ModuleEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleSummary;
 import technology.positivehome.ihome.domain.shared.*;
+import technology.positivehome.ihome.server.processor.PowerConsumptionStatInfo;
 import technology.positivehome.ihome.server.processor.StatisticProcessor;
 import technology.positivehome.ihome.server.processor.SystemProcessor;
 
@@ -62,19 +63,19 @@ public class SystemController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/luminositystat")
+    @GetMapping(path = "/luminosity-stat")
     public LuminosityStatInfo getLuminosityStat() {
         return statisticProcessor.getLuminosityStat();
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/systemstat")
+    @GetMapping(path = "/system-stat")
     public SystemStatInfo getSystemStat() {
         return statisticProcessor.getSystemStat();
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/lastat")
+    @GetMapping(path = "/la-stat")
     public LaStatInfo getLaStat() {
         return statisticProcessor.getLaStat();
     }
@@ -83,6 +84,18 @@ public class SystemController {
     @GetMapping(path = "/boiler-temp-stat")
     public BoilerTempStatInfo getBoilerTempStatStat() {
         return statisticProcessor.getBoilerTempStat();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/power-voltage-stat")
+    public PowerVoltageStatInfo getPowerVoltageStat() {
+        return statisticProcessor.getPowerVoltageStat();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/power-consumption-stat")
+    public PowerConsumptionStatInfo getPowerConsumptionStat() {
+        return statisticProcessor.getPowerConsumptionStat();
     }
 
     @PreAuthorize("isAuthenticated()")
