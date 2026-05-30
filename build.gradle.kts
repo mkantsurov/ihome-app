@@ -172,6 +172,16 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+fun String.runCommand(): String {
+    val process = ProcessBuilder(*this.trim().split(" ").toTypedArray())
+        .directory(file("./"))
+        .redirectErrorStream(true)
+        .start()
+    val output = process.inputStream.bufferedReader().readText()
+    process.waitFor()
+    return output.lineSequence().firstOrNull()?.trim() ?: ""
+}
+
 idea {
     project {
         module {

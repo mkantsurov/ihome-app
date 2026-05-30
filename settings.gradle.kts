@@ -1,10 +1,9 @@
 pluginManagement {
-    val springBootVersion: String = "3.1.4"
+    val springBootVersion: String = "3.5.14"
     plugins {
         id("org.springframework.boot") version springBootVersion
     }
     repositories {
-        maven(url = "https://nexus.dev.sectigo.net/repository/iotmgr-releases/")
         gradlePluginPortal()
     }
 }

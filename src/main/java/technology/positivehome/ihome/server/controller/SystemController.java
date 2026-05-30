@@ -12,6 +12,7 @@ import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedF
 import technology.positivehome.ihome.domain.runtime.module.ModuleEntry;
 import technology.positivehome.ihome.domain.runtime.module.ModuleSummary;
 import technology.positivehome.ihome.domain.shared.*;
+import technology.positivehome.ihome.server.processor.PowerConsumptionStatInfo;
 import technology.positivehome.ihome.server.processor.StatisticProcessor;
 import technology.positivehome.ihome.server.processor.SystemProcessor;
 
