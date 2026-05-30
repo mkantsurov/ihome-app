@@ -1,0 +1,18 @@
+ihome:
+  app:
+    url: localhost:4200/web
+    login-page: /ihome-login.jsp
+    auth-page: /j_security_check
+    emulation-mode: true
+spring:
+  profiles:
+    active: default
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ihome
+    username: ihome
+    password: test123
+  flyway:
+    url: jdbc:postgresql://localhost:5432/ihome
+    user: ihome
+    password: test123
+

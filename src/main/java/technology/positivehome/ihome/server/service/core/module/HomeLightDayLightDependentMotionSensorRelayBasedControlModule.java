@@ -1,0 +1,38 @@
+package technology.positivehome.ihome.server.service.core.module;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
+import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
+import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.server.service.core.SystemManager;
+
+/**
+ * Created by maxim on 4/28/20.
+ **/
+public class HomeLightDayLightDependentMotionSensorRelayBasedControlModule extends HomeLightMotionSensorRelayBasedControlModule {
+
+    private static final Log log = LogFactory.getLog(HomeLightDayLightDependentMotionSensorRelayBasedControlModule.class);
+
+    public HomeLightDayLightDependentMotionSensorRelayBasedControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
+        super(mgr, configEntry);
+    }
+
+    public void handleEvent(BinaryInputInitiatedHwEvent event) {
+        if (ModuleOperationMode.AUTO.equals(getMode()) && portsToListen.contains(event.getPortId())) {
+            boolean wasEnabled = lightState.get();
+            timeWhenLiteEnabled.set(System.currentTimeMillis());
+            if (!wasEnabled) {
+                try {
+                    if (!PreferredPowerSupplyMode.ONLY_LED.equals(getMgr().getInputPowerSupplySourceCalc().getPreferredPowerSupplyMode())) {
+                        lightState.set(setOutputStatus(OutputPortStatus.enabled()).isEnabled());
+                    }
+                } catch (Exception ex) {
+                    log.error("Unable enable light by event initiated by port# " + event.getPortId(), ex);
+                }
+            }
+        }
+    }
+}
