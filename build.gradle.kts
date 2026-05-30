@@ -1,10 +1,11 @@
-import com.palantir.gradle.docker.DockerExtension
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
-val javaVersion = JavaVersion.VERSION_21
+val javaVersion = JavaVersion.VERSION_25
 val dockerRepository: String by project
+val repositoryPath = "mkantsurov/ihome-app"
 val testSpringConfLocation: String by project
 
 description = "I-Home Web Application"
@@ -13,8 +14,8 @@ plugins {
     idea
     java
     id("org.springframework.boot")
-    id("io.spring.dependency-management") version "1.0.5.RELEASE"
-    id("com.palantir.docker") version "0.35.0"
+    id("io.spring.dependency-management") version "1.1.7"
+    id("com.google.cloud.tools.jib") version "3.4.3"
     id("org.flywaydb.flyway") version "7.5.2"
 }
 
@@ -49,7 +50,6 @@ dependencies {
     implementation("javax.xml.bind:jaxb-api:2.3.0")
     implementation("com.zaxxer:HikariCP:2.7.4")
     implementation("org.apache.commons:commons-lang3:3.11")
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("com.google.guava:guava:33.0.0-jre")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
     implementation("commons-io:commons-io:2.14.0")
@@ -87,34 +87,31 @@ tasks.getByName<BootJar>("bootJar") {
     archiveFileName.set("app.jar")
 }
 
-task("prepareDocker") {
-    dependsOn("bootJar")
-    doLast {
-        println("Copying files.......................................")
-        copy {
-            into("$buildDir/docker/")
-            from("$buildDir/libs/app.jar")
-        }
-    }
-}
-
 tasks.getByName<BootRun>("bootRun") {
     mainClass.set("technology.positivehome.ihome.ServerApplication")
     environment("SPRING_CONFIG_ADDITIONALLOCATION" to testSpringConfLocation)
     jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=40990")
 }
 
-configure<DockerExtension> {
-    tags("$version", "latest")
-    name = "$dockerRepository/ihome/app"
-    setDockerfile(file("Dockerfile"))
-    pull(true)
+jib {
+    from {
+        image = "eclipse-temurin:25-jre"
+    }
+    to {
+        image = "$dockerRepository/$repositoryPath"
+        tags = setOf(version.toString(), "latest")
+    }
+    container {
+        mainClass = "technology.positivehome.ihome.ServerApplication"
+        jvmFlags = listOf(
+            "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:40990",
+            "-Djava.security.egd=file:/dev/./urandom"
+        )
+        args = listOf()
+        ports = listOf("8080")
+        user = "997:667"
+    }
 }
-
-tasks.getByName("dockerClean").dependsOn("bootJar")
-tasks.getByName("build").dependsOn("dockerClean")
-//tasks.getByName("dockerfileZip").dependsOn("prepareDocker")
-tasks.getByName("docker").dependsOn("prepareDocker")
 
 springBoot {
     buildInfo()
@@ -134,15 +131,6 @@ tasks.register<Test>("integrationTest") {
     group = "verification"
     testClassesDirs = sourceSets["integrationTest"].output.classesDirs
     classpath = sourceSets["integrationTest"].runtimeClasspath
-}
-
-tasks.named("docker") {
-    dependsOn("test")
-    dependsOn("build")
-}
-
-tasks.named("dockerPush") {
-    dependsOn("dockerTag")
 }
 
 tasks {
@@ -172,5 +160,3 @@ idea {
         }
     }
 }
-
-
