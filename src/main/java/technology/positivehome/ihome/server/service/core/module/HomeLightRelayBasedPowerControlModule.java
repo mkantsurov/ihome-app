@@ -20,7 +20,7 @@ public class HomeLightRelayBasedPowerControlModule extends AbstractRelayBasedIHo
     private static final Log log = LogFactory.getLog(HomeLightRelayBasedPowerControlModule.class);
 
     private final Set<Long> portsToListen = new HashSet<>();
-    private AtomicBoolean lightState = new AtomicBoolean(false);
+    private final AtomicBoolean lightState = new AtomicBoolean(false);
 
     public HomeLightRelayBasedPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);

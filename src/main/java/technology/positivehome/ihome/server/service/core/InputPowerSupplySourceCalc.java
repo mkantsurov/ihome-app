@@ -8,14 +8,17 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
 import technology.positivehome.ihome.domain.runtime.sensor.ADCConnectedSensorData;
+import technology.positivehome.ihome.server.processor.SystemProcessor;
 
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
-public class InputPowerSupplySourceCalc implements InitializingBean {
+public class InputPowerSupplySourceCalc {
 
     private static Logger logger = LoggerFactory.getLogger(InputPowerSupplySourceCalc.class);
 
@@ -24,10 +27,11 @@ public class InputPowerSupplySourceCalc implements InitializingBean {
             .expireAfterWrite(30, TimeUnit.MINUTES)
             .build();
 
+    private final AtomicReference<PreferredPowerSupplyMode> prevValue = new AtomicReference<>(PreferredPowerSupplyMode.CONVERTER);
+
     private final Map<Integer, DayTime> dayTimePerMonth = new HashMap<>();
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    public InputPowerSupplySourceCalc() {
         dayTimePerMonth.put(Calendar.JANUARY, new DayTime(7, 40, 16, 20));
         dayTimePerMonth.put(Calendar.FEBRUARY, new DayTime(7, 21, 16, 59));
         dayTimePerMonth.put(Calendar.MARCH, new DayTime(6, 35, 17, 43));
@@ -61,16 +65,27 @@ public class InputPowerSupplySourceCalc implements InitializingBean {
 
     public PreferredPowerSupplyMode getPreferredPowerSupplyMode() {
         double luminosity = getAvgValue(TimeUnit.MINUTES.toMillis(10));
-        if (!isDay() || luminosity < 300) {
-            return PreferredPowerSupplyMode.DIRECT;
-        }
-        if (luminosity < 480) {
-            return PreferredPowerSupplyMode.CONVERTER;
+        PreferredPowerSupplyMode result = prevValue.get();
+        if (isDay()) {
+            if (PreferredPowerSupplyMode.ONLY_LED.equals(prevValue.get())) {
+                if (luminosity >= 530) {
+                    result = PreferredPowerSupplyMode.ONLY_LED;
+                } else {
+                    result = PreferredPowerSupplyMode.CONVERTER;
+                }
+            } else {
+                if (luminosity >= 590) {
+                    result = PreferredPowerSupplyMode.ONLY_LED;
+                } else {
+                    result = PreferredPowerSupplyMode.CONVERTER;
+                }
+            }
         } else {
-            return PreferredPowerSupplyMode.ONLY_LED;
+            result = PreferredPowerSupplyMode.CONVERTER;
         }
+        prevValue.set(result);
+        return result;
     }
-
     public void dataUpdate(ADCConnectedSensorData adcConnectedSensorData) {
         luminosityCache.put(System.currentTimeMillis(), adcConnectedSensorData.getData());
     }

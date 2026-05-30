@@ -6,11 +6,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -28,9 +30,11 @@ import technology.positivehome.ihome.security.service.SecurityPermissionEvaluato
 import java.util.Arrays;
 import java.util.List;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
     public static final String AUTHENTICATION_HEADER_NAME = "Authorization";
     public static final String AUTHENTICATION_URL = "/auth/login";
@@ -49,9 +53,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final SecurityPermissionEvaluator securityPermissionEvaluator;
 
     @Autowired
-    public WebSecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint, AuthenticationSuccessHandler successHandler, AuthenticationFailureHandler failureHandler,
-                             AjaxAuthenticationProvider ajaxAuthenticationProvider, JwtAuthenticationProvider jwtAuthenticationProvider,
-                             TokenExtractor tokenExtractor, ObjectMapper objectMapper,
+    public WebSecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint,
+                             AuthenticationSuccessHandler successHandler,
+                             AuthenticationFailureHandler failureHandler,
+                             AjaxAuthenticationProvider ajaxAuthenticationProvider,
+                             JwtAuthenticationProvider jwtAuthenticationProvider,
+                             TokenExtractor tokenExtractor,
+                             ObjectMapper objectMapper,
                              SecurityPermissionEvaluator securityPermissionEvaluator) {
 
         this.authenticationEntryPoint = authenticationEntryPoint;
@@ -64,71 +72,68 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         this.securityPermissionEvaluator = securityPermissionEvaluator;
     }
 
-    protected AjaxLoginProcessingFilter buildAjaxLoginProcessingFilter(String loginEntryPoint) throws Exception {
-        AjaxLoginProcessingFilter filter = new AjaxLoginProcessingFilter(loginEntryPoint, successHandler, failureHandler, objectMapper);
-        filter.setAuthenticationManager(authenticationManagerBean());
-        return filter;
-    }
-
-    protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter(List<String> pathsToSkip, String pattern) throws Exception {
-        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, pattern);
-        JwtTokenAuthenticationProcessingFilter filter
-                = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
-        filter.setAuthenticationManager(authenticationManagerBean());
-        return filter;
+    @Autowired
+    void registerProvider(AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(ajaxAuthenticationProvider)
+                .authenticationProvider(jwtAuthenticationProvider);
     }
 
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfiguration) throws Exception {
+        return authConfiguration.getAuthenticationManager();
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(ajaxAuthenticationProvider);
-        auth.authenticationProvider(jwtAuthenticationProvider);
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         List<String> permitAllEndpointList = Arrays.asList(
                 AUTHENTICATION_URL,
                 REFRESH_TOKEN_URL,
                 LISTENER_URL,
                 GUEST_API_URL
         );
-
         http
-                .csrf().disable() // We don't need CSRF for JWT based authentication
-                .exceptionHandling()
-                .authenticationEntryPoint(this.authenticationEntryPoint)
-
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-                .and()
-                .authorizeRequests()
-                .antMatchers(permitAllEndpointList.toArray(new String[0]))
-                .permitAll()
-                .and()
-                .authorizeRequests()
-                .antMatchers(API_ROOT_URL).authenticated() // Protected API End-points
-                .anyRequest().permitAll()
-                .and()
+                .csrf(AbstractHttpConfigurer::disable) // We don't need CSRF for JWT based authentication
+                .exceptionHandling((exceptionHandling) -> exceptionHandling.authenticationEntryPoint(this.authenticationEntryPoint))
+                .sessionManagement((sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests((authorizeRequests) ->
+                        authorizeRequests.requestMatchers(permitAllEndpointList.toArray(new String[0])).permitAll()
+                                .requestMatchers(API_ROOT_URL).authenticated().anyRequest().permitAll()
+                )
                 .addFilterBefore(new CustomCorsFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(buildAjaxLoginProcessingFilter(AUTHENTICATION_URL), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(permitAllEndpointList, API_ROOT_URL), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildAjaxLoginProcessingFilter(authenticationManager, AUTHENTICATION_URL), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(authenticationManager, permitAllEndpointList, API_ROOT_URL), UsernamePasswordAuthenticationFilter.class)
                 // disable page caching
-                .headers().cacheControl();
+                .headers((headers) ->
+                        headers
+                                .contentTypeOptions(withDefaults())
+                                .xssProtection(withDefaults())
+                                .cacheControl(withDefaults())
+                                .httpStrictTransportSecurity(withDefaults())
+                                .frameOptions(withDefaults()))
+                .authenticationProvider(ajaxAuthenticationProvider)
+                .authenticationProvider(jwtAuthenticationProvider);
+        return http.build();
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
         DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
         handler.setPermissionEvaluator(securityPermissionEvaluator);
-        web.expressionHandler(handler);
+        return (web) -> web.expressionHandler(handler);
+    }
+
+    protected AjaxLoginProcessingFilter buildAjaxLoginProcessingFilter(AuthenticationManager authenticationManager, String loginEntryPoint) throws Exception {
+        AjaxLoginProcessingFilter filter = new AjaxLoginProcessingFilter(loginEntryPoint, successHandler, failureHandler, objectMapper);
+        filter.setAuthenticationManager(authenticationManager);
+        return filter;
+    }
+
+    protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter(AuthenticationManager authenticationManager, List<String> pathsToSkip, String pattern) throws Exception {
+        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, pattern);
+        JwtTokenAuthenticationProcessingFilter filter
+                = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
+        filter.setAuthenticationManager(authenticationManager);
+        return filter;
     }
 
 }
