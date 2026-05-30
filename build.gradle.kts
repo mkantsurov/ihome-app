@@ -119,7 +119,7 @@ jib {
     }
     to {
         image = "$dockerRepository/$repositoryPath"
-        tags = setOf(version.toString(), "latest")
+        tags = setOf(ihomeVersion, "latest")
     }
     container {
         mainClass = "technology.positivehome.ihome.ServerApplication"
