@@ -16,7 +16,7 @@ plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management") version "1.1.7"
     id("com.google.cloud.tools.jib") version "3.4.3"
-    id("org.flywaydb.flyway") version "7.5.2"
+    id("org.flywaydb.flyway") version "12.7.0"
 }
 
 java {
@@ -46,12 +46,6 @@ val ihomeVersion = run {
 
 repositories {
     mavenCentral()
-    maven { setUrl("https://repo.spring.io/release/") }
-    maven { setUrl("https://repo.spring.io/libs-snapshot-local") }
-    maven { setUrl("https://repo.spring.io/libs-milestone-local") }
-    maven { setUrl("https://repo.spring.io/libs-release-local") }
-    maven { setUrl("https://repo.spring.io/libs-milestone") }
-    maven { setUrl("https://plugins.gradle.org/m2/") }
 }
 
 dependencies {
@@ -62,11 +56,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-core:12.7.0")
+    implementation("org.flywaydb:flyway-database-postgresql:12.7.0")
     implementation("org.springframework.boot:spring-boot-actuator-autoconfigure")
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation("io.jsonwebtoken:jjwt:0.9.0")
-    implementation("org.postgresql:postgresql:42.7.2")
+    implementation("org.postgresql:postgresql:42.7.11")
     implementation("javax.xml.bind:jaxb-api:2.3.0")
     implementation("com.zaxxer:HikariCP:2.7.4")
     implementation("org.apache.commons:commons-lang3:3.11")
