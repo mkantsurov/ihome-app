@@ -1,7 +1,6 @@
 package technology.positivehome.ihome.configuration;
 
 import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -30,7 +29,6 @@ public class PersistenceConfiguration {
     }
 
     @Bean
-    @Autowired
     public DataSourceTransactionManager transactionManager(@Qualifier("dataSource") DataSource dataSource) {
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
         transactionManager.setDataSource(dataSource);
