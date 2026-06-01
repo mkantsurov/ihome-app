@@ -2,11 +2,12 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.collections.getOrDefault
 
 val javaVersion = JavaVersion.VERSION_25
-val dockerRepository: String by project
+val dockerRepository = project.properties.getOrDefault("dockerRepository", "ghcr.io")
 val repositoryPath = "mkantsurov/ihome-app"
-val testSpringConfLocation: String by project
+val testSpringConfLocation = project.properties.getOrDefault("testSpringConfLocation", "")
 
 description = "I-Home Web Application"
 
@@ -104,7 +105,7 @@ tasks.getByName<BootJar>("bootJar") {
 
 tasks.getByName<BootRun>("bootRun") {
     mainClass.set("technology.positivehome.ihome.ServerApplication")
-    environment("SPRING_CONFIG_ADDITIONALLOCATION" to testSpringConfLocation)
+    environment(mapOf("SPRING_CONFIG_ADDITIONALLOCATION" to testSpringConfLocation))
     jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=40990")
 }
 
