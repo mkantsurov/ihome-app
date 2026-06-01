@@ -52,3 +52,6 @@ jobs:
         id: jib_build
         run: |
           gradle build jib
+        env:
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
