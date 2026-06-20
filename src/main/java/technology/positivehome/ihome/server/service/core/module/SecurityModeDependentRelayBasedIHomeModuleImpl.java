@@ -2,11 +2,13 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.constant.BinaryPortStatus;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
+import technology.positivehome.ihome.model.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigElementEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
@@ -65,6 +67,7 @@ public class SecurityModeDependentRelayBasedIHomeModuleImpl extends AbstractRela
                 powerState.set(setOutputStatus(wasEnabled ? OutputPortStatus.disabled() : OutputPortStatus.enabled()).isEnabled());
             } catch (Exception ex) {
                 log.error("Unable to switch light", ex);
+                getMgr().getEventPublisher().publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_LIGHT_TOGGLE, "Unable to switch light: " + ex.getMessage()));
             }
 
         }

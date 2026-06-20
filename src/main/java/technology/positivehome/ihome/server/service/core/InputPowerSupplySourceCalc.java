@@ -4,16 +4,13 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
-import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
-import technology.positivehome.ihome.domain.runtime.sensor.ADCConnectedSensorData;
-import technology.positivehome.ihome.server.processor.SystemProcessor;
+import technology.positivehome.ihome.model.constant.PreferredPowerSupplyMode;
+import technology.positivehome.ihome.model.runtime.sensor.ADCConnectedSensorData;
 
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 

@@ -1,7 +1,7 @@
 package technology.positivehome.ihome.server.processor;
 
-import technology.positivehome.ihome.domain.runtime.*;
-import technology.positivehome.ihome.domain.shared.*;
+import technology.positivehome.ihome.model.runtime.*;
+import technology.positivehome.ihome.model.shared.*;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

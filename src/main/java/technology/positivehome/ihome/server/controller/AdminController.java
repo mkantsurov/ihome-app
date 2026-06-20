@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import technology.positivehome.ihome.domain.constant.ErrorMessageLogSortRule;
-import technology.positivehome.ihome.domain.runtime.module.ErrorMessageLogEntryInfo;
+import technology.positivehome.ihome.model.constant.ErrorMessageLogSortRule;
+import technology.positivehome.ihome.model.runtime.module.ErrorMessageLogEntryInfo;
 import technology.positivehome.ihome.server.processor.AdminProcessor;
 import technology.positivehome.ihome.server.processor.ErrorMessageLogService;
 

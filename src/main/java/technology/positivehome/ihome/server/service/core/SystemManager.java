@@ -10,18 +10,20 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import technology.positivehome.ihome.domain.constant.ControllerMode;
-import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
-import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
-import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
-import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
-import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleState;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.constant.ControllerMode;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
+import technology.positivehome.ihome.model.constant.ModuleOperationMode;
+import technology.positivehome.ihome.model.constant.ModuleStartupMode;
+import technology.positivehome.ihome.model.runtime.controller.ControllerConfigEntry;
+import technology.positivehome.ihome.model.runtime.controller.ControllerPortConfigEntry;
+import technology.positivehome.ihome.model.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleState;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.model.command.IHomeCommand;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.persistence.ModuleConfigRepository;
@@ -205,6 +207,7 @@ public class SystemManager implements ControllerEventListener, InitializingBean 
 //            boolean powerSupplyOk = voltage > 170 && voltage < 245;
         } catch (Exception ex) {
             log.error("Error reading luminosity data ", ex);
+            eventPublisher.publishEvent(new IHomeErrorEvent(this, ErrorEventType.LUMINOSITY_READING, "Error reading luminosity data: " + ex.getMessage()));
         }
     }
 

@@ -1,7 +1,7 @@
 package technology.positivehome.ihome.server.service.core.controller;
 
 import org.springframework.context.ApplicationEventPublisher;
-import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
+import technology.positivehome.ihome.model.runtime.controller.ControllerConfigEntry;
 import technology.positivehome.ihome.server.service.core.controller.input.Dds238PowerMeter;
 import technology.positivehome.ihome.server.service.core.controller.input.LiveDds238PowerMeterImpl;
 

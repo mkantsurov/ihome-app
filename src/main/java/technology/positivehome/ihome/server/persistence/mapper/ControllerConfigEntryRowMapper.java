@@ -2,7 +2,7 @@ package technology.positivehome.ihome.server.persistence.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import technology.positivehome.ihome.domain.constant.ControllerType;
+import technology.positivehome.ihome.model.constant.ControllerType;
 import technology.positivehome.ihome.server.persistence.model.ControllerConfigEntity;
 
 import java.sql.ResultSet;

@@ -2,7 +2,7 @@ package technology.positivehome.ihome.server.persistence.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntity;
+import technology.positivehome.ihome.model.runtime.event.MeasurementLogEntity;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

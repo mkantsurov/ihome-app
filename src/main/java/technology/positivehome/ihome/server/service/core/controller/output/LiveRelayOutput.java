@@ -2,19 +2,18 @@ package technology.positivehome.ihome.server.service.core.controller.output;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.constant.MegadCommand;
-import technology.positivehome.ihome.domain.constant.MegadRequestParam;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.constant.BinaryPortStatus;
+import technology.positivehome.ihome.model.constant.MegadCommand;
+import technology.positivehome.ihome.model.constant.MegadRequestParam;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.server.service.core.controller.MegadPort;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 

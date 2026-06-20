@@ -2,12 +2,14 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
-import technology.positivehome.ihome.domain.constant.ModuleProperty;
-import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
+import technology.positivehome.ihome.model.constant.ModuleOperationMode;
+import technology.positivehome.ihome.model.constant.ModuleProperty;
+import technology.positivehome.ihome.model.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigElementEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.HashSet;
@@ -38,7 +40,7 @@ public class HomeLightMotionSensorRelayBasedControlModule extends AbstractRelayB
         }
 
         moduleJobs = new CronModuleJob[]{
-                new CronModuleJob(TimeUnit.MINUTES.toMillis(1)) {
+                new CronModuleJob(TimeUnit.MINUTES.toMillis(1), mgr.getEventPublisher()) {
                     @Override
                     protected void execute() throws Exception {
                         switch (getMode()) {
@@ -71,6 +73,7 @@ public class HomeLightMotionSensorRelayBasedControlModule extends AbstractRelayB
                     lightState.set(setOutputStatus(OutputPortStatus.enabled()).isEnabled());
                 } catch (Exception ex) {
                     log.error("Unable enable light by event initiated by port# " + event.getPortId(), ex);
+                    getMgr().getEventPublisher().publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_LIGHT_ENABLE, "Unable enable light by event initiated by port# " + event.getPortId() + ": " + ex.getMessage()));
                 }
             }
         }

@@ -1,0 +1,13 @@
+# Agent Rules for ihome-app
+
+Always read the following file for project context, tech stack, coding patterns, and editing guidelines:
+- `.github/copilot-instructions.md`
+
+## Lessons Learned (do not repeat)
+
+### Replacing deprecated APIs
+When replacing deprecated Spring Security `AntPathRequestMatcher` with `PathPatternRequestMatcher`:
+- Use `PathPatternRequestMatcher.withDefaults().matcher(pattern)` — the builder method `withDefaults()` returns a default-configured instance, and `.matcher(pattern)` creates the matcher.
+- Do NOT use the constructor directly (`new PathPatternRequestMatcher(...)`).
+- Do NOT use `withMatchAllHttpMethods(...).build()` — that's not the correct API.
+- When editing a file, replace the **entire existing code** — don't leave old broken code in place.

@@ -3,8 +3,8 @@ package technology.positivehome.ihome.server.processor;
 import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import technology.positivehome.ihome.domain.runtime.ChartPoint;
-import technology.positivehome.ihome.domain.runtime.PowerConsumptionStat;
+import technology.positivehome.ihome.model.runtime.ChartPoint;
+import technology.positivehome.ihome.model.runtime.PowerConsumptionStat;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

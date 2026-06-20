@@ -3,7 +3,7 @@ package technology.positivehome.ihome.server.persistence.repository.queryexec;
 import jakarta.annotation.Nullable;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import technology.positivehome.ihome.domain.constant.ErrorMessageLogSortRule;
+import technology.positivehome.ihome.model.constant.ErrorMessageLogSortRule;
 import technology.positivehome.ihome.server.model.SearchParam;
 import technology.positivehome.ihome.server.persistence.mapper.ErrorMessageLogRowMapper;
 import technology.positivehome.ihome.server.persistence.model.ErrorMessageLogEntity;

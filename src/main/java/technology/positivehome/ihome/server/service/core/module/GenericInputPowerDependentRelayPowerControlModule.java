@@ -1,9 +1,9 @@
 package technology.positivehome.ihome.server.service.core.module;
 
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.constant.BinaryPortStatus;
+import technology.positivehome.ihome.model.constant.ModuleOperationMode;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 

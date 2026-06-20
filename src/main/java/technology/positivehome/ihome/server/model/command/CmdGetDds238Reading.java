@@ -1,9 +1,9 @@
 package technology.positivehome.ihome.server.model.command;
 
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.sensor.Dds238PowerMeterData;
 
 import java.io.IOException;
 import java.util.Optional;

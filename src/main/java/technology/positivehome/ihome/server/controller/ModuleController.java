@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.module.ModuleEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleSummary;
-import technology.positivehome.ihome.domain.runtime.module.ModuleUpdateRequest;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.module.ModuleEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleSummary;
+import technology.positivehome.ihome.model.runtime.module.ModuleUpdateRequest;
 import technology.positivehome.ihome.server.processor.StatisticProcessor;
 import technology.positivehome.ihome.server.processor.SystemProcessor;
 

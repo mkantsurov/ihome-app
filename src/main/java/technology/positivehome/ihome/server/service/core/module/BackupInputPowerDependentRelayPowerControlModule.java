@@ -1,15 +1,15 @@
 package technology.positivehome.ihome.server.service.core.module;
 
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.constant.BinaryPortStatus;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode.ONLY_LED;
+import static technology.positivehome.ihome.model.constant.PreferredPowerSupplyMode.ONLY_LED;
 
 public class BackupInputPowerDependentRelayPowerControlModule extends AbstractRelayBasedIHomeModule implements IHomeModule {
 

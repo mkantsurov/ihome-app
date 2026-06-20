@@ -3,27 +3,22 @@ package technology.positivehome.ihome.server.service.core.controller;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
-import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.controller.ControllerConfigEntry;
+import technology.positivehome.ihome.model.runtime.controller.ControllerPortConfigEntry;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
 import technology.positivehome.ihome.server.model.PortInfo;
 import technology.positivehome.ihome.server.model.command.IHomeCommand;
 import technology.positivehome.ihome.server.model.command.IHomePorts;
 import technology.positivehome.ihome.server.service.core.controller.input.Dds238PowerMeter;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
 public abstract class AbstractDr404Controller implements DR404Controller, DR404RequestExecutor {
 

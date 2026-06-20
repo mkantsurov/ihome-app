@@ -1,26 +1,20 @@
 package technology.positivehome.ihome.server.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.runtime.ExternalPowerSummaryInfo;
-import technology.positivehome.ihome.domain.runtime.PowerSummaryInfo;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.shared.OutDoorTempStatInfo;
-import technology.positivehome.ihome.domain.shared.PowerVoltageExtStatInfo;
-import technology.positivehome.ihome.domain.shared.PressureStatInfo;
-import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
+import technology.positivehome.ihome.model.runtime.ExternalPowerSummaryInfo;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.shared.OutDoorTempStatInfo;
+import technology.positivehome.ihome.model.shared.PowerVoltageExtStatInfo;
+import technology.positivehome.ihome.model.shared.PressureStatInfo;
 import technology.positivehome.ihome.server.processor.StatisticProcessor;
 import technology.positivehome.ihome.server.processor.SystemProcessor;
 
 import java.io.IOException;
-
-import static technology.positivehome.ihome.server.service.core.module.GenericInputPowerDependentRelayPowerControlModule.POWER_METER_PORT_ID;
 
 
 @RestController

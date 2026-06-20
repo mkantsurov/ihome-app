@@ -2,12 +2,13 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import technology.positivehome.ihome.domain.constant.*;
-import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.module.*;
+import technology.positivehome.ihome.model.constant.*;
+import technology.positivehome.ihome.model.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.module.*;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 import technology.positivehome.ihome.server.service.core.controller.ControllerEventInfo;
@@ -76,6 +77,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
             log.info("Module " + getName() + " initialized with status " + moduleStartupMode.get().name());
         } catch (Exception e) {
             log.error("Unable to initialize default module state", e);
+            mgr.getEventPublisher().publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_INIT_DEFAULT_STATE, "Unable to initialize default module state for " + getName() + ": " + e.getMessage()));
         }
     }
 
@@ -98,6 +100,7 @@ public abstract class AbstractIHomeModule implements IHomeModuleSummary {
             }
         } catch (Exception ex) {
             log.error("Unable to execute cron tasks for module: " + name + " " + ex.getMessage());
+            mgr.getEventPublisher().publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_CRON_TASK_EXECUTION, "Unable to execute cron tasks for module: " + name + " " + ex.getMessage()));
         }
     }
 

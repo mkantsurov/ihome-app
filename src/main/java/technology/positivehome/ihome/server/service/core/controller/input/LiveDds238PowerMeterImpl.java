@@ -2,12 +2,10 @@ package technology.positivehome.ihome.server.service.core.controller.input;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
-import technology.positivehome.ihome.domain.runtime.sensor.Ds18b20TempSensorData;
-import technology.positivehome.ihome.server.processor.SystemProcessor;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.sensor.Dds238PowerMeterData;
 import technology.positivehome.ihome.server.service.core.controller.DR404Port;
 import technology.positivehome.ihome.server.service.core.controller.DR404RequestExecutor;
 
@@ -16,14 +14,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class LiveDds238PowerMeterImpl extends DR404Port implements Dds238PowerMeter {
 

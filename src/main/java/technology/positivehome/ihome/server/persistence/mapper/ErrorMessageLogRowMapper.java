@@ -2,9 +2,7 @@ package technology.positivehome.ihome.server.persistence.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import technology.positivehome.ihome.domain.constant.ErrorEventType;
-import technology.positivehome.ihome.domain.constant.IHomePortType;
-import technology.positivehome.ihome.server.persistence.model.ControllerPortConfigEntity;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
 import technology.positivehome.ihome.server.persistence.model.ErrorMessageLogEntity;
 
 import java.sql.ResultSet;

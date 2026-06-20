@@ -1,7 +1,7 @@
 package technology.positivehome.ihome.server.persistence.repository;
 
 import jakarta.annotation.Nullable;
-import technology.positivehome.ihome.domain.constant.ErrorMessageLogSortRule;
+import technology.positivehome.ihome.model.constant.ErrorMessageLogSortRule;
 import technology.positivehome.ihome.server.model.SearchParam;
 import technology.positivehome.ihome.server.persistence.model.ErrorMessageLogEntity;
 

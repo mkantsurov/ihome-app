@@ -1,8 +1,7 @@
 package technology.positivehome.ihome.server.processor;
 
-import org.springframework.stereotype.Service;
-import technology.positivehome.ihome.domain.constant.ErrorMessageLogSortRule;
-import technology.positivehome.ihome.domain.runtime.module.ErrorMessageLogEntryInfo;
+import technology.positivehome.ihome.model.constant.ErrorMessageLogSortRule;
+import technology.positivehome.ihome.model.runtime.module.ErrorMessageLogEntryInfo;
 import technology.positivehome.ihome.server.model.SearchParam;
 
 import java.util.List;

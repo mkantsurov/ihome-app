@@ -1,6 +1,6 @@
 package technology.positivehome.ihome.server.model;
 
-import technology.positivehome.ihome.domain.constant.SearchField;
+import technology.positivehome.ihome.model.constant.SearchField;
 
 import java.util.ArrayList;
 import java.util.List;

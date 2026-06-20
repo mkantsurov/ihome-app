@@ -1,10 +1,10 @@
 package technology.positivehome.ihome.server.persistence;
 
-import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
-import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleSettings;
+import technology.positivehome.ihome.model.constant.ModuleOperationMode;
+import technology.positivehome.ihome.model.constant.ModuleStartupMode;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigElementEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleSettings;
 
 import java.util.List;
 
