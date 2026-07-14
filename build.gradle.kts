@@ -133,26 +133,11 @@ springBoot {
     buildInfo()
 }
 
-sourceSets {
-    create("integrationTest") {
-        java.srcDir(file("src/integrationTest/java"))
-        resources.srcDir(file("src/integrationTest/resources"))
-        compileClasspath += sourceSets["main"].output + configurations["testRuntimeClasspath"]
-        runtimeClasspath += output + compileClasspath
-    }
-}
-
-tasks.register<Test>("integrationTest") {
-    description = "Runs the integration tests."
-    group = "verification"
-    testClassesDirs = sourceSets["integrationTest"].output.classesDirs
-    classpath = sourceSets["integrationTest"].runtimeClasspath
-}
-
 tasks {
     "test"(Test::class) {
         filter {
             includeTestsMatching("technology.positivehome.ihome.server.processor.*")
+            includeTestsMatching("technology.positivehome.ihome.server.persistence.repository.*")
         }
     }
 }
