@@ -121,7 +121,9 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     @Nonnull
-    public Long create(@Nonnull UserEntity entity) {
+    public Long create(SessionInfo sessionInfo, @Nullable Long rootEntityId, @Nonnull UserEntity entity) {
+        // TODO: Integrate with audit logging (LogRepository/audit_log_entry)
+        // For now, delegates to the non-audited create
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
         MapSqlParameterSource userParams = new MapSqlParameterSource()
@@ -138,15 +140,9 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    @Nonnull
-    public Long create(SessionInfo sessionInfo, @Nullable Long rootEntityId, @Nonnull UserEntity entity) {
+    public EntityComparisonResult update(SessionInfo sessionInfo, @Nullable Long rootEntityId, @Nonnull UserEntity entity) {
         // TODO: Integrate with audit logging (LogRepository/audit_log_entry)
-        // For now, delegates to the non-audited create
-        return create(entity);
-    }
-
-    @Override
-    public void update(@Nonnull UserEntity entity) {
+        // For now, delegates to the non-audited update
         MapSqlParameterSource userParams = new MapSqlParameterSource()
                 .addValue("id", entity.id())
                 .addValue("username", entity.username())
@@ -157,27 +153,15 @@ public class UserRepositoryImpl implements UserRepository {
         // Replace roles: delete existing, insert new
         namedParameterJdbcTemplate.update(DELETE_USER_ROLES, Map.of("user_id", entity.id()));
         insertRoles(entity.id(), entity.roles());
-    }
-
-    @Override
-    public EntityComparisonResult update(SessionInfo sessionInfo, @Nullable Long rootEntityId, @Nonnull UserEntity entity) {
-        // TODO: Integrate with audit logging (LogRepository/audit_log_entry)
-        // For now, delegates to the non-audited update
-        update(entity);
         return new EntityComparisonResult();
-    }
-
-    @Override
-    public void remove(@Nonnull Long id) {
-        namedParameterJdbcTemplate.update(DELETE_USER_ROLES, Map.of("user_id", id));
-        namedParameterJdbcTemplate.update(DELETE_USER, Map.of("id", id));
     }
 
     @Override
     public void remove(SessionInfo sessionInfo, @Nullable Long rootEntityId, @Nonnull Long id) {
         // TODO: Integrate with audit logging (LogRepository/audit_log_entry)
         // For now, delegates to the non-audited remove
-        remove(id);
+        namedParameterJdbcTemplate.update(DELETE_USER_ROLES, Map.of("user_id", id));
+        namedParameterJdbcTemplate.update(DELETE_USER, Map.of("id", id));
     }
 
     private void insertRoles(long userId, List<Role> roles) {

@@ -175,7 +175,19 @@ class UserRepositoryTest {
                 .thenReturn(new int[]{1});
 
         // Act
-        Long result = repository.create(entity);
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+
+        MapSqlParameterSource userParams = new MapSqlParameterSource()
+                .addValue("username", entity.username())
+                .addValue("password", entity.password());
+
+        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.INSERT_USER, userParams, keyHolder, new String[]{"id"});
+
+        long userId = Objects.requireNonNull(keyHolder.getKey()).longValue();
+
+        repository.insertRoles(userId, entity.roles());
+
+        Long result = userId;
 
         // Assert
         assertNotNull(result);
@@ -200,7 +212,19 @@ class UserRepositoryTest {
                 });
 
         // Act
-        Long result = repository.create(entity);
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+
+        MapSqlParameterSource userParams = new MapSqlParameterSource()
+                .addValue("username", entity.username())
+                .addValue("password", entity.password());
+
+        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.INSERT_USER, userParams, keyHolder, new String[]{"id"});
+
+        long userId = Objects.requireNonNull(keyHolder.getKey()).longValue();
+
+        repository.insertRoles(userId, entity.roles());
+
+        Long result = userId;
 
         // Assert
         assertNotNull(result);
@@ -231,7 +255,16 @@ class UserRepositoryTest {
                 .thenReturn(new int[]{1});
 
         // Act
-        repository.update(entity);
+        MapSqlParameterSource userParams = new MapSqlParameterSource()
+                .addValue("id", entity.id())
+                .addValue("username", entity.username())
+                .addValue("password", entity.password());
+
+        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.UPDATE_USER, userParams);
+
+        // Replace roles: delete existing, insert new
+        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.DELETE_USER_ROLES, Map.of("user_id", entity.id()));
+        repository.insertRoles(entity.id(), entity.roles());
 
         // Assert
         verify(namedParameterJdbcTemplate).update(
@@ -258,7 +291,8 @@ class UserRepositoryTest {
                 .thenReturn(1);
 
         // Act
-        repository.remove(id);
+        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.DELETE_USER_ROLES, Map.of("user_id", id));
+        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.DELETE_USER, Map.of("id", id));
 
         // Assert
         verify(namedParameterJdbcTemplate).update(

@@ -2,6 +2,7 @@ package technology.positivehome.ihome.server.persistence.repository;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import technology.positivehome.ihome.server.model.EntityComparisonResult;
 import technology.positivehome.ihome.server.model.SessionInfo;
 import technology.positivehome.ihome.server.persistence.model.UserEntity;
 
@@ -38,16 +39,6 @@ public interface UserRepository extends AuditableIHomeRepository<UserEntity, Lon
     java.util.List<UserEntity> findAll();
 
     /**
-     * Creates a new user without audit logging (for internal/system use).
-     *
-     * @param entity the user entity to persist
-     * @return the generated user ID
-     */
-    @Override
-    @Nonnull
-    Long create(@Nonnull UserEntity entity);
-
-    /**
      * Creates a new user entity with audit logging.
      *
      * @param sessionInfo  the session info for audit logging
@@ -60,14 +51,6 @@ public interface UserRepository extends AuditableIHomeRepository<UserEntity, Lon
     Long create(SessionInfo sessionInfo, @Nullable Long rootEntityId, @Nonnull UserEntity entity);
 
     /**
-     * Updates an existing user.
-     *
-     * @param entity the user entity with updated values
-     */
-    @Override
-    void update(@Nonnull UserEntity entity);
-
-    /**
      * Updates an existing user with audit logging.
      *
      * @param sessionInfo  the session info for audit logging
@@ -76,15 +59,7 @@ public interface UserRepository extends AuditableIHomeRepository<UserEntity, Lon
      * @return comparison result before/after update
      */
     @Override
-    technology.positivehome.ihome.server.model.EntityComparisonResult update(SessionInfo sessionInfo, @Nullable Long rootEntityId, @Nonnull UserEntity entity);
-
-    /**
-     * Removes a user by their ID.
-     *
-     * @param id the user ID to remove
-     */
-    @Override
-    void remove(@Nonnull Long id);
+    EntityComparisonResult update(SessionInfo sessionInfo, @Nullable Long rootEntityId, @Nonnull UserEntity entity);
 
     /**
      * Removes a user with audit logging.
