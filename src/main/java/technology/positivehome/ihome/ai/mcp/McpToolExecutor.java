@@ -26,13 +26,16 @@ public class McpToolExecutor {
 
     private final SystemProcessor systemProcessor;
     private final StatisticProcessor statisticProcessor;
+    private final McpToolRegistry toolRegistry;
     private final ObjectMapper objectMapper;
 
     public McpToolExecutor(SystemProcessor systemProcessor,
                            StatisticProcessor statisticProcessor,
+                           McpToolRegistry toolRegistry,
                            ObjectMapper objectMapper) {
         this.systemProcessor = systemProcessor;
         this.statisticProcessor = statisticProcessor;
+        this.toolRegistry = toolRegistry;
         this.objectMapper = objectMapper;
     }
 
@@ -87,6 +90,12 @@ public class McpToolExecutor {
             ObjectNode response = objectMapper.createObjectNode();
             response.set("data", resultNode);
             response.put("success", true);
+
+            // Apply result transformer if defined for this tool
+            McpToolDefinition definition = toolRegistry.getTool(toolName).orElse(null);
+            if (definition != null && definition.resultTransformer() != null) {
+                return definition.resultTransformer().apply(response);
+            }
             return response;
 
         } catch (MegadApiMallformedUrlException | MegadApiMallformedResponseException |

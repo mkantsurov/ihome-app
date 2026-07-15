@@ -109,3 +109,78 @@ Key properties defined in `gradle.properties`:
 - `testSpringConfLocation` — path to test YAML config
 - `dockerRepository` — Docker registry (default: `ghcr.io`)
 - `debugEnabled=true`
+- `deepseekApiKey` — DeepSeek API key (passed as `DEEPSEEK_API_KEY` env var by `bootRun`)
+
+## AI Integration (DeepSeek + MCP)
+
+### Package Structure
+```
+src/main/java/technology/positivehome/ihome/ai/
+├── controller/ChatController.java           # POST /api/v1/chat (JWT auth)
+├── deepseek/
+│   ├── DeepSeekClient.java                  # WebClient-based HTTP client
+│   ├── DeepSeekConfig.java                  # @ConfigurationProperties (ihome.ai.deepseek)
+│   ├── DeepSeekApiException.java
+│   └── model/{ChatRequest,ChatResponse,Message,ToolCall,ToolDefinition}.java
+├── mcp/
+│   ├── McpToolDefinition.java               # Tool schema: name, description, JSON Schema, required roles, optional resultTransformer
+│   ├── McpToolRegistry.java                 # Registers 14 tools, role-based filtering, scaleChartPointValues helper
+│   ├── McpToolExecutor.java                 # Executes tools against SystemProcessor/StatisticProcessor, applies resultTransformer
+│   ├── McpJsonRpcHandler.java               # JSON-RPC 2.0 handler (for future MCP endpoint)
+│   └── model/{JsonRpcRequest,JsonRpcResponse}.java
+└── orchestrator/
+    ├── ChatOrchestratorService.java          # Core loop: prompt → DeepSeek → tools → response
+    └── PermissionValidator.java             # Role-based tool access control
+```
+
+### Architecture Flow
+```
+User (JWT) → ChatController → ChatOrchestratorService → DeepSeek API (cloud)
+                                │                            │
+                                │ tool_call decision        │
+                                ↓                            │
+                          McpToolExecutor (direct call) ←───┘
+                                │
+                                ↓
+                          SystemProcessor / StatisticProcessor
+```
+
+### Tool Registration Pattern
+- Tools are registered in `McpToolRegistry.registerTools()` via `@PostConstruct`
+- Each tool has: `name`, `description`, `inputSchema` (JSON Schema), `requiredRoles` (Set<Role>), and an optional `resultTransformer` (Function<JsonNode, JsonNode>)
+- 12 read-only tools (any authenticated user) + 2 admin tools (ROLE_ADMIN only)
+- Admin tools: `updateModuleMode`, `updateModuleOutputState`
+
+### Result Transformer Pattern
+- `McpToolDefinition` accepts an optional `Function<JsonNode, JsonNode> resultTransformer` (5th record component, defaults to `null`)
+- The 4-arg constructor `McpToolDefinition(name, description, inputSchema, requiredRoles)` delegates to the 5-arg canonical constructor with `null` transformer — backward compatible
+- `McpToolExecutor` looks up the tool definition after building the JSON response and applies the transformer if present
+- Use `McpToolRegistry.scaleChartPointValues(double factor)` to create a transformer that recursively walks the JSON tree, finds `ChartPointInfo` nodes (objects with both `dt` and `value` fields where `value` is an integer), scales `value` by the factor, and preserves the raw value as `valueRaw`
+- Tools with `scaleChartPointValues(0.01)`: `getTempStat`, `getPressureStat`, `getBoilerTempStat`, `getPowerVoltageStat` — converts raw hundredths (e.g., `2322`) to decimal (e.g., `23.22`)
+- Tools without transformers: `getSystemStat`, `getPowerConsumptionStat`, `getLuminosityStat` — values pass through unchanged
+- When adding a new tool that returns `ChartPointInfo` with scaled integers, use `scaleChartPointValues(factor)` in the `register()` call
+
+### Permission Model (Two-Layer Defense)
+1. **Layer 1 — Tool list filtering**: `McpToolRegistry.getToolsForRoles()` filters tools before sending to DeepSeek. Non-admin users never see admin tools.
+2. **Layer 2 — Execution guard**: `PermissionValidator.canExecute()` blocks any unexpected tool call at runtime.
+
+### Configuration
+```yaml
+# application.yml
+ihome.ai.deepseek:
+  api-key: ${DEEPSEEK_API_KEY:}
+  base-url: https://api.deepseek.com/v1
+  model: deepseek-chat
+  max-tokens: 4096
+```
+
+### Key Classes
+- `ChatOrchestratorService` — main orchestrator; builds system prompt, sends to DeepSeek, handles tool_call loop (max 5 rounds), returns final text
+- `McpToolExecutor` — switch-based dispatch mapping tool names to `SystemProcessor`/`StatisticProcessor` methods
+- `DeepSeekClient` — uses Spring `WebClient` (already available via webflux starter), no additional dependencies needed
+- `DeepSeekConfig` — Java record with `@ConfigurationProperties(prefix = "ihome.ai.deepseek")`
+
+### Test Patterns
+- AI tests go in `src/test/java/technology/positivehome/ihome/ai/`
+- Use `@ExtendWith(MockitoExtension.class)` with `@Mock` for dependencies
+- `McpToolRegistry` can be tested without Spring by calling `registerTools()` manually
