@@ -12,6 +12,8 @@ import technology.positivehome.ihome.ai.deepseek.model.*;
 import technology.positivehome.ihome.ai.mcp.McpToolDefinition;
 import technology.positivehome.ihome.ai.mcp.McpToolExecutor;
 import technology.positivehome.ihome.ai.mcp.McpToolRegistry;
+import technology.positivehome.ihome.model.runtime.module.ModuleSummary;
+import technology.positivehome.ihome.server.processor.SystemProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,17 +42,20 @@ public class ChatOrchestratorService {
     private final McpToolRegistry toolRegistry;
     private final McpToolExecutor toolExecutor;
     private final PermissionValidator permissionValidator;
+    private final SystemProcessor systemProcessor;
     private final ObjectMapper objectMapper;
 
     public ChatOrchestratorService(DeepSeekClient deepSeekClient,
                                    McpToolRegistry toolRegistry,
                                    McpToolExecutor toolExecutor,
                                    PermissionValidator permissionValidator,
+                                   SystemProcessor systemProcessor,
                                    ObjectMapper objectMapper) {
         this.deepSeekClient = deepSeekClient;
         this.toolRegistry = toolRegistry;
         this.toolExecutor = toolExecutor;
         this.permissionValidator = permissionValidator;
+        this.systemProcessor = systemProcessor;
         this.objectMapper = objectMapper;
     }
 
@@ -151,11 +156,20 @@ public class ChatOrchestratorService {
                 ? "You have full administrator access to control all home automation devices."
                 : "You have read-only access. You can view status and statistics but cannot control devices.";
 
+        String moduleContext = buildModuleContext();
+
         return Message.system("""
                 You are a helpful home automation assistant for the iHome smart home system.
                 You help users monitor and control their home devices.
                 
                 Current user: %s
+                %s
+                
+                ## Home Configuration
+                Below is the current list of modules in this home. Each module has an ID, name,
+                type (assignment), current mode, and output state. Use module IDs when calling tools
+                like getModuleData or updateModuleMode.
+                
                 %s
                 
                 You have access to tools that let you interact with the home automation system.
@@ -168,7 +182,42 @@ public class ChatOrchestratorService {
                 - Always provide clear, concise responses about what you did or found.
                 - If a tool returns an error, explain it to the user in simple terms.
                 - Use Celsius for temperatures and watts/kilowatts for power.
-                """.formatted(username, roleDescription));
+                - Refer to modules by their name (e.g., "Garage Light") rather than just their ID.
+                """.formatted(username, roleDescription, moduleContext));
+    }
+
+    /**
+     * Builds a human-readable summary of all modules in the system.
+     * This is injected into the system prompt so the LLM understands the home layout.
+     */
+    private String buildModuleContext() {
+        try {
+            ModuleSummary[] modules = systemProcessor.getModuleList(null, null);
+            if (modules == null || modules.length == 0) {
+                return "(No modules configured)";
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append("| ID | Name | Type | Mode | Output |\n");
+            sb.append("|----|------|------|------|--------|\n");
+            for (ModuleSummary m : modules) {
+                String type = m.getAssignment() != null ? m.getAssignment().name() : "UNKNOWN";
+                String modeLabel = switch (m.getMode()) {
+                    case 0 -> "AUTO";
+                    case 1 -> "MANUAL";
+                    case 2 -> "OFF";
+                    default -> String.valueOf(m.getMode());
+                };
+                String outputLabel = m.isDimmableOutput()
+                        ? m.getOutputPortState() + "%"
+                        : (m.getOutputPortState() == 1 ? "ON" : "OFF");
+                sb.append("| %d | %s | %s | %s | %s |\n"
+                        .formatted(m.getModuleId(), m.getName(), type, modeLabel, outputLabel));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            log.warn("Failed to build module context for system prompt: {}", e.getMessage());
+            return "(Unable to load module list: " + e.getMessage() + ")";
+        }
     }
 
     /**

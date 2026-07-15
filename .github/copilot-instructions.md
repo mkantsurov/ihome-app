@@ -145,6 +145,13 @@ User (JWT) → ChatController → ChatOrchestratorService → DeepSeek API (clou
                           SystemProcessor / StatisticProcessor
 ```
 
+### Dynamic System Prompt (Home Context)
+- `ChatOrchestratorService.buildSystemPrompt()` injects a live module list into the system prompt via `buildModuleContext()`
+- `buildModuleContext()` calls `systemProcessor.getModuleList(null, null)` and formats modules as a markdown table: ID, Name, Type (assignment), Mode (AUTO/MANUAL/OFF), Output (ON/OFF or dimmer %)
+- This gives the LLM real-time knowledge of the home layout — module names, IDs, types, and current states
+- The LLM can then refer to modules by name ("Garage Light") and use correct module IDs in tool calls
+- Falls back gracefully to "(No modules configured)" or "(Unable to load module list: ...)" on errors
+
 ### Tool Registration Pattern
 - Tools are registered in `McpToolRegistry.registerTools()` via `@PostConstruct`
 - Each tool has: `name`, `description`, `inputSchema` (JSON Schema), `requiredRoles` (Set<Role>), and an optional `resultTransformer` (Function<JsonNode, JsonNode>)
@@ -175,7 +182,7 @@ ihome.ai.deepseek:
 ```
 
 ### Key Classes
-- `ChatOrchestratorService` — main orchestrator; builds system prompt, sends to DeepSeek, handles tool_call loop (max 5 rounds), returns final text
+- `ChatOrchestratorService` — main orchestrator; builds system prompt with live module context, sends to DeepSeek, handles tool_call loop (max 5 rounds), returns final text
 - `McpToolExecutor` — switch-based dispatch mapping tool names to `SystemProcessor`/`StatisticProcessor` methods
 - `DeepSeekClient` — uses Spring `WebClient` (already available via webflux starter), no additional dependencies needed
 - `DeepSeekConfig` — Java record with `@ConfigurationProperties(prefix = "ihome.ai.deepseek")`
