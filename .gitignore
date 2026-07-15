@@ -2,3 +2,5 @@
 /gradle.properties
 /dependency-tree.txt
 /build/
+/.idea/
+/.gradle/

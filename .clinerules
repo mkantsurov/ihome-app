@@ -3,6 +3,20 @@
 Always read the following file for project context, tech stack, coding patterns, and editing guidelines:
 - `.github/copilot-instructions.md`
 
+## Interaction Rules
+
+### Ask Before Making Changes
+- **Before writing or modifying ANY file**, ask the user for confirmation using `ask_followup_question`.
+- Describe what you plan to change and why, then wait for approval before proceeding.
+- Exception: Reading files, searching code, and listing directories do NOT require confirmation.
+- Exception: When the user explicitly says "go ahead", "proceed", "implement it", or similar — you may proceed without asking.
+- When asking for confirmation, be concise: state the file(s) and the change in one sentence.
+
+### Token Efficiency
+- Be concise. Avoid verbose explanations unless the user asks for them.
+- Do not repeat information the user already knows.
+- When presenting a plan or summary, use bullet points, not paragraphs.
+
 ## Lessons Learned (do not repeat)
 
 ### Replacing deprecated APIs

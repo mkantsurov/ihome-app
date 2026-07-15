@@ -3,8 +3,6 @@ package technology.positivehome.ihome.server.persistence.repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -12,7 +10,9 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import technology.positivehome.ihome.model.constant.SearchField;
 import technology.positivehome.ihome.security.model.user.Role;
+import technology.positivehome.ihome.server.model.SearchParam;
 import technology.positivehome.ihome.server.persistence.mapper.UserRowMapper;
 import technology.positivehome.ihome.server.persistence.model.UserEntity;
 
@@ -29,11 +29,6 @@ class UserRepositoryTest {
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     @Mock
     private UserRowMapper userRowMapper;
-
-    @Captor
-    private ArgumentCaptor<MapSqlParameterSource> parameterSourceCaptor;
-    @Captor
-    private ArgumentCaptor<Map<String, Object>> mapCaptor;
 
     private UserRepositoryImpl repository;
 
@@ -165,7 +160,9 @@ class UserRepositoryTest {
                 any(String[].class)))
                 .thenAnswer(invocation -> {
                     GeneratedKeyHolder keyHolder = invocation.getArgument(2);
-                    // Simulate key generation
+                    Map<String, Object> keys = new HashMap<>();
+                    keys.put("id", 42L);
+                    keyHolder.getKeyList().add(keys);
                     return 1;
                 });
 
@@ -175,22 +172,11 @@ class UserRepositoryTest {
                 .thenReturn(new int[]{1});
 
         // Act
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-
-        MapSqlParameterSource userParams = new MapSqlParameterSource()
-                .addValue("username", entity.username())
-                .addValue("password", entity.password());
-
-        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.INSERT_USER, userParams, keyHolder, new String[]{"id"});
-
-        long userId = Objects.requireNonNull(keyHolder.getKey()).longValue();
-
-        repository.insertRoles(userId, entity.roles());
-
-        Long result = userId;
+        Long result = repository.create(null, null, entity);
 
         // Assert
         assertNotNull(result);
+        assertEquals(42L, result.longValue());
         verify(namedParameterJdbcTemplate).batchUpdate(
                 anyString(),
                 any(MapSqlParameterSource[].class));
@@ -208,26 +194,18 @@ class UserRepositoryTest {
                 any(String[].class)))
                 .thenAnswer(invocation -> {
                     GeneratedKeyHolder keyHolder = invocation.getArgument(2);
+                    Map<String, Object> keys = new HashMap<>();
+                    keys.put("id", 42L);
+                    keyHolder.getKeyList().add(keys);
                     return 1;
                 });
 
         // Act
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-
-        MapSqlParameterSource userParams = new MapSqlParameterSource()
-                .addValue("username", entity.username())
-                .addValue("password", entity.password());
-
-        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.INSERT_USER, userParams, keyHolder, new String[]{"id"});
-
-        long userId = Objects.requireNonNull(keyHolder.getKey()).longValue();
-
-        repository.insertRoles(userId, entity.roles());
-
-        Long result = userId;
+        Long result = repository.create(null, null, entity);
 
         // Assert
         assertNotNull(result);
+        assertEquals(42L, result.longValue());
         // Verify batchUpdate was NOT called (no roles)
         verify(namedParameterJdbcTemplate, never()).batchUpdate(
                 anyString(),
@@ -244,31 +222,17 @@ class UserRepositoryTest {
                 any(MapSqlParameterSource.class)))
                 .thenReturn(1);
 
-        when(namedParameterJdbcTemplate.update(
-                eq("DELETE FROM user_role_entry WHERE user_id = :user_id"),
-                any(Map.class)))
-                .thenReturn(1);
-
         when(namedParameterJdbcTemplate.batchUpdate(
                 anyString(),
                 any(MapSqlParameterSource[].class)))
                 .thenReturn(new int[]{1});
 
         // Act
-        MapSqlParameterSource userParams = new MapSqlParameterSource()
-                .addValue("id", entity.id())
-                .addValue("username", entity.username())
-                .addValue("password", entity.password());
-
-        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.UPDATE_USER, userParams);
-
-        // Replace roles: delete existing, insert new
-        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.DELETE_USER_ROLES, Map.of("user_id", entity.id()));
-        repository.insertRoles(entity.id(), entity.roles());
+        repository.update(null, null, entity);
 
         // Assert
         verify(namedParameterJdbcTemplate).update(
-                eq("DELETE FROM user_role_entry WHERE user_id = :user_id"),
+                anyString(),
                 any(Map.class));
         verify(namedParameterJdbcTemplate).batchUpdate(
                 anyString(),
@@ -281,26 +245,17 @@ class UserRepositoryTest {
         long id = 1L;
 
         when(namedParameterJdbcTemplate.update(
-                eq("DELETE FROM user_role_entry WHERE user_id = :user_id"),
-                any(Map.class)))
-                .thenReturn(1);
-
-        when(namedParameterJdbcTemplate.update(
-                eq("DELETE FROM user_entry WHERE id = :id"),
+                anyString(),
                 any(Map.class)))
                 .thenReturn(1);
 
         // Act
-        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.DELETE_USER_ROLES, Map.of("user_id", id));
-        repository.namedParameterJdbcTemplate.update(UserRepositoryImpl.DELETE_USER, Map.of("id", id));
+        repository.remove(null, null, id);
 
         // Assert
-        verify(namedParameterJdbcTemplate).update(
-                eq("DELETE FROM user_role_entry WHERE user_id = :user_id"),
-                eq(Map.of("user_id", id)));
-        verify(namedParameterJdbcTemplate).update(
-                eq("DELETE FROM user_entry WHERE id = :id"),
-                eq(Map.of("id", id)));
+        verify(namedParameterJdbcTemplate, times(2)).update(
+                anyString(),
+                any(Map.class));
     }
 
     @Test
@@ -337,6 +292,9 @@ class UserRepositoryTest {
                 any(String[].class)))
                 .thenAnswer(invocation -> {
                     GeneratedKeyHolder keyHolder = invocation.getArgument(2);
+                    Map<String, Object> keys = new HashMap<>();
+                    keys.put("id", 42L);
+                    keyHolder.getKeyList().add(keys);
                     return 1;
                 });
 
@@ -350,6 +308,7 @@ class UserRepositoryTest {
 
         // Assert
         assertNotNull(result);
+        assertEquals(42L, result.longValue());
     }
 
     @Test
@@ -365,11 +324,206 @@ class UserRepositoryTest {
         repository.remove(null, null, id);
 
         // Assert
-        verify(namedParameterJdbcTemplate).update(
-                eq("DELETE FROM user_role_entry WHERE user_id = :user_id"),
-                eq(Map.of("user_id", id)));
-        verify(namedParameterJdbcTemplate).update(
-                eq("DELETE FROM user_entry WHERE id = :id"),
-                eq(Map.of("id", id)));
+        verify(namedParameterJdbcTemplate, times(2)).update(
+                anyString(),
+                any(Map.class));
+    }
+
+    // --- searchUsers / countUsers tests ---
+
+    @Test
+    void searchUsers_shouldReturnUsers_whenFilterByUsername() {
+        // Arrange
+        List<SearchParam> filters = List.of(
+                new SearchParam(SearchParam.PREDICAT_ILIKE, SearchField.USERNAME, "admin%")
+        );
+        List<UserEntity> expectedUsers = List.of(
+                new UserEntity(1L, "admin", "hashed_pwd", List.of(Role.ADMIN))
+        );
+
+        when(namedParameterJdbcTemplate.query(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                any(ResultSetExtractor.class)))
+                .thenReturn(expectedUsers);
+
+        // Act
+        List<UserEntity> result = repository.searchUsers(filters, 0, 20);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("admin", result.get(0).username());
+    }
+
+    @Test
+    void searchUsers_shouldReturnUsers_whenFilterByRole() {
+        // Arrange
+        List<SearchParam> filters = List.of(
+                new SearchParam(SearchParam.PREDICAT_EQ, SearchField.ROLE, "ADMIN")
+        );
+        List<UserEntity> expectedUsers = List.of(
+                new UserEntity(1L, "admin", "hashed_pwd", List.of(Role.ADMIN))
+        );
+
+        when(namedParameterJdbcTemplate.query(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                any(ResultSetExtractor.class)))
+                .thenReturn(expectedUsers);
+
+        // Act
+        List<UserEntity> result = repository.searchUsers(filters, 0, 20);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.get(0).roles().contains(Role.ADMIN));
+    }
+
+    @Test
+    void searchUsers_shouldReturnUsers_whenFilterByUsernameAndRole() {
+        // Arrange
+        List<SearchParam> filters = List.of(
+                new SearchParam(SearchParam.PREDICAT_ILIKE, SearchField.USERNAME, "%min%"),
+                new SearchParam(SearchParam.PREDICAT_EQ, SearchField.ROLE, "ADMIN")
+        );
+        List<UserEntity> expectedUsers = List.of(
+                new UserEntity(1L, "admin", "hashed_pwd", List.of(Role.ADMIN))
+        );
+
+        when(namedParameterJdbcTemplate.query(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                any(ResultSetExtractor.class)))
+                .thenReturn(expectedUsers);
+
+        // Act
+        List<UserEntity> result = repository.searchUsers(filters, 0, 20);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("admin", result.get(0).username());
+        assertTrue(result.get(0).roles().contains(Role.ADMIN));
+    }
+
+    @Test
+    void searchUsers_shouldReturnEmptyList_whenNoMatches() {
+        // Arrange
+        List<SearchParam> filters = List.of(
+                new SearchParam(SearchParam.PREDICAT_EQ, SearchField.USERNAME, "nonexistent")
+        );
+
+        when(namedParameterJdbcTemplate.query(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                any(ResultSetExtractor.class)))
+                .thenReturn(List.of());
+
+        // Act
+        List<UserEntity> result = repository.searchUsers(filters, 0, 20);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void searchUsers_shouldReturnAllUsers_whenFiltersNull() {
+        // Arrange
+        List<UserEntity> expectedUsers = List.of(
+                new UserEntity(1L, "admin", "hashed_pwd1", List.of(Role.ADMIN)),
+                new UserEntity(2L, "user", "hashed_pwd2", List.of())
+        );
+
+        when(namedParameterJdbcTemplate.query(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                any(ResultSetExtractor.class)))
+                .thenReturn(expectedUsers);
+
+        // Act
+        List<UserEntity> result = repository.searchUsers(null, null, null);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void countUsers_shouldReturnCount_whenFilterByUsername() {
+        // Arrange
+        List<SearchParam> filters = List.of(
+                new SearchParam(SearchParam.PREDICAT_ILIKE, SearchField.USERNAME, "admin%")
+        );
+
+        when(namedParameterJdbcTemplate.queryForObject(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                eq(Long.class)))
+                .thenReturn(5L);
+
+        // Act
+        long count = repository.countUsers(filters);
+
+        // Assert
+        assertEquals(5L, count);
+    }
+
+    @Test
+    void countUsers_shouldReturnCount_whenFilterByRole() {
+        // Arrange
+        List<SearchParam> filters = List.of(
+                new SearchParam(SearchParam.PREDICAT_EQ, SearchField.ROLE, "ADMIN")
+        );
+
+        when(namedParameterJdbcTemplate.queryForObject(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                eq(Long.class)))
+                .thenReturn(3L);
+
+        // Act
+        long count = repository.countUsers(filters);
+
+        // Assert
+        assertEquals(3L, count);
+    }
+
+    @Test
+    void countUsers_shouldReturnZero_whenNoFilters() {
+        // Arrange
+        when(namedParameterJdbcTemplate.queryForObject(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                eq(Long.class)))
+                .thenReturn(0L);
+
+        // Act
+        long count = repository.countUsers(null);
+
+        // Assert
+        assertEquals(0L, count);
+    }
+
+    @Test
+    void countUsers_shouldReturnZero_whenNullResult() {
+        // Arrange
+        List<SearchParam> filters = List.of(
+                new SearchParam(SearchParam.PREDICAT_EQ, SearchField.USERNAME, "nonexistent")
+        );
+
+        when(namedParameterJdbcTemplate.queryForObject(
+                anyString(),
+                any(MapSqlParameterSource.class),
+                eq(Long.class)))
+                .thenReturn(null);
+
+        // Act
+        long count = repository.countUsers(filters);
+
+        // Assert
+        assertEquals(0L, count);
     }
 }

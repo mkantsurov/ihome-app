@@ -8,9 +8,11 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import technology.positivehome.ihome.security.model.user.Role;
 import technology.positivehome.ihome.server.model.EntityComparisonResult;
+import technology.positivehome.ihome.server.model.SearchParam;
 import technology.positivehome.ihome.server.model.SessionInfo;
 import technology.positivehome.ihome.server.persistence.mapper.UserRowMapper;
 import technology.positivehome.ihome.server.persistence.model.UserEntity;
+import technology.positivehome.ihome.server.persistence.repository.queryexec.UserSearchQueryExecutorImpl;
 
 import java.util.*;
 
@@ -38,6 +40,19 @@ public class UserRepositoryImpl implements UserRepository {
             FROM user_entry u
             LEFT JOIN user_role_entry ur ON ur.user_id = u.id
             ORDER BY u.id, ur.role
+            """;
+
+    private static final String SELECT_USER_BY_USERNAME_PATTERN = """
+            SELECT u.id, u.username, u.password, ur.role
+            FROM user_entry u
+            LEFT JOIN user_role_entry ur ON ur.user_id = u.id
+            WHERE u.username ILIKE :pattern
+            ORDER BY u.id, ur.role
+            OFFSET :offset LIMIT :limit
+            """;
+
+    private static final String COUNT_USER_BY_USERNAME_PATTERN = """
+            SELECT COUNT(*) FROM user_entry WHERE username ILIKE :pattern
             """;
 
     private static final String COUNT_BY_USERNAME = """
@@ -117,6 +132,42 @@ public class UserRepositoryImpl implements UserRepository {
         return namedParameterJdbcTemplate.query(
                 SELECT_ALL_USERS,
                 userWithRolesExtractor);
+    }
+
+    @Override
+    @Nonnull
+    public List<UserEntity> findByUsernamePattern(@Nonnull String usernamePattern, int page, int size) {
+        int offset = page * size;
+        return namedParameterJdbcTemplate.query(
+                SELECT_USER_BY_USERNAME_PATTERN,
+                Map.of("pattern", usernamePattern, "offset", offset, "limit", size),
+                userWithRolesExtractor);
+    }
+
+    @Override
+    public long countByUsernamePattern(@Nonnull String usernamePattern) {
+        Long count = namedParameterJdbcTemplate.queryForObject(
+                COUNT_USER_BY_USERNAME_PATTERN,
+                Map.of("pattern", usernamePattern),
+                Long.class);
+        return count != null ? count : 0L;
+    }
+
+    @Override
+    @Nonnull
+    public List<UserEntity> searchUsers(@Nullable List<SearchParam> filters, @Nullable Integer page, @Nullable Integer size) {
+        return UserSearchQueryExecutorImpl.getInstance(namedParameterJdbcTemplate, userRowMapper)
+                .filter(filters)
+                .order()
+                .page(page, size)
+                .executeQuery();
+    }
+
+    @Override
+    public long countUsers(@Nullable List<SearchParam> filters) {
+        return UserSearchQueryExecutorImpl.getInstance(namedParameterJdbcTemplate, userRowMapper)
+                .filter(filters)
+                .getCount();
     }
 
     @Override
