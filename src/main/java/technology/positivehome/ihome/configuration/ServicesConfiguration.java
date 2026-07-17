@@ -1,5 +1,6 @@
 package technology.positivehome.ihome.configuration;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -7,6 +8,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
+import technology.positivehome.ihome.ai.deepseek.DeepSeekConfig;
 
 import java.util.concurrent.Executor;
 
@@ -16,10 +18,12 @@ import java.util.concurrent.Executor;
 @Configuration
 @EnableAsync
 @Import({PersistenceConfiguration.class})
+@EnableConfigurationProperties(DeepSeekConfig.class)
 @ComponentScan(value = {
         "technology.positivehome.ihome.configuration",
         "technology.positivehome.ihome.security",
-        "technology.positivehome.ihome.server"
+        "technology.positivehome.ihome.server",
+        "technology.positivehome.ihome.ai"
 })
 public class ServicesConfiguration {
 

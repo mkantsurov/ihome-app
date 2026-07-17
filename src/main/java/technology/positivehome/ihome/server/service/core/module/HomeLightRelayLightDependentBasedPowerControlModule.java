@@ -2,12 +2,13 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
-import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
-import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
+import technology.positivehome.ihome.model.constant.ModuleOperationMode;
+import technology.positivehome.ihome.model.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigElementEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.HashSet;
@@ -30,7 +31,7 @@ public class HomeLightRelayLightDependentBasedPowerControlModule extends Abstrac
     public HomeLightRelayLightDependentBasedPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
         moduleJobs = new CronModuleJob[]{
-                new CronModuleJob(TimeUnit.MINUTES.toMillis(15)) {
+                new CronModuleJob(TimeUnit.MINUTES.toMillis(15), mgr.getEventPublisher()) {
                     @Override
                     protected void execute() throws Exception {
                         if (Objects.requireNonNull(getMode()) == ModuleOperationMode.AUTO) {
@@ -64,6 +65,7 @@ public class HomeLightRelayLightDependentBasedPowerControlModule extends Abstrac
                 }
             } catch (Exception ex) {
                 log.error("Unable to switch light", ex);
+                getMgr().getEventPublisher().publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_LIGHT_TOGGLE, "Unable to switch light: " + ex.getMessage()));
             }
         }
     }

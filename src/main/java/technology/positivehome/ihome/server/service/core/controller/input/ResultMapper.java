@@ -1,8 +1,8 @@
 package technology.positivehome.ihome.server.service.core.controller.input;
 
 import com.google.common.base.Strings;
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.runtime.sensor.*;
+import technology.positivehome.ihome.model.constant.BinaryPortStatus;
+import technology.positivehome.ihome.model.runtime.sensor.*;
 
 import java.util.HashMap;
 import java.util.Map;

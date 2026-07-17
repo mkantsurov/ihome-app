@@ -1,0 +1,62 @@
+# Agent Rules for ihome-app
+
+Always read the following file for project context, tech stack, coding patterns, and editing guidelines:
+- `.github/copilot-instructions.md`
+
+## Interaction Rules
+
+### Ask Before Making Changes
+- **Before writing or modifying ANY file**, ask the user for confirmation using `ask_followup_question`.
+- Describe what you plan to change and why, then wait for approval before proceeding.
+- Exception: Reading files, searching code, and listing directories do NOT require confirmation.
+- Exception: When the user explicitly says "go ahead", "proceed", "implement it", or similar — you may proceed without asking.
+- When asking for confirmation, be concise: state the file(s) and the change in one sentence.
+
+### Token Efficiency
+- Be concise. Avoid verbose explanations unless the user asks for them.
+- Do not repeat information the user already knows.
+- When presenting a plan or summary, use bullet points, not paragraphs.
+
+## Lessons Learned (do not repeat)
+
+### Replacing deprecated APIs
+When replacing deprecated Spring Security `AntPathRequestMatcher` with `PathPatternRequestMatcher`:
+- Use `PathPatternRequestMatcher.withDefaults().matcher(pattern)` — the builder method `withDefaults()` returns a default-configured instance, and `.matcher(pattern)` creates the matcher.
+- Do NOT use the constructor directly (`new PathPatternRequestMatcher(...)`).
+- Do NOT use `withMatchAllHttpMethods(...).build()` — that's not the correct API.
+- When editing a file, replace the **entire existing code** — don't leave old broken code in place.
+
+### Repository Implementation Patterns
+- Repositories live in `technology.positivehome.ihome.server.persistence.repository` package.
+- Use `GenericIHomeRepository<T, K>` for non-audited entities (e.g., controller config, error logs).
+- Use `AuditableIHomeRepository<T, K>` for entities requiring audit logging (e.g., users).
+- Both interfaces define: `getById()`, `create()`, `update()`, `remove()`.
+- Implementation uses `NamedParameterJdbcTemplate` with SQL constants.
+- Row mappers are in `technology.positivehome.ihome.server.persistence.mapper` package, annotated with `@Component`, implementing `RowMapper<T>`.
+- For entities with child collections (e.g., User with roles), use a `ResultSetExtractor` to join and assemble the object graph.
+- Use `GeneratedKeyHolder` with `new String[]{"id"}` for auto-generated key retrieval.
+- Use `MapSqlParameterSource` for named parameter binding.
+- Persistence model records are in `technology.positivehome.ihome.server.persistence.model` and use Java records (e.g., `record UserEntity(Long id, String username, String password, List<Role> roles)`).
+- Test repositories with Mockito `@ExtendWith(MockitoExtension.class)` — mock `NamedParameterJdbcTemplate` and row mappers.
+
+### Test Patterns
+- Unit tests for repositories go in `src/test/java/technology/positivehome/ihome/server/persistence/repository/`.
+- Tests use `@ExtendWith(MockitoExtension.class)` with `@Mock` for `NamedParameterJdbcTemplate` and row mappers.
+- The build includes repository tests via `includeTestsMatching("technology.positivehome.ihome.server.persistence.repository.*")`.
+- Integration tests use the existing PostgreSQL test database from `test-spring-conf.yaml` with `@Transactional` rollback — do NOT use Testcontainers.
+- Test configuration is passed via `-Dspring.config.additional-location=$testSpringConfLocation` (property from `gradle.properties`).
+
+### ControllerType Enum Values
+- `ControllerType` enum has values: `UNDEFINED`, `MEGAD`, `USR404` (NOT `DR404`).
+
+### Database Migration Files
+- Migrations are in `src/main/resources/db/migration/` with `V{number}__{description}.sql` naming.
+- Latest migration number is 37 (`V37__add_user_tables.sql`).
+- Migrations create tables with sequences, primary keys, foreign keys, indexes, and seed data.
+
+### User Domain Persistence Pattern
+- `UserEntity` (record) in `server.persistence.model` — fields: `id`, `username`, `password`, `roles`
+- `UserRowMapper` in `server.persistence.mapper` — nested `UserWithRolesExtractor` does LEFT JOIN with `user_role_entry`
+- `UserRepository` extends `AuditableIHomeRepository<UserEntity, Long>` — adds `findByUsername()`, `existsByUsername()`, `findAll()`
+- `UserRepositoryImpl` — uses `NamedParameterJdbcTemplate`, manages roles with batch insert/delete operations
+- Database tables: `user_entry` (id, username, password) and `user_role_entry` (id, user_id, role)

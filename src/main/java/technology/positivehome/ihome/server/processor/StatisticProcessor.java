@@ -6,9 +6,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import technology.positivehome.ihome.domain.runtime.*;
-import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntity;
-import technology.positivehome.ihome.domain.shared.*;
+import org.springframework.context.ApplicationEventPublisher;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
+import technology.positivehome.ihome.model.runtime.*;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
+import technology.positivehome.ihome.model.runtime.event.MeasurementLogEntity;
+import technology.positivehome.ihome.model.shared.*;
 import technology.positivehome.ihome.server.persistence.MeasurementsLogRepository;
 
 import java.time.LocalDateTime;
@@ -26,12 +29,14 @@ public class StatisticProcessor implements InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(SystemProcessor.class);
     private final SystemProcessor systemProcessor;
     private final MeasurementsLogRepository measurementsLogRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final Map<LocalDateTime, SystemSummaryInfo> statCache = new ConcurrentHashMap<>();
 
-    public StatisticProcessor(SystemProcessor systemProcessor, MeasurementsLogRepository measurementsLogRepository) {
+    public StatisticProcessor(SystemProcessor systemProcessor, MeasurementsLogRepository measurementsLogRepository, ApplicationEventPublisher eventPublisher) {
         this.systemProcessor = systemProcessor;
         this.measurementsLogRepository = measurementsLogRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -61,6 +66,7 @@ public class StatisticProcessor implements InitializingBean {
             measurementsLogRepository.writeLogEntry(MeasurementLogEntity.of(si));
         } catch (Exception ex) {
             log.error("Problem collecting system stat", ex);
+            eventPublisher.publishEvent(new IHomeErrorEvent(this, ErrorEventType.SYSTEM_STAT_COLLECTION, "Problem collecting system stat: " + ex.getMessage()));
         }
     }
 

@@ -2,12 +2,12 @@ package technology.positivehome.ihome.server.service.core.controller.input;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import technology.positivehome.ihome.domain.constant.MegadCommand;
-import technology.positivehome.ihome.domain.constant.MegadRequestParam;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.sensor.Tsl2591LuminositySensorData;
+import technology.positivehome.ihome.model.constant.MegadCommand;
+import technology.positivehome.ihome.model.constant.MegadRequestParam;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.sensor.Tsl2591LuminositySensorData;
 import technology.positivehome.ihome.server.service.core.controller.MegadPort;
 
 import java.io.IOException;

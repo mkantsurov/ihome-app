@@ -1,12 +1,10 @@
 package technology.positivehome.ihome.server.model.command;
 
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
 
 import java.io.IOException;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by maxim on 3/4/23.

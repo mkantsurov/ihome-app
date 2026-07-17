@@ -70,3 +70,9 @@ ihome:
     refreshTokenExpTime: 60 # Minutes
     tokenIssuer: https://positivehome.technology/
     tokenSigningKey: xm8EV6Hy5RMFK4EEACIDAwQus
+  ai:
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY:}
+      base-url: https://api.deepseek.com/v1
+      model: deepseek-chat
+      max-tokens: 4096

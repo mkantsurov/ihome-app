@@ -1,6 +1,6 @@
 package technology.positivehome.ihome.server.processor;
 
-import technology.positivehome.ihome.domain.shared.ChartPointInfo;
+import technology.positivehome.ihome.model.shared.ChartPointInfo;
 
 import java.util.ArrayList;
 import java.util.List;

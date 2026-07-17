@@ -1,6 +1,6 @@
 package technology.positivehome.ihome.server.model;
 
-import technology.positivehome.ihome.domain.constant.IHomePortType;
+import technology.positivehome.ihome.model.constant.IHomePortType;
 
 /**
  * Created by maxim on 3/11/23.

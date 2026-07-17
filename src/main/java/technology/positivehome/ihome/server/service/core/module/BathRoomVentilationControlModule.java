@@ -2,13 +2,13 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import technology.positivehome.ihome.domain.constant.ModuleProperty;
-import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModulePropertyValue;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
-import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
+import technology.positivehome.ihome.model.constant.ModuleProperty;
+import technology.positivehome.ihome.model.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigElementEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.ModulePropertyValue;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.runtime.sensor.Dht21TempHumiditySensorData;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 

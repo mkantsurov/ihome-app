@@ -1,7 +1,7 @@
 package technology.positivehome.ihome.server.service.core;
 
-import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
-import technology.positivehome.ihome.domain.runtime.controller.ControllerPortConfigEntry;
+import technology.positivehome.ihome.model.runtime.controller.ControllerConfigEntry;
+import technology.positivehome.ihome.model.runtime.controller.ControllerPortConfigEntry;
 import technology.positivehome.ihome.server.persistence.model.ControllerConfigEntity;
 import technology.positivehome.ihome.server.persistence.model.ControllerPortConfigEntity;
 

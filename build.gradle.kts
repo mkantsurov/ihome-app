@@ -71,6 +71,7 @@ dependencies {
     implementation("commons-io:commons-io:2.14.0")
     implementation("net.logstash.logback:logstash-logback-encoder:6.4")
     implementation("com.fasterxml.uuid:java-uuid-generator:4.3.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     testImplementation("org.mockito:mockito-core:5.12.0")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc:3.0.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.3.1")
@@ -105,7 +106,10 @@ tasks.getByName<BootJar>("bootJar") {
 
 tasks.getByName<BootRun>("bootRun") {
     mainClass.set("technology.positivehome.ihome.ServerApplication")
-    environment(mapOf("SPRING_CONFIG_ADDITIONALLOCATION" to testSpringConfLocation))
+    environment(mapOf(
+        "SPRING_CONFIG_ADDITIONALLOCATION" to testSpringConfLocation,
+        "DEEPSEEK_API_KEY" to (project.properties.getOrDefault("deepseekApiKey", "") as String)
+    ))
     jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=40990")
 }
 
@@ -133,26 +137,11 @@ springBoot {
     buildInfo()
 }
 
-sourceSets {
-    create("integrationTest") {
-        java.srcDir(file("src/integrationTest/java"))
-        resources.srcDir(file("src/integrationTest/resources"))
-        compileClasspath += sourceSets["main"].output + configurations["testRuntimeClasspath"]
-        runtimeClasspath += output + compileClasspath
-    }
-}
-
-tasks.register<Test>("integrationTest") {
-    description = "Runs the integration tests."
-    group = "verification"
-    testClassesDirs = sourceSets["integrationTest"].output.classesDirs
-    classpath = sourceSets["integrationTest"].runtimeClasspath
-}
-
 tasks {
     "test"(Test::class) {
         filter {
             includeTestsMatching("technology.positivehome.ihome.server.processor.*")
+            includeTestsMatching("technology.positivehome.ihome.server.persistence.repository.*")
         }
     }
 }

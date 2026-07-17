@@ -2,11 +2,13 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import technology.positivehome.ihome.domain.constant.PreferredPowerSupplyMode;
-import technology.positivehome.ihome.domain.runtime.event.BinaryInputInitiatedHwEvent;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntry;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
+import technology.positivehome.ihome.model.constant.PreferredPowerSupplyMode;
+import technology.positivehome.ihome.model.runtime.event.BinaryInputInitiatedHwEvent;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigElementEntry;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import java.util.HashSet;
@@ -37,7 +39,7 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
     public GarageLightPowerControlModule(SystemManager mgr, ModuleConfigEntry configEntry) {
         super(mgr, configEntry);
         moduleJobs = new CronModuleJob[]{
-                new CronModuleJob(TimeUnit.MINUTES.toMillis(1)) {
+                new CronModuleJob(TimeUnit.MINUTES.toMillis(1), mgr.getEventPublisher()) {
                     @Override
                     protected void execute() throws Exception {
                         switch (getMode()) {
@@ -73,6 +75,7 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
                     }
                 } catch (Exception ex) {
                     log.error("Unable to switch light", ex);
+                    getMgr().getEventPublisher().publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_LIGHT_TOGGLE, "Unable to switch light: " + ex.getMessage()));
                 }
             } else if (GARAGE_DORS_SENSOR == event.getPortId()) { // garage door sensor
                 enableLightByDorsEvent(event);
@@ -96,6 +99,7 @@ public class GarageLightPowerControlModule extends AbstractRelayBasedIHomeModule
                     timeWhenLiteEnabled.set(System.currentTimeMillis());
                 } catch (Exception ex) {
                     log.error("Unable to switch light by event initiated by port# " + event.getPortId(), ex);
+                    getMgr().getEventPublisher().publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_LIGHT_ENABLE, "Unable to switch light by event initiated by port# " + event.getPortId() + ": " + ex.getMessage()));
                 }
                 break;
         }

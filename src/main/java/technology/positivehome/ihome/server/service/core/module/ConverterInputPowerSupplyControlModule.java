@@ -2,8 +2,10 @@ package technology.positivehome.ihome.server.service.core.module;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 
 import jakarta.annotation.PreDestroy;
@@ -37,6 +39,7 @@ public class ConverterInputPowerSupplyControlModule extends AbstractRelayBasedIH
                                             setOutputStatus(OutputPortStatus.enabled());
                                         } catch (Exception ex) {
                                             log.error("Error enabling converter input source");
+                                            mgr.getEventPublisher().publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_POWER_SUPPLY_CONTROL, "Error enabling converter input source: " + ex.getMessage()));
                                         }
                                     };
                                     executor.schedule(task, 5, TimeUnit.SECONDS);

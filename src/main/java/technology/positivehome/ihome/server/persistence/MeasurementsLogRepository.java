@@ -1,6 +1,6 @@
 package technology.positivehome.ihome.server.persistence;
 
-import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntity;
+import technology.positivehome.ihome.model.runtime.event.MeasurementLogEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;

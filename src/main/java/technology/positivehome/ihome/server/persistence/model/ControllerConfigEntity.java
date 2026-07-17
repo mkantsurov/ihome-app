@@ -1,6 +1,6 @@
 package technology.positivehome.ihome.server.persistence.model;
 
-import technology.positivehome.ihome.domain.constant.ControllerType;
+import technology.positivehome.ihome.model.constant.ControllerType;
 
 /**
  * Created by maxim on 2/25/23.

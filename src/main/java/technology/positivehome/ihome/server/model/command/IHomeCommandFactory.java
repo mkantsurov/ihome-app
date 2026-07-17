@@ -1,7 +1,7 @@
 package technology.positivehome.ihome.server.model.command;
 
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.constant.DimmerPortStatus;
+import technology.positivehome.ihome.model.constant.BinaryPortStatus;
+import technology.positivehome.ihome.model.constant.DimmerPortStatus;
 
 public class IHomeCommandFactory {
     public static CmdGetADCSensorReading cmdGetADCSensorReading(long port) {

@@ -14,7 +14,7 @@ import java.io.Serializable;
  * created for entities which we need to audit.
  * Note: there is {@link GenericIHomeRepository} which is used to work with generic db data (which not require audit)
  */
-public interface AuditableIHomeRepository<T extends Serializable, K extends Serializable> {
+public interface AuditableIHomeRepository<T, K extends Serializable> {
 
     /**
      * Gets entity by ID.

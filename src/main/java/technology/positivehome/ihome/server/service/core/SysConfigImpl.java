@@ -6,7 +6,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import technology.positivehome.ihome.domain.constant.ControllerMode;
+import technology.positivehome.ihome.model.constant.ControllerMode;
 import technology.positivehome.ihome.server.persistence.LogRepository;
 
 import java.util.Optional;

@@ -8,7 +8,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import technology.positivehome.ihome.domain.constant.ErrorMessageLogSortRule;
+import technology.positivehome.ihome.model.constant.ErrorMessageLogSortRule;
 import technology.positivehome.ihome.server.model.SearchParam;
 import technology.positivehome.ihome.server.persistence.mapper.ErrorMessageLogRowMapper;
 import technology.positivehome.ihome.server.persistence.model.ErrorMessageLogEntity;
@@ -52,7 +52,10 @@ public class ErrorMessageLogRepositoryImpl implements ErrorMessageLogRepository 
     public UUID create(@Nonnull ErrorMessageLogEntity entity) {
         UUID newId = (Generators.timeBasedGenerator(ethernetAddress)).generate();
         MapSqlParameterSource namedParameters = new MapSqlParameterSource()
-                .addValue("id", newId);
+                .addValue("id", newId)
+                .addValue("created", entity.created())
+                .addValue("type", entity.type().ordinal())
+                .addValue("message", entity.message());
         namedParameterJdbcTemplate.update(ADD_ENTITY, namedParameters);
         return newId;
     }

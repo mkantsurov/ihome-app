@@ -2,7 +2,7 @@ package technology.positivehome.ihome.server.persistence;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import technology.positivehome.ihome.domain.runtime.event.AuditLogEntry;
+import technology.positivehome.ihome.model.runtime.event.AuditLogEntry;
 
 /**
  * Created by maxim on 6/25/19.

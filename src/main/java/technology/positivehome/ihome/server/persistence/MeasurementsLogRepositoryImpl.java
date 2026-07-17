@@ -3,7 +3,7 @@ package technology.positivehome.ihome.server.persistence;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import technology.positivehome.ihome.domain.runtime.event.MeasurementLogEntity;
+import technology.positivehome.ihome.model.runtime.event.MeasurementLogEntity;
 import technology.positivehome.ihome.server.persistence.mapper.MeasurementLogEntryRowMapper;
 
 import java.time.LocalDateTime;

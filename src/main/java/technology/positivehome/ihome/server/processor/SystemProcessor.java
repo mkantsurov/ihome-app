@@ -1,20 +1,24 @@
+
 package technology.positivehome.ihome.server.processor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.constant.ModuleOperationMode;
-import technology.positivehome.ihome.domain.constant.ModuleStartupMode;
-import technology.positivehome.ihome.domain.runtime.ExternalPowerSummaryInfo;
-import technology.positivehome.ihome.domain.runtime.HeatingSummaryInfo;
-import technology.positivehome.ihome.domain.runtime.PowerSummaryInfo;
-import technology.positivehome.ihome.domain.runtime.SystemSummaryInfo;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.module.*;
-import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
+import org.springframework.context.ApplicationEventPublisher;
+import technology.positivehome.ihome.model.constant.BinaryPortStatus;
+import technology.positivehome.ihome.model.constant.ErrorEventType;
+import technology.positivehome.ihome.model.constant.ModuleOperationMode;
+import technology.positivehome.ihome.model.constant.ModuleStartupMode;
+import technology.positivehome.ihome.model.runtime.ExternalPowerSummaryInfo;
+import technology.positivehome.ihome.model.runtime.HeatingSummaryInfo;
+import technology.positivehome.ihome.model.runtime.event.IHomeErrorEvent;
+import technology.positivehome.ihome.model.runtime.PowerSummaryInfo;
+import technology.positivehome.ihome.model.runtime.SystemSummaryInfo;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedResponseException;
+import technology.positivehome.ihome.model.runtime.exception.MegadApiMallformedUrlException;
+import technology.positivehome.ihome.model.runtime.exception.PortNotSupporttedFunctionException;
+import technology.positivehome.ihome.model.runtime.module.*;
+import technology.positivehome.ihome.model.runtime.sensor.Dds238PowerMeterData;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 import technology.positivehome.ihome.server.service.core.module.IHomeModuleSummary;
@@ -46,12 +50,14 @@ public class SystemProcessor {
     public static final long CONVERTER_POWER_SUPPLY_PORT = 57L;
 
     private final SystemManager systemManager;
+    private final ApplicationEventPublisher eventPublisher;
     private final AtomicLong startTime = new AtomicLong(System.currentTimeMillis());
 
     private static final Logger log = LoggerFactory.getLogger(SystemProcessor.class);
 
-    public SystemProcessor(SystemManager systemManager) {
+    public SystemProcessor(SystemManager systemManager, ApplicationEventPublisher eventPublisher) {
         this.systemManager = systemManager;
+        this.eventPublisher = eventPublisher;
     }
 
     public ExternalPowerSummaryInfo getExtPowerSummaryInfo() throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
@@ -143,6 +149,7 @@ public class SystemProcessor {
                     result.add(from(iHomeModule));
                 } catch (Exception ex) {
                     log.error("Unable to request module state", ex);
+                    eventPublisher.publishEvent(new IHomeErrorEvent(this, ErrorEventType.MODULE_STATE_REQUEST, "Unable to request module state for group " + group + ": " + ex.getMessage()));
                 }
             }
         });

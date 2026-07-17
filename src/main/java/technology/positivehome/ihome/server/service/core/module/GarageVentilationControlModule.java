@@ -1,8 +1,8 @@
 package technology.positivehome.ihome.server.service.core.module;
 
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigEntry;
-import technology.positivehome.ihome.domain.runtime.module.OutputPortStatus;
-import technology.positivehome.ihome.domain.runtime.sensor.Dht21TempHumiditySensorData;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.model.runtime.module.OutputPortStatus;
+import technology.positivehome.ihome.model.runtime.sensor.Dht21TempHumiditySensorData;
 import technology.positivehome.ihome.server.model.command.IHomeCommandFactory;
 import technology.positivehome.ihome.server.service.core.SystemManager;
 

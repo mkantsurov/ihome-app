@@ -1,20 +1,13 @@
 package technology.positivehome.ihome.server.service.core.controller;
 
 import org.springframework.context.ApplicationEventPublisher;
-import technology.positivehome.ihome.domain.constant.BinaryPortStatus;
-import technology.positivehome.ihome.domain.runtime.controller.ControllerConfigEntry;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedResponseException;
-import technology.positivehome.ihome.domain.runtime.exception.MegadApiMallformedUrlException;
-import technology.positivehome.ihome.domain.runtime.exception.PortNotSupporttedFunctionException;
-import technology.positivehome.ihome.domain.runtime.sensor.*;
+import technology.positivehome.ihome.model.runtime.controller.ControllerConfigEntry;
 import technology.positivehome.ihome.server.service.core.controller.input.*;
 import technology.positivehome.ihome.server.service.core.controller.output.DimmerOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.EmulatedDimmerOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.EmulatedRelayOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.RelayOutput;
 import technology.positivehome.mgr.processor.megad.controller.input.BinarySensor;
-
-import java.io.IOException;
 
 /**
  * Created by maxim on 7/2/19.

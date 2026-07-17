@@ -35,6 +35,7 @@ public class ServerApplication {
     public ObjectMapper mapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
         return mapper;
     }
 

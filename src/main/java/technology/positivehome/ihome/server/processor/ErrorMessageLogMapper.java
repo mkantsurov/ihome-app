@@ -1,7 +1,7 @@
 package technology.positivehome.ihome.server.processor;
 
 
-import technology.positivehome.ihome.domain.runtime.module.ErrorMessageLogEntryInfo;
+import technology.positivehome.ihome.model.runtime.module.ErrorMessageLogEntryInfo;
 import technology.positivehome.ihome.server.persistence.model.ErrorMessageLogEntity;
 
 import java.time.ZoneId;

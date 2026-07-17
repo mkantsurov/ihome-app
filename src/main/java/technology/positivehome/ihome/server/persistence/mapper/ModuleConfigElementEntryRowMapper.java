@@ -2,9 +2,9 @@ package technology.positivehome.ihome.server.persistence.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import technology.positivehome.ihome.domain.constant.ModuleDisplayMode;
-import technology.positivehome.ihome.domain.constant.UiControlType;
-import technology.positivehome.ihome.domain.runtime.module.ModuleConfigElementEntity;
+import technology.positivehome.ihome.model.constant.ModuleDisplayMode;
+import technology.positivehome.ihome.model.constant.UiControlType;
+import technology.positivehome.ihome.model.runtime.module.ModuleConfigElementEntity;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

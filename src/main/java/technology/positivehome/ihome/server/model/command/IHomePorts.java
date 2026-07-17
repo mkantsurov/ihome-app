@@ -1,6 +1,5 @@
 package technology.positivehome.ihome.server.model.command;
 
-import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
 import technology.positivehome.ihome.server.service.core.controller.input.*;
 import technology.positivehome.ihome.server.service.core.controller.output.DimmerOutput;
 import technology.positivehome.ihome.server.service.core.controller.output.RelayOutput;

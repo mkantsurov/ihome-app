@@ -1,6 +1,6 @@
 package technology.positivehome.ihome.security.auth.jwt;
 
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
@@ -14,10 +14,12 @@ public class SkipPathRequestMatcher implements RequestMatcher {
     private RequestMatcher processingMatcher;
 
     public SkipPathRequestMatcher(List<String> pathsToSkip, String processingPath) {
-        Assert.notNull(pathsToSkip, "pathsToSkip are null");
-        List<RequestMatcher> m = pathsToSkip.stream().map(path -> new AntPathRequestMatcher(path)).collect(Collectors.toList());
+        Assert.notNull(pathsToSkip, "pathsToSkip param is not defined");
+        List<RequestMatcher> m = pathsToSkip.stream()
+                .map(pattern -> PathPatternRequestMatcher.withDefaults().matcher(pattern))
+                .collect(Collectors.toList());
         matchers = new OrRequestMatcher(m);
-        processingMatcher = new AntPathRequestMatcher(processingPath);
+        processingMatcher = PathPatternRequestMatcher.withDefaults().matcher(processingPath);
     }
 
     @Override
@@ -25,6 +27,6 @@ public class SkipPathRequestMatcher implements RequestMatcher {
         if (matchers.matches(request)) {
             return false;
         }
-        return processingMatcher.matches(request) ? true : false;
+        return processingMatcher.matches(request);
     }
 }

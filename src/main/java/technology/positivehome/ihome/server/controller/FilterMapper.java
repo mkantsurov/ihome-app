@@ -1,6 +1,6 @@
 package technology.positivehome.ihome.server.controller;
 
-import technology.positivehome.ihome.domain.constant.SearchField;
+import technology.positivehome.ihome.model.constant.SearchField;
 import technology.positivehome.ihome.server.model.SearchParam;
 
 import java.util.*;

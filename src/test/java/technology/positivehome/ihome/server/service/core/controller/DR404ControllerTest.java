@@ -2,7 +2,7 @@ package technology.positivehome.ihome.server.service.core.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import technology.positivehome.ihome.domain.runtime.sensor.Dds238PowerMeterData;
+import technology.positivehome.ihome.model.runtime.sensor.Dds238PowerMeterData;
 import technology.positivehome.ihome.server.service.core.controller.input.Dds238Command;
 import technology.positivehome.ihome.server.service.core.controller.input.LiveDds238PowerMeterImpl;
 
@@ -10,8 +10,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 public class DR404ControllerTest {
     private static final Log log = LogFactory.getLog(DR404ControllerTest.class);
