@@ -105,6 +105,7 @@ tasks.getByName<BootJar>("bootJar") {
 }
 
 tasks.getByName<BootRun>("bootRun") {
+    dependsOn(tasks.named("test"))
     mainClass.set("technology.positivehome.ihome.ServerApplication")
     environment(mapOf(
         "SPRING_CONFIG_ADDITIONALLOCATION" to testSpringConfLocation,
