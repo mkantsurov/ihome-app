@@ -10,8 +10,8 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class DR404ResultParserTest {
-    private static final Log log = LogFactory.getLog(DR404ResultParserTest.class);
+public class DR404ResultParserManualTester {
+    private static final Log log = LogFactory.getLog(DR404ResultParserManualTester.class);
     public static void main(String[] argv) {
         //[1, 3, 2, 8, 63, -1, -108, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         byte[] data = {0x8, (byte)0x98};
