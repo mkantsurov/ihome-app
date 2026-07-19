@@ -3,27 +3,48 @@ package technology.positivehome.ihome.ai.mcp;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import technology.positivehome.ihome.security.model.user.Role;
+import technology.positivehome.ihome.security.service.PermissionService;
+import technology.positivehome.ihome.server.persistence.ModuleConfigRepository;
 
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for {@link McpToolRegistry}.
  */
+@ExtendWith(MockitoExtension.class)
 class McpToolRegistryTest {
+
+    @Mock
+    private ModuleConfigRepository moduleConfigRepository;
 
     private McpToolRegistry registry;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        registry = new McpToolRegistry(objectMapper);
-        // Manually invoke PostConstruct since we're not in Spring context
+        PermissionService permissionService = new PermissionService(moduleConfigRepository);
+        registry = new McpToolRegistry(objectMapper, permissionService);
         registry.registerTools();
+    }
+
+    private static Authentication auth(Role... roles) {
+        List<GrantedAuthority> authorities = Arrays.stream(roles)
+                .map(r -> new SimpleGrantedAuthority(r.authority()))
+                .collect(Collectors.toList());
+        return new UsernamePasswordAuthenticationToken("user", null, authorities);
     }
 
     @Test
@@ -92,8 +113,8 @@ class McpToolRegistryTest {
     @Test
     void adminUserShouldSeeAllTools() {
         List<GrantedAuthority> adminAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_ADMIN"),
-                new SimpleGrantedAuthority("ROLE_UNDEFINED")
+                new SimpleGrantedAuthority(Role.ADMIN.authority()),
+                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
         );
 
         List<McpToolDefinition> tools = registry.getToolsForRoles(adminAuthorities);
@@ -104,7 +125,7 @@ class McpToolRegistryTest {
     @Test
     void supervisorUserShouldSeeAllTools() {
         List<GrantedAuthority> supervisorAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_SUPERVISOR")
+                new SimpleGrantedAuthority(Role.SUPERVISOR.authority())
         );
 
         List<McpToolDefinition> tools = registry.getToolsForRoles(supervisorAuthorities);
@@ -115,7 +136,7 @@ class McpToolRegistryTest {
     @Test
     void nonAdminUserShouldSeeOnlyReadOnlyTools() {
         List<GrantedAuthority> userAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_UNDEFINED")
+                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
         );
 
         List<McpToolDefinition> tools = registry.getToolsForRoles(userAuthorities);
@@ -128,7 +149,7 @@ class McpToolRegistryTest {
     @Test
     void authorizedGuestShouldSeeOnlyPublicReadTools() {
         List<GrantedAuthority> guestAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_AUTHORIZED_GUEST")
+                new SimpleGrantedAuthority(Role.AUTHORIZED_GUEST.authority())
         );
 
         List<McpToolDefinition> tools = registry.getToolsForRoles(guestAuthorities);
@@ -156,111 +177,86 @@ class McpToolRegistryTest {
 
     @Test
     void adminCanExecuteAllTools() {
-        List<GrantedAuthority> adminAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_ADMIN")
-        );
-
         // Can execute write tools
-        assertTrue(registry.canExecute("updateModuleMode", adminAuthorities));
-        assertTrue(registry.canExecute("updateModuleOutputState", adminAuthorities));
+        assertTrue(registry.canExecute("updateModuleMode", auth(Role.ADMIN)));
+        assertTrue(registry.canExecute("updateModuleOutputState", auth(Role.ADMIN)));
 
         // Can execute restricted-read tools (everything not public-read or write)
-        assertTrue(registry.canExecute("getSystemSummary", adminAuthorities));
-        assertTrue(registry.canExecute("getHeatingSummary", adminAuthorities));
+        assertTrue(registry.canExecute("getSystemSummary", auth(Role.ADMIN)));
+        assertTrue(registry.canExecute("getHeatingSummary", auth(Role.ADMIN)));
 
         // Can execute public-read tools
-        assertTrue(registry.canExecute("getTempStat", adminAuthorities));
-        assertTrue(registry.canExecute("getPressureStat", adminAuthorities));
-        assertTrue(registry.canExecute("getPowerSummary", adminAuthorities));
-        assertTrue(registry.canExecute("getPowerVoltageStat", adminAuthorities));
+        assertTrue(registry.canExecute("getTempStat", auth(Role.ADMIN)));
+        assertTrue(registry.canExecute("getPressureStat", auth(Role.ADMIN)));
+        assertTrue(registry.canExecute("getPowerSummary", auth(Role.ADMIN)));
+        assertTrue(registry.canExecute("getPowerVoltageStat", auth(Role.ADMIN)));
 
         // Can execute module tools
-        assertTrue(registry.canExecute("getModuleList", adminAuthorities));
-        assertTrue(registry.canExecute("getModuleData", adminAuthorities));
+        assertTrue(registry.canExecute("getModuleList", auth(Role.ADMIN)));
+        assertTrue(registry.canExecute("getModuleData", auth(Role.ADMIN)));
     }
 
     @Test
     void nonAdminCannotExecuteWriteTools() {
-        List<GrantedAuthority> userAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_UNDEFINED")
-        );
-
-        assertFalse(registry.canExecute("updateModuleMode", userAuthorities));
-        assertFalse(registry.canExecute("updateModuleOutputState", userAuthorities));
-        assertTrue(registry.canExecute("getSystemSummary", userAuthorities));
+        assertFalse(registry.canExecute("updateModuleMode", auth(Role.UNDEFINED)));
+        assertFalse(registry.canExecute("updateModuleOutputState", auth(Role.UNDEFINED)));
+        assertTrue(registry.canExecute("getSystemSummary", auth(Role.UNDEFINED)));
     }
 
     @Test
     void authorizedGuestCannotExecuteRestrictedOrWriteTools() {
-        List<GrantedAuthority> guestAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_AUTHORIZED_GUEST")
-        );
-
         // Write tools — denied
-        assertFalse(registry.canExecute("updateModuleMode", guestAuthorities));
-        assertFalse(registry.canExecute("updateModuleOutputState", guestAuthorities));
+        assertFalse(registry.canExecute("updateModuleMode", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("updateModuleOutputState", auth(Role.AUTHORIZED_GUEST)));
 
         // Restricted-read tools — denied
-        assertFalse(registry.canExecute("getSystemSummary", guestAuthorities));
-        assertFalse(registry.canExecute("getHeatingSummary", guestAuthorities));
-        assertFalse(registry.canExecute("getLuminosityStat", guestAuthorities));
-        assertFalse(registry.canExecute("getSystemStat", guestAuthorities));
-        assertFalse(registry.canExecute("getModuleList", guestAuthorities));
-        assertFalse(registry.canExecute("getModuleData", guestAuthorities));
-        assertFalse(registry.canExecute("getModuleListByGroup", guestAuthorities));
-        assertFalse(registry.canExecute("getBoilerTempStat", guestAuthorities));
+        assertFalse(registry.canExecute("getSystemSummary", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("getHeatingSummary", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("getLuminosityStat", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("getSystemStat", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("getModuleList", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("getModuleData", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("getModuleListByGroup", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("getBoilerTempStat", auth(Role.AUTHORIZED_GUEST)));
 
         // Public-read tools (outdoor temp/humidity, pressure, external power supply) — allowed
-        assertTrue(registry.canExecute("getTempStat", guestAuthorities));
-        assertTrue(registry.canExecute("getPressureStat", guestAuthorities));
-        assertTrue(registry.canExecute("getPowerSummary", guestAuthorities));
-        assertTrue(registry.canExecute("getPowerConsumptionStat", guestAuthorities));
-        assertTrue(registry.canExecute("getPowerVoltageStat", guestAuthorities));
+        assertTrue(registry.canExecute("getTempStat", auth(Role.AUTHORIZED_GUEST)));
+        assertTrue(registry.canExecute("getPressureStat", auth(Role.AUTHORIZED_GUEST)));
+        assertTrue(registry.canExecute("getPowerSummary", auth(Role.AUTHORIZED_GUEST)));
+        assertTrue(registry.canExecute("getPowerConsumptionStat", auth(Role.AUTHORIZED_GUEST)));
+        assertTrue(registry.canExecute("getPowerVoltageStat", auth(Role.AUTHORIZED_GUEST)));
     }
 
     @Test
     void authorizedGuestWithUndefinedShouldStillBeRestricted() {
         // Mixed guest+undefined should still be treated as guest-only
-        List<GrantedAuthority> mixedAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_AUTHORIZED_GUEST"),
-                new SimpleGrantedAuthority("ROLE_UNDEFINED")
-        );
-
-        assertFalse(registry.canExecute("getModuleList", mixedAuthorities));
-        assertFalse(registry.canExecute("updateModuleMode", mixedAuthorities));
-        assertTrue(registry.canExecute("getPressureStat", mixedAuthorities));
-        assertFalse(registry.canExecute("getSystemSummary", mixedAuthorities));
+        assertFalse(registry.canExecute("getModuleList", auth(Role.AUTHORIZED_GUEST, Role.UNDEFINED)));
+        assertFalse(registry.canExecute("updateModuleMode", auth(Role.AUTHORIZED_GUEST, Role.UNDEFINED)));
+        assertTrue(registry.canExecute("getPressureStat", auth(Role.AUTHORIZED_GUEST, Role.UNDEFINED)));
+        assertFalse(registry.canExecute("getSystemSummary", auth(Role.AUTHORIZED_GUEST, Role.UNDEFINED)));
     }
 
     @Test
     void supervisorCanExecuteRestrictedAndWriteTools() {
-        List<GrantedAuthority> supervisorAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_SUPERVISOR")
-        );
-
-        // Write tools — allowed
-        assertTrue(registry.canExecute("updateModuleMode", supervisorAuthorities));
-        assertTrue(registry.canExecute("updateModuleOutputState", supervisorAuthorities));
+        // Write tools — allowed (module-assignment enforcement happens at Layer 3)
+        assertTrue(registry.canExecute("updateModuleMode", auth(Role.SUPERVISOR)));
+        assertTrue(registry.canExecute("updateModuleOutputState", auth(Role.SUPERVISOR)));
 
         // Restricted-read tools — allowed
-        assertTrue(registry.canExecute("getSystemSummary", supervisorAuthorities));
-        assertTrue(registry.canExecute("getModuleList", supervisorAuthorities));
-        assertTrue(registry.canExecute("getModuleData", supervisorAuthorities));
-        assertTrue(registry.canExecute("getBoilerTempStat", supervisorAuthorities));
+        assertTrue(registry.canExecute("getSystemSummary", auth(Role.SUPERVISOR)));
+        assertTrue(registry.canExecute("getModuleList", auth(Role.SUPERVISOR)));
+        assertTrue(registry.canExecute("getModuleData", auth(Role.SUPERVISOR)));
+        assertTrue(registry.canExecute("getBoilerTempStat", auth(Role.SUPERVISOR)));
 
         // Public-read tools — allowed
-        assertTrue(registry.canExecute("getTempStat", supervisorAuthorities));
-        assertTrue(registry.canExecute("getPressureStat", supervisorAuthorities));
-        assertTrue(registry.canExecute("getPowerSummary", supervisorAuthorities));
+        assertTrue(registry.canExecute("getTempStat", auth(Role.SUPERVISOR)));
+        assertTrue(registry.canExecute("getPressureStat", auth(Role.SUPERVISOR)));
+        assertTrue(registry.canExecute("getPowerSummary", auth(Role.SUPERVISOR)));
     }
 
     @Test
     void unknownToolShouldNotBeExecutable() {
-        List<GrantedAuthority> adminAuthorities = List.of(
-                new SimpleGrantedAuthority("ROLE_ADMIN")
-        );
-
-        assertFalse(registry.canExecute("nonexistentTool", adminAuthorities));
+        assertFalse(registry.canExecute("nonexistentTool", auth(Role.ADMIN)));
     }
 
     @Test

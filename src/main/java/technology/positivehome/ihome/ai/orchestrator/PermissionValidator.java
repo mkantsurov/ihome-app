@@ -3,11 +3,8 @@ package technology.positivehome.ihome.ai.orchestrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.ai.mcp.McpToolRegistry;
-
-import java.util.Collection;
 
 /**
  * Validates that the authenticated user has permission to execute a given MCP tool.
@@ -37,12 +34,11 @@ public class PermissionValidator {
             return false;
         }
 
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        boolean allowed = toolRegistry.canExecute(toolName, authorities);
+        boolean allowed = toolRegistry.canExecute(toolName, authentication);
 
         if (!allowed) {
             log.warn("Permission denied for tool '{}': user '{}' lacks required role (has: {})",
-                    toolName, authentication.getName(), authorities);
+                    toolName, authentication.getName(), authentication.getAuthorities());
         }
 
         return allowed;

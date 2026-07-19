@@ -7,8 +7,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.security.model.user.Role;
+import technology.positivehome.ihome.security.service.PermissionService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -38,13 +40,15 @@ public class McpToolRegistry {
 
     private final Map<String, McpToolDefinition> tools = new LinkedHashMap<>();
     private final ObjectMapper objectMapper;
+    private final PermissionService permissionService;
 
-    public McpToolRegistry(ObjectMapper objectMapper) {
+    public McpToolRegistry(ObjectMapper objectMapper, PermissionService permissionService) {
         this.objectMapper = objectMapper;
+        this.permissionService = permissionService;
     }
 
     @PostConstruct
-    void registerTools() {
+    public void registerTools() {
         registerPublicReadTools();
         registerRestrictedReadTools();
         registerWriteTools();
@@ -326,16 +330,16 @@ public class McpToolRegistry {
      */
     public List<McpToolDefinition> getToolsForRoles(Collection<? extends org.springframework.security.core.GrantedAuthority> authorities) {
         boolean canWriteModules = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
-                        || a.getAuthority().equals("ROLE_SUPERVISOR"));
+                .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.authority())
+                        || a.getAuthority().equals(Role.SUPERVISOR.authority()));
 
         boolean isGuestOnly = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_AUTHORIZED_GUEST"))
+                .anyMatch(a -> a.getAuthority().equals(Role.AUTHORIZED_GUEST.authority()))
                 && authorities.stream().noneMatch(a ->
-                        a.getAuthority().equals("ROLE_ADMIN")
-                        || a.getAuthority().equals("ROLE_SUPERVISOR")
-                        || a.getAuthority().equals("ROLE_CHILDREN_ROOM1_MANAGER")
-                        || a.getAuthority().equals("ROLE_CHILDREN_ROOM2_MANAGER"));
+                        a.getAuthority().equals(Role.ADMIN.authority())
+                        || a.getAuthority().equals(Role.SUPERVISOR.authority())
+                        || a.getAuthority().equals(Role.CHILDREN_ROOM1_MANAGER.authority())
+                        || a.getAuthority().equals(Role.CHILDREN_ROOM2_MANAGER.authority()));
 
         return tools.values().stream()
                 .filter(tool -> {
@@ -368,34 +372,32 @@ public class McpToolRegistry {
     }
 
     /**
-     * Checks if a user (by their authorities) is allowed to execute a given tool.
+     * Checks if a user is allowed to execute a given tool.
      * <ul>
      *   <li>PUBLIC_READ tools: any authenticated user can execute them.</li>
      *   <li>RESTRICTED_READ tools: any authenticated user <b>except</b> AUTHORIZED_GUEST.</li>
-     *   <li>WRITE tools: requires ADMIN or SUPERVISOR role.</li>
+     *   <li>WRITE tools: requires a role with any write permission (ADMIN or SUPERVISOR).
+     *       SUPERVISOR write access is further restricted per module-assignment type at
+     *       execution time — see Layer 3 enforcement in {@code ChatOrchestratorService}.</li>
      * </ul>
-     * <p>
-     * Per-module permission checks are handled separately by
-     * {@code PermissionService#hasModulePermission(Authentication, long, ...)}.
      */
-    public boolean canExecute(String toolName, Collection<? extends org.springframework.security.core.GrantedAuthority> authorities) {
+    public boolean canExecute(String toolName, Authentication authentication) {
         McpToolDefinition tool = tools.get(toolName);
         if (tool == null) {
             return false;
         }
         if (tool.accessType() == McpToolAccessType.WRITE) {
-            return authorities.stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
-                            || a.getAuthority().equals("ROLE_SUPERVISOR"));
+            return permissionService.hasAnyWritePermission(authentication);
         }
+        var authorities = authentication.getAuthorities();
         if (tool.isRestrictedRead()) {
             boolean isGuestOnly = authorities.stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_AUTHORIZED_GUEST"))
+                    .anyMatch(a -> a.getAuthority().equals(Role.AUTHORIZED_GUEST.authority()))
                     && authorities.stream().noneMatch(a ->
-                            a.getAuthority().equals("ROLE_ADMIN")
-                            || a.getAuthority().equals("ROLE_SUPERVISOR")
-                            || a.getAuthority().equals("ROLE_CHILDREN_ROOM1_MANAGER")
-                            || a.getAuthority().equals("ROLE_CHILDREN_ROOM2_MANAGER"));
+                            a.getAuthority().equals(Role.ADMIN.authority())
+                            || a.getAuthority().equals(Role.SUPERVISOR.authority())
+                            || a.getAuthority().equals(Role.CHILDREN_ROOM1_MANAGER.authority())
+                            || a.getAuthority().equals(Role.CHILDREN_ROOM2_MANAGER.authority()));
             return !isGuestOnly;
         }
         // PUBLIC_READ / READ — any authenticated user

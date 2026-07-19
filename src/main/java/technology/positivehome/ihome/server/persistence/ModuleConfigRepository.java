@@ -6,6 +6,7 @@ import technology.positivehome.ihome.model.runtime.module.ModuleConfigElementEnt
 import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
 import technology.positivehome.ihome.model.runtime.module.ModuleSettings;
 
+import java.util.Collection;
 import java.util.List;
 
 
@@ -15,6 +16,17 @@ import java.util.List;
 public interface ModuleConfigRepository {
 
     List<ModuleConfigEntry> loadModuleConfig();
+
+    /**
+     * Returns true if at least one module exists whose {@code module_assignment} value
+     * is contained in {@code assignmentNames}.  Used to determine whether a role that
+     * can only write specific assignment types actually has any writable modules.
+     *
+     * @param assignmentNames the set of {@link technology.positivehome.ihome.model.constant.ModuleAssignment}
+     *                        enum names to match against
+     * @return true if at least one matching module is found
+     */
+    boolean hasAnyModuleWithAssignments(Collection<String> assignmentNames);
 
     ModuleConfigEntry updateModuleMode(long moduleId, ModuleOperationMode newMode);
 
