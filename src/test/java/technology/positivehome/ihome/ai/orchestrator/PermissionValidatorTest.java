@@ -10,6 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import technology.positivehome.ihome.ai.mcp.McpToolRegistry;
+import technology.positivehome.ihome.security.model.user.Role;
+import technology.positivehome.ihome.security.service.PermissionService;
+import technology.positivehome.ihome.server.persistence.ModuleConfigRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,12 +29,16 @@ class PermissionValidatorTest {
     @Mock
     private Authentication authentication;
 
+    @Mock
+    private ModuleConfigRepository moduleConfigRepository;
+
     private PermissionValidator validator;
     private McpToolRegistry registry;
 
     @BeforeEach
     void setUp() {
-        registry = new McpToolRegistry(new ObjectMapper());
+        PermissionService permissionService = new PermissionService(moduleConfigRepository);
+        registry = new McpToolRegistry(new ObjectMapper(), permissionService);
         registry.registerTools();
         validator = new PermissionValidator(registry);
     }
@@ -50,7 +57,7 @@ class PermissionValidatorTest {
     @Test
     void adminShouldExecuteAdminTools() {
         Collection<GrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_ADMIN")
+                new SimpleGrantedAuthority(Role.ADMIN.authority())
         );
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getAuthorities()).thenReturn((Collection) authorities);
@@ -63,7 +70,7 @@ class PermissionValidatorTest {
     @Test
     void nonAdminShouldNotExecuteAdminTools() {
         Collection<GrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_UNDEFINED")
+                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
         );
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getAuthorities()).thenReturn((Collection) authorities);
@@ -76,7 +83,7 @@ class PermissionValidatorTest {
     @Test
     void nonAdminShouldExecuteReadOnlyTools() {
         Collection<GrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_UNDEFINED")
+                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
         );
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getAuthorities()).thenReturn((Collection) authorities);
@@ -89,7 +96,7 @@ class PermissionValidatorTest {
     @Test
     void shouldReturnAllowedToolsForAdmin() {
         Collection<GrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_ADMIN")
+                new SimpleGrantedAuthority(Role.ADMIN.authority())
         );
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getAuthorities()).thenReturn((Collection) authorities);
@@ -102,7 +109,7 @@ class PermissionValidatorTest {
     @Test
     void shouldReturnOnlyReadOnlyToolsForNonAdmin() {
         Collection<GrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_UNDEFINED")
+                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
         );
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getAuthorities()).thenReturn((Collection) authorities);

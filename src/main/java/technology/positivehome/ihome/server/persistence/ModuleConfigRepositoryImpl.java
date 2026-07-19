@@ -41,6 +41,8 @@ public class ModuleConfigRepositoryImpl implements ModuleConfigRepository {
     private static final String UPDATE_MODULE_SETTINGS = "UPDATE module_config_entry SET mode = :mode, name = :name, group_id = :group_id WHERE id = :id";
     private static final String UPDATE_CONFIG_ELEMENT_ENTRY = "UPDATE module_config_element_entry SET  name = :name, type = :type, port = :port, display_mode = :display_mode  WHERE id = :id";
     private static final String SELECT_MODULE_CONFIG_ENTRY_BY_ID = "SELECT id, module_id, name, type, port, display_mode FROM module_config_element_entry WHERE id = :id";
+    private static final String EXISTS_MODULE_WITH_ASSIGNMENTS =
+            "SELECT EXISTS(SELECT 1 FROM module_config_entry WHERE module_assignment IN (:assignments))";
 
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -148,6 +150,18 @@ public class ModuleConfigRepositoryImpl implements ModuleConfigRepository {
         ModuleConfigElementEntry res = namedParameterJdbcTemplate.queryForObject(SELECT_MODULE_CONFIG_ENTRY_BY_ID,
                 Map.of("id", value.getId()), moduleConfigElementEntryRowMapper);
         return Objects.requireNonNull(res, "Module config entry #" + value.getId() + " does not exist.");
+    }
+
+    @Override
+    public boolean hasAnyModuleWithAssignments(Collection<String> assignmentNames) {
+        if (assignmentNames == null || assignmentNames.isEmpty()) {
+            return false;
+        }
+        Boolean result = namedParameterJdbcTemplate.queryForObject(
+                EXISTS_MODULE_WITH_ASSIGNMENTS,
+                Map.of("assignments", assignmentNames),
+                Boolean.class);
+        return Boolean.TRUE.equals(result);
     }
 
     private ModuleConfigEntry loadModuleData(long moduleId) {

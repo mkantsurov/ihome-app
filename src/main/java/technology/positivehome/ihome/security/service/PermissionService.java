@@ -134,18 +134,27 @@ public class PermissionService {
     }
 
     /**
-     * Checks if the user has WRITE permission on any target.
-     * Used by the AI chat to determine whether to show "control" tools.
+     * Checks if the user has WRITE permission on at least one module.
+     * <p>
+     * ADMIN always qualifies — they can write every module.
+     * SUPERVISOR qualifies only if at least one module with a SUPERVISOR-controllable
+     * assignment type ({@link #SUPERVISOR_CONTROLLABLE_ASSIGNMENTS}) exists in the system.
+     * All other roles are denied.
+     * <p>
+     * Used by the AI chat layer to determine whether to expose "control" tools to the user.
      */
     public boolean hasAnyWritePermission(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return false;
         }
         Set<Role> userRoles = extractRoles(authentication.getAuthorities());
-        for (Role role : userRoles) {
-            if (role == Role.ADMIN || role == Role.SUPERVISOR) {
-                return true;
-            }
+        if (userRoles.contains(Role.ADMIN)) {
+            return true; // ADMIN can write every module unconditionally
+        }
+        if (userRoles.contains(Role.SUPERVISOR)) {
+            // SUPERVISOR is restricted to specific assignment types; only grant access when
+            // at least one such module actually exists in the system
+            return moduleConfigRepository.hasAnyModuleWithAssignments(SUPERVISOR_CONTROLLABLE_ASSIGNMENTS);
         }
         return false;
     }
@@ -204,18 +213,19 @@ public class PermissionService {
     }
 
     /**
-     * Checks whether the user has the specified permission on a specific module
-     * by consulting the per-module writer role name list stored in the {@link ModuleConfigEntry}.
+     * Checks whether the user has the specified permission on a specific module.
      * <p>
-     * <b>WRITE access:</b> If the module has a non-empty list of writer role names,
-     * only roles appearing in that list are granted WRITE access. If the list
-     * is empty, WRITE access falls back to system-wide role defaults.
+     * <b>WRITE access logic:</b>
+     * <ol>
+     *   <li>ADMIN always has access.</li>
+     *   <li>If the module has a non-empty {@code writerRoleNames} list, only roles in that list
+     *       are granted WRITE access (explicit per-module override).</li>
+     *   <li>If {@code writerRoleNames} is empty, WRITE access falls back to
+     *       {@link #canControlModuleAssignment} — SUPERVISOR can write only to permitted
+     *       assignment types (lights, gates, etc.), all other roles are denied.</li>
+     * </ol>
      * <p>
-     * <b>READ access:</b> Always determined by system-wide role defaults,
-     * regardless of the per-module writer-role list. The per-module list only governs
-     * WRITE access.
-     * <p>
-     * <b>ADMIN</b> always has full access and bypasses all per-module checks.
+     * <b>READ access</b> is always determined by system-wide role defaults.
      *
      * @param auth       the authenticated user
      * @param moduleId   the module ID to check access for
@@ -233,31 +243,36 @@ public class PermissionService {
             return true;
         }
 
-        // Load per-module writer role names from DB (roles that have WRITE access)
+        // Load per-module config from DB (writer roles + assignment type)
         ModuleConfigEntry entry = moduleConfigRepository.getModuleConfigEntry(moduleId);
         List<Role> writerRoleNames = (entry != null)
                 ? entry.getWriterRoleNames()
                 : List.of();
 
-        if (!writerRoleNames.isEmpty()) {
-            if (accessType == IHomeApiTargetAccessType.WRITE) {
-                // WRITE access requires the user's role to be explicitly listed
+        if (accessType == IHomeApiTargetAccessType.WRITE) {
+            if (!writerRoleNames.isEmpty()) {
+                // Explicit per-module writer list — user must appear in it
                 boolean allowed = userRoles.stream().anyMatch(writerRoleNames::contains);
-
                 if (!allowed) {
                     log.debug("Module WRITE permission DENIED by per-module writer role list: user '{}' (roles={}) on module {}",
                             auth.getName(), userRoles, moduleId);
                 }
                 return allowed;
             }
-            // READ access falls through to system-wide defaults below
+            // No explicit writer list — fall back to assignment-type-based check.
+            // SUPERVISOR can only control specific assignment types (lights, gates, etc.).
+            if (entry == null || entry.getModuleAssignment() == null) {
+                log.debug("Module WRITE permission DENIED: module {} has no assignment configured", moduleId);
+                return false;
+            }
+            return canControlModuleAssignment(auth, entry.getModuleAssignment().name());
         }
 
-        // Fall back to system-wide role defaults (for READ or when writerRoleNames is empty)
+        // READ access: use system-wide role defaults
         boolean allowed = hasPermissionForAnyRole(userRoles, IHomeApiTargetType.MODULE, accessType);
         if (!allowed) {
-            log.debug("Module permission DENIED by fallback rules: user '{}' (roles={}) cannot {} on module {}",
-                    auth.getName(), userRoles, accessType, moduleId);
+            log.debug("Module READ permission DENIED by fallback rules: user '{}' (roles={}) on module {}",
+                    auth.getName(), userRoles, moduleId);
         }
         return allowed;
     }

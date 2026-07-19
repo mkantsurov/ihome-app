@@ -14,6 +14,7 @@ import technology.positivehome.ihome.ai.mcp.McpToolDefinition;
 import technology.positivehome.ihome.ai.mcp.McpToolExecutor;
 import technology.positivehome.ihome.ai.mcp.McpToolRegistry;
 import technology.positivehome.ihome.model.runtime.module.ModuleSummary;
+import technology.positivehome.ihome.security.model.user.Role;
 import technology.positivehome.ihome.security.service.PermissionService;
 import technology.positivehome.ihome.security.util.IHomeApiTargetAccessType;
 import technology.positivehome.ihome.server.processor.SystemProcessor;
@@ -129,7 +130,7 @@ public class ChatOrchestratorService {
                         continue;
                     }
 
-                    // Module-level permission check using per-module writer role names
+                    // Module-level permission check for tools that target a specific module
                     if (isModuleIdTool(toolName)) {
                         int moduleId = extractModuleId(toolArgs);
                         if (moduleId < 0) {
@@ -144,11 +145,12 @@ public class ChatOrchestratorService {
                             messages.add(Message.tool(toolCall.id(), toolName, errorMsg));
                             continue;
                         }
-                        // Bridge from MCP-layer type to security-layer type
-                        IHomeApiTargetAccessType requiredAccess = toSecurityAccessType(mcpAccess);
+                        IHomeApiTargetAccessType requiredAccess = mcpAccess == McpToolAccessType.WRITE
+                                ? IHomeApiTargetAccessType.WRITE
+                                : IHomeApiTargetAccessType.READ;
                         if (!permissionService.hasModulePermission(authentication, moduleId, requiredAccess)) {
-                            log.warn("Blocked tool '{}' for module {} by user '{}' (required: {})",
-                                    toolName, moduleId, authentication.getName(), requiredAccess);
+                            log.warn("Blocked tool '{}' for module {} by user '{}'",
+                                    toolName, moduleId, authentication.getName());
                             String errorMsg = "{\"success\": false, \"error\": \"You do not have permission to " +
                                     (requiredAccess == IHomeApiTargetAccessType.WRITE ? "control" : "view") +
                                     " module " + moduleId + ".\"}";
@@ -186,9 +188,9 @@ public class ChatOrchestratorService {
 
         // Determine user's permission level for the prompt
         boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.authority()));
         boolean isSupervisor = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPERVISOR"));
+                .anyMatch(a -> a.getAuthority().equals(Role.SUPERVISOR.authority()));
 
         String roleDescription;
         if (isAdmin) {
@@ -327,19 +329,6 @@ public class ChatOrchestratorService {
             log.error("Failed to execute tool '{}': {}", toolName, e.getMessage(), e);
             return "{\"success\": false, \"error\": \"" + e.getMessage() + "\"}";
         }
-    }
-
-    /**
-     * Bridges from the MCP-layer access type to the security-layer access type.
-     * This is the only place where this translation happens — the two layers
-     * use different enums ({@link McpToolAccessType} vs {@link IHomeApiTargetAccessType})
-     * to avoid coupling the AI/mcp package to the security utility package.
-     */
-    private static IHomeApiTargetAccessType toSecurityAccessType(McpToolAccessType mcpAccess) {
-        return switch (mcpAccess) {
-            case PUBLIC_READ, RESTRICTED_READ, READ -> IHomeApiTargetAccessType.READ;
-            case WRITE -> IHomeApiTargetAccessType.WRITE;
-        };
     }
 
     /**
