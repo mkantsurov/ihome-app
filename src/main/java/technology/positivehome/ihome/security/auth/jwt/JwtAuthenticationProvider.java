@@ -48,7 +48,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
                 .collect(Collectors.toList());
         String[] userIds = Optional.ofNullable(subject).orElseThrow().split("/(\\D+)");
         UserContext context = UserContext.create(Long.parseLong(userIds[1]), authorities);
-        return new JwtAuthenticationToken(context, context.getAuthorities());
+        return new JwtAuthenticationToken(context, context.authorities());
     }
 
     @Override

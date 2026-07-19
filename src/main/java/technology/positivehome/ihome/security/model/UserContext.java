@@ -2,20 +2,10 @@ package technology.positivehome.ihome.security.model;
 
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.List;
+import java.util.*;
 
-/**
- * Created by maxim on 1/5/19.
- **/
-public class UserContext {
 
-    private final long userId;
-    private final List<GrantedAuthority> authorities;
-
-    public UserContext(long userId, List<GrantedAuthority> authorities) {
-        this.userId = userId;
-        this.authorities = authorities;
-    }
+public record UserContext(long userId, String clientIp, List<GrantedAuthority> authorities) {
 
     public static UserContext create(long userId, List<GrantedAuthority> authorities) {
         if (userId == 0) {
@@ -24,12 +14,34 @@ public class UserContext {
         return new UserContext(userId, authorities);
     }
 
-
-    public long getUserId() {
-        return userId;
+    public static Builder builder(long userId) {
+        return new Builder(userId);
     }
 
-    public List<GrantedAuthority> getAuthorities() {
-        return authorities;
+    public static class Builder {
+        private final long userId;
+        private String clientIp;
+        private final List<GrantedAuthority> authorities = new ArrayList<>();
+
+        public Builder(long userId) {
+            this.userId = userId;
+        }
+
+        public Builder withClientIp(String clientIp) {
+            this.clientIp = clientIp;
+            return this;
+        }
+
+        public Builder withAuthorities(Collection<GrantedAuthority> authorities) {
+            Set<GrantedAuthority> authoritySet = new HashSet<>(this.authorities);
+            authoritySet.addAll(authorities);
+            this.authorities.clear();
+            this.authorities.addAll(authoritySet);
+            return this;
+        }
+
+        public UserContext build() {
+            return new UserContext(userId, clientIp, authorities);
+        }
     }
 }

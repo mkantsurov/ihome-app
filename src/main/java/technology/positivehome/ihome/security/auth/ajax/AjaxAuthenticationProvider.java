@@ -52,7 +52,7 @@ public class AjaxAuthenticationProvider implements AuthenticationProvider {
 
         UserContext userContext = UserContext.create(user.getId(), authorities);
 
-        return new UsernamePasswordAuthenticationToken(userContext, null, userContext.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(userContext, null, userContext.authorities());
     }
 
     @Override

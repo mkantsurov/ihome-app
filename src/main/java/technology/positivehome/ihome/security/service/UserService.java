@@ -14,6 +14,14 @@ import java.util.Optional;
 public interface UserService {
     Optional<User> getByUsername(String username);
 
+    /**
+     * Finds a user by their unique identifier.
+     *
+     * @param userId the user ID to search for
+     * @return an {@link Optional} containing the {@link User} if found, or empty if no user exists with the given ID
+     */
+    Optional<User> findById(long userId);
+
     User getById(long userId);
 
     /**

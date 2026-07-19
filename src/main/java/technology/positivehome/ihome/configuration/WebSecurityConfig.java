@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -25,7 +26,8 @@ import technology.positivehome.ihome.security.auth.jwt.JwtTokenAuthenticationPro
 import technology.positivehome.ihome.security.auth.jwt.SkipPathRequestMatcher;
 import technology.positivehome.ihome.security.auth.jwt.extractor.TokenExtractor;
 import technology.positivehome.ihome.security.config.CustomCorsFilter;
-import technology.positivehome.ihome.security.service.SecurityPermissionEvaluator;
+import technology.positivehome.ihome.security.permissionproc.IHomeDelegatingSecurityPermissionEvaluator;
+import technology.positivehome.ihome.security.permissionproc.IHomeMethodSecurityExpressionHandler;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +52,6 @@ public class WebSecurityConfig {
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final TokenExtractor tokenExtractor;
     private final ObjectMapper objectMapper;
-    private final SecurityPermissionEvaluator securityPermissionEvaluator;
 
     @Autowired
     public WebSecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint,
@@ -59,8 +60,7 @@ public class WebSecurityConfig {
                              AjaxAuthenticationProvider ajaxAuthenticationProvider,
                              JwtAuthenticationProvider jwtAuthenticationProvider,
                              TokenExtractor tokenExtractor,
-                             ObjectMapper objectMapper,
-                             SecurityPermissionEvaluator securityPermissionEvaluator) {
+                             ObjectMapper objectMapper) {
 
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.successHandler = successHandler;
@@ -69,7 +69,6 @@ public class WebSecurityConfig {
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
         this.tokenExtractor = tokenExtractor;
         this.objectMapper = objectMapper;
-        this.securityPermissionEvaluator = securityPermissionEvaluator;
     }
 
     @Autowired
@@ -116,10 +115,15 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-        handler.setPermissionEvaluator(securityPermissionEvaluator);
-        return (web) -> web.expressionHandler(handler);
+    static IHomeDelegatingSecurityPermissionEvaluator securityPermissionEvaluator() {
+        return new IHomeDelegatingSecurityPermissionEvaluator();
+    }
+
+    @Bean
+    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(IHomeDelegatingSecurityPermissionEvaluator iHomeDelegatingSecurityPermissionEvaluator) {
+        IHomeMethodSecurityExpressionHandler handler = new IHomeMethodSecurityExpressionHandler();
+        handler.setPermissionEvaluator(iHomeDelegatingSecurityPermissionEvaluator);
+        return handler;
     }
 
     protected AjaxLoginProcessingFilter buildAjaxLoginProcessingFilter(AuthenticationManager authenticationManager, String loginEntryPoint) throws Exception {
