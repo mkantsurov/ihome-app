@@ -25,4 +25,6 @@ public interface ModuleConfigRepository {
     ModuleConfigEntry updateModuleProperties(ModuleSettings moduleConfigProperties);
 
     ModuleConfigElementEntry updateModuleConfigElement(ModuleConfigElementEntry value);
+
+    ModuleConfigEntry getModuleConfigEntry(long moduleId);
 }

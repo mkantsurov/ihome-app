@@ -40,6 +40,21 @@ gradle bootJar -PtestSpringConfLocation=src/test/resources/test-spring-conf.yaml
 gradle jib -PtestSpringConfLocation=src/test/resources/test-spring-conf.yaml -PdockerRepository=ghcr.io
 ```
 
+## Naming Convention: Entity vs Entry
+
+This project follows a strict naming convention in the persistence layer:
+
+- **`*Entity`** — a persistence model class (record or POJO) that maps directly to a database table/row. Entities contain all raw DB columns, including foreign keys (e.g., `groupId`). Entities live in `server/persistence/model/` or in the relevant domain package. They are used **internally** by repositories and row mappers, and are **never** returned directly to controllers or services. Examples: `UserEntity`, `ModuleConfigEntity`.
+
+- **`*Entry`** — a plain POJO (Java object) used as a **DTO** (data transfer object). Entries contain domain-level fields (no raw FKs) and are returned by repositories to the rest of the application. They can be arguments to or return values of repository methods. Examples: `ModuleConfigEntry`, `ModuleConfigElementEntry`, `ModulePropertyValue`, `ModuleGroupEntry`.
+
+- **Conversion rule**: Repositories convert `*Entity` → `*Entry` at their boundary. The entity is never exposed outside the persistence layer. The `*Entry` (DTO) is what services and controllers interact with.
+
+- **Package location**:
+  - New entities (records) should go in `server/persistence/model/` (e.g., `UserEntity`).
+  - Older entities may still live in `domain/runtime/module/` (e.g., `ModuleConfigEntity`) — new code should follow the `server/persistence/model/` convention.
+  - All entries (DTOs) remain in `domain/runtime/module/` or their respective domain packages.
+
 ## Project Structure
 
 ```
@@ -154,9 +169,35 @@ User (JWT) → ChatController → ChatOrchestratorService → DeepSeek API (clou
 
 ### Tool Registration Pattern
 - Tools are registered in `McpToolRegistry.registerTools()` via `@PostConstruct`
-- Each tool has: `name`, `description`, `inputSchema` (JSON Schema), `requiredRoles` (Set<Role>), and an optional `resultTransformer` (Function<JsonNode, JsonNode>)
-- 12 read-only tools (any authenticated user) + 2 admin tools (ROLE_ADMIN only)
-- Admin tools: `updateModuleMode`, `updateModuleOutputState`
+- Each tool has: `name`, `description`, `inputSchema` (JSON Schema), `accessType` (McpToolAccessType), and an optional `resultTransformer` (Function<JsonNode, JsonNode>)
+- **15 tools total**: 5 PUBLIC_READ, 8 RESTRICTED_READ, 2 WRITE
+
+### Tool Access Types (McpToolAccessType)
+Tools are categorized into three access types that control which roles can see and execute them:
+
+| Access Type | Roles | Count | Tools |
+|-------------|-------|-------|-------|
+| **PUBLIC_READ** | Any authenticated user (including `AUTHORIZED_GUEST`) | 5 | `getTempStat`, `getPressureStat`, `getPowerSummary`, `getPowerConsumptionStat`, `getPowerVoltageStat` |
+| **RESTRICTED_READ** | ADMIN, SUPERVISOR, ROLE_UNDEFINED (but NOT AUTHORIZED_GUEST) | 8 | `getSystemSummary`, `getHeatingSummary`, `getLuminosityStat`, `getSystemStat`, `getModuleList`, `getModuleData`, `getModuleListByGroup`, `getBoilerTempStat` |
+| **WRITE** | ADMIN, SUPERVISOR | 2 | `updateModuleMode`, `updateModuleOutputState` |
+
+### Mapping PUBLIC_READ tools to GuestController
+PUBLIC_READ tools are those whose **data categories** overlap with the GuestController's endpoints. Even if the MCP tool returns more data than the guest controller endpoint (e.g. `getTempStat` returns all sensors including indoor, but also outdoor), the category match is the deciding factor.
+
+| GuestController Endpoint | Data Provided | Related PUBLIC_READ MCP Tool(s) |
+|--------------------------|---------------|----------------------------------|
+| `/guest-api/v1/stats/outdoor-temp-stat` | Outdoor temperature & humidity (`OutDoorTempStatInfo`) | `getTempStat` (branches indoorSf, indoorGf, outdoor, garage) |
+| `/guest-api/v1/stats/pressure-stat` | Pressure (`PressureStatInfo`) | `getPressureStat` (exact method match) |
+| `/guest-api/v1/stats/power-stat` | External power voltage (`PowerVoltageExtStatInfo`) | `getPowerVoltageStat`, `getPowerConsumptionStat` (contain external power data) |
+| `/guest-api/v1/stats/power-summary` | External power summary (`ExternalPowerSummaryInfo`) | `getPowerSummary` (contains external power supply info) |
+
+### Role-Based Tool Visibility
+- **AUTHORIZED_GUEST** — sees only PUBLIC_READ tools (5 tools)
+- **ROLE_UNDEFINED** — sees PUBLIC_READ + RESTRICTED_READ but NOT WRITE tools (13 tools)
+- **SUPERVISOR** — sees ALL 15 tools; write execution is further restricted by `PermissionService.canControlModuleAssignment()` (can only control `LIGHT_CONTROL`, `EXT_LIGHT_CONTROL`, `GATE_CONTROL`)
+- **ADMIN** — sees ALL 15 tools; no execution restrictions on write tools
+
+Write tools are visible to both ADMIN and SUPERVISOR roles via `McpToolRegistry`, but at execution time `PermissionService.canControlModuleAssignment()` further restricts which module types SUPERVISOR can actually control.
 
 ### Result Transformer Pattern
 - `McpToolDefinition` accepts an optional `Function<JsonNode, JsonNode> resultTransformer` (5th record component, defaults to `null`)
@@ -167,9 +208,29 @@ User (JWT) → ChatController → ChatOrchestratorService → DeepSeek API (clou
 - Tools without transformers: `getSystemStat`, `getPowerConsumptionStat`, `getLuminosityStat` — values pass through unchanged
 - When adding a new tool that returns `ChartPointInfo` with scaled integers, use `scaleChartPointValues(factor)` in the `register()` call
 
-### Permission Model (Two-Layer Defense)
+### Permission Model (Three-Layer Defense)
 1. **Layer 1 — Tool list filtering**: `McpToolRegistry.getToolsForRoles()` filters tools before sending to DeepSeek. Non-admin users never see admin tools.
-2. **Layer 2 — Execution guard**: `PermissionValidator.canExecute()` blocks any unexpected tool call at runtime.
+2. **Layer 2 — Execution guard**: `PermissionValidator.canExecute()` blocks any unexpected tool call at runtime — checks whether the user's role is allowed to invoke the tool at all.
+3. **Layer 3 — Module-assignment-level guard (write tools only)**: `ChatOrchestratorService` enforces module-type granularity for `updateModuleOutputState` and `updateModuleMode` tools. Before executing, it resolves the target module's `ModuleAssignment` (e.g. `LIGHT_CONTROL`, `HEATING_CONTROL`) and calls `PermissionService.canControlModuleAssignment()`.
+
+### Module-Type Permission Rules
+- **ADMIN** — can control **any** module type
+- **SUPERVISOR** — can only control: `LIGHT_CONTROL`, `EXT_LIGHT_CONTROL`, `GATE_CONTROL`
+- **All other roles** — cannot control any modules
+
+The whitelist is defined in `PermissionService.SUPERVISOR_CONTROLLABLE_ASSIGNMENTS` (a `Set<String>` of enum names). When adding new controllable module types, add them there.
+
+### Module-Type Check in ChatOrchestratorService
+- `isModuleWriteTool(toolName)` — returns `true` for `updateModuleOutputState` and `updateModuleMode`; these tools need assignment-level permission checking before execution
+- `extractModuleId(arguments)` — parses `moduleId` from the tool's JSON arguments string
+- The check flow: parse `moduleId` → `systemProcessor.getModuleData(moduleId)` → `module.getAssignment().name()` → `permissionService.canControlModuleAssignment(auth, assignmentName)` → deny with JSON error if not permitted
+- If the module cannot be resolved (e.g. deleted between the system prompt and the tool call), the action is denied with a safe default message
+
+### Dynamic System Prompt (Home Context + Permissions)
+- `ChatOrchestratorService.buildSystemPrompt()` injects a live module list into the system prompt via `buildModuleContext()`
+- `buildModuleContext()` calls `systemProcessor.getModuleList(null, null)` and formats modules as a markdown table: ID, Name, Type (assignment), Mode (AUTO/MANUAL/OFF), Output (ON/OFF or dimmer %)
+- The role description section is now **dynamic**: `permissionService.getControllableModulesDescription(authentication)` returns a human-readable string describing which module types the user can control (e.g. `"lights, external lights, garage doors, sliding gates"` for SUPERVISOR, `"all module types (lights, gates, heating, power supply, ventilation, etc.)"` for ADMIN)
+- Falls back gracefully to "(No modules configured)" or "(Unable to load module list: ...)" on errors
 
 ### Configuration
 ```yaml
@@ -182,7 +243,9 @@ ihome.ai.deepseek:
 ```
 
 ### Key Classes
-- `ChatOrchestratorService` — main orchestrator; builds system prompt with live module context, sends to DeepSeek, handles tool_call loop (max 5 rounds), returns final text
+- `ChatOrchestratorService` — main orchestrator; builds system prompt with live module context and dynamic role permissions, sends to DeepSeek, handles tool_call loop (max 5 rounds), enforces module-assignment-level permission check before executing write tools
+- `PermissionValidator` — first-line defense; checks if the user's role can invoke a tool at all
+- `PermissionService` — second-line defense; checks if the user's role can control a specific `ModuleAssignment` type (e.g. supervisor can control lights/gates but not heating)
 - `McpToolExecutor` — switch-based dispatch mapping tool names to `SystemProcessor`/`StatisticProcessor` methods
 - `DeepSeekClient` — uses Spring `WebClient` (already available via webflux starter), no additional dependencies needed
 - `DeepSeekConfig` — Java record with `@ConfigurationProperties(prefix = "ihome.ai.deepseek")`

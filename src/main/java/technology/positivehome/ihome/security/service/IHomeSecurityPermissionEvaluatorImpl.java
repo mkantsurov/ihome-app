@@ -9,16 +9,26 @@ import java.io.Serializable;
 
 /**
  * Created by maxim on 2/6/21.
+ * <p>
+ * Delegates permission checks to {@link PermissionService} — the single source of truth
+ * for role-to-permission mappings.
  **/
 @Component
 public class IHomeSecurityPermissionEvaluatorImpl implements IHomeSecurityPermissionEvaluator {
+
+    private final PermissionService permissionService;
+
+    public IHomeSecurityPermissionEvaluatorImpl(PermissionService permissionService) {
+        this.permissionService = permissionService;
+    }
+
     @Override
     public boolean hasPermission(Authentication authentication, IHomeApiTargetType targetType, IHomeApiTargetAccessType targetAccessType, Serializable[] ids) {
-        return true;
+        return permissionService.hasPermission(authentication, targetType, targetAccessType, ids);
     }
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, IHomeApiTargetAccessType targetAccessType) {
-        return true;
+        return permissionService.hasPermission(authentication, targetDomainObject, targetAccessType);
     }
 }

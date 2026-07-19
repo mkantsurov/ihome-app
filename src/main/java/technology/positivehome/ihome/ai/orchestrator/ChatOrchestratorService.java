@@ -9,10 +9,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import technology.positivehome.ihome.ai.deepseek.DeepSeekClient;
 import technology.positivehome.ihome.ai.deepseek.model.*;
+import technology.positivehome.ihome.ai.mcp.McpToolAccessType;
 import technology.positivehome.ihome.ai.mcp.McpToolDefinition;
 import technology.positivehome.ihome.ai.mcp.McpToolExecutor;
 import technology.positivehome.ihome.ai.mcp.McpToolRegistry;
 import technology.positivehome.ihome.model.runtime.module.ModuleSummary;
+import technology.positivehome.ihome.security.service.PermissionService;
+import technology.positivehome.ihome.security.util.IHomeApiTargetAccessType;
 import technology.positivehome.ihome.server.processor.SystemProcessor;
 
 import java.util.ArrayList;
@@ -42,6 +45,7 @@ public class ChatOrchestratorService {
     private final McpToolRegistry toolRegistry;
     private final McpToolExecutor toolExecutor;
     private final PermissionValidator permissionValidator;
+    private final PermissionService permissionService;
     private final SystemProcessor systemProcessor;
     private final ObjectMapper objectMapper;
 
@@ -49,12 +53,14 @@ public class ChatOrchestratorService {
                                    McpToolRegistry toolRegistry,
                                    McpToolExecutor toolExecutor,
                                    PermissionValidator permissionValidator,
+                                   PermissionService permissionService,
                                    SystemProcessor systemProcessor,
                                    ObjectMapper objectMapper) {
         this.deepSeekClient = deepSeekClient;
         this.toolRegistry = toolRegistry;
         this.toolExecutor = toolExecutor;
         this.permissionValidator = permissionValidator;
+        this.permissionService = permissionService;
         this.systemProcessor = systemProcessor;
         this.objectMapper = objectMapper;
     }
@@ -123,6 +129,34 @@ public class ChatOrchestratorService {
                         continue;
                     }
 
+                    // Module-level permission check using per-module writer role names
+                    if (isModuleIdTool(toolName)) {
+                        int moduleId = extractModuleId(toolArgs);
+                        if (moduleId < 0) {
+                            String errorMsg = "{\"success\": false, \"error\": \"Invalid or missing moduleId in arguments\"}";
+                            messages.add(Message.tool(toolCall.id(), toolName, errorMsg));
+                            continue;
+                        }
+                        McpToolAccessType mcpAccess = toolRegistry.getRequiredAccessType(toolName);
+                        if (mcpAccess == null) {
+                            log.warn("Unknown tool '{}' requested module-level check", toolName);
+                            String errorMsg = "{\"success\": false, \"error\": \"Unknown tool: " + toolName + "\"}";
+                            messages.add(Message.tool(toolCall.id(), toolName, errorMsg));
+                            continue;
+                        }
+                        // Bridge from MCP-layer type to security-layer type
+                        IHomeApiTargetAccessType requiredAccess = toSecurityAccessType(mcpAccess);
+                        if (!permissionService.hasModulePermission(authentication, moduleId, requiredAccess)) {
+                            log.warn("Blocked tool '{}' for module {} by user '{}' (required: {})",
+                                    toolName, moduleId, authentication.getName(), requiredAccess);
+                            String errorMsg = "{\"success\": false, \"error\": \"You do not have permission to " +
+                                    (requiredAccess == IHomeApiTargetAccessType.WRITE ? "control" : "view") +
+                                    " module " + moduleId + ".\"}";
+                            messages.add(Message.tool(toolCall.id(), toolName, errorMsg));
+                            continue;
+                        }
+                    }
+
                     // Execute tool directly via Spring bean (no HTTP overhead)
                     String toolResult = executeTool(toolName, toolArgs);
                     messages.add(Message.tool(toolCall.id(), toolName, toolResult));
@@ -149,14 +183,29 @@ public class ChatOrchestratorService {
      */
     private Message buildSystemPrompt(Authentication authentication) {
         String username = authentication.getName();
+
+        // Determine user's permission level for the prompt
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isSupervisor = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPERVISOR"));
 
-        String roleDescription = isAdmin
-                ? "You have full administrator access to control all home automation devices."
-                : "You have read-only access. You can view status and statistics but cannot control devices.";
+        String roleDescription;
+        if (isAdmin) {
+            roleDescription = """
+                    You have full administrator access.
+                    You can view all system information, manage users, and control all devices.""";
+        } else if (isSupervisor) {
+            roleDescription = """
+                    You have supervisor-level access.
+                    You can view all system information and control supported devices.""";
+        } else {
+            roleDescription = """
+                    Your access is limited to specific modules.
+                    The table below shows which modules you can view (READ) and which you can control (READ+WRITE).""";
+        }
 
-        String moduleContext = buildModuleContext();
+        String moduleContext = buildModuleContext(authentication);
 
         return Message.system("""
                 You are a helpful home automation assistant for the iHome smart home system.
@@ -167,8 +216,8 @@ public class ChatOrchestratorService {
                 
                 ## Home Configuration
                 Below is the current list of modules in this home. Each module has an ID, name,
-                type (assignment), current mode, and output state. Use module IDs when calling tools
-                like getModuleData or updateModuleMode.
+                type (assignment), current mode, output state, and your access level.
+                Use module IDs when calling tools like getModuleData or updateModuleMode.
                 
                 %s
                 
@@ -187,19 +236,33 @@ public class ChatOrchestratorService {
     }
 
     /**
-     * Builds a human-readable summary of all modules in the system.
-     * This is injected into the system prompt so the LLM understands the home layout.
+     * Builds a human-readable summary of modules visible to the user.
+     * Each row includes the module's ID, name, type, current state, and the user's
+     * access level (READ or READ+WRITE) based on per-module permissions.
+     * Modules the user has no access to are excluded entirely.
      */
-    private String buildModuleContext() {
+    private String buildModuleContext(Authentication authentication) {
         try {
             ModuleSummary[] modules = systemProcessor.getModuleList(null, null);
             if (modules == null || modules.length == 0) {
                 return "(No modules configured)";
             }
             StringBuilder sb = new StringBuilder();
-            sb.append("| ID | Name | Type | Mode | Output |\n");
-            sb.append("|----|------|------|------|--------|\n");
+            sb.append("| ID | Name | Type | Mode | Output | Access |\n");
+            sb.append("|----|------|------|------|--------|--------|\n");
+            boolean hasAnyModule = false;
             for (ModuleSummary m : modules) {
+                // Check per-module permissions
+                boolean canRead = permissionService.hasModulePermission(
+                        authentication, m.getModuleId(), IHomeApiTargetAccessType.READ);
+                if (!canRead) {
+                    continue; // Skip modules the user can't see
+                }
+                hasAnyModule = true;
+                boolean canWrite = permissionService.hasModulePermission(
+                        authentication, m.getModuleId(), IHomeApiTargetAccessType.WRITE);
+                String accessLabel = canWrite ? "READ+WRITE" : "READ";
+
                 String type = m.getAssignment() != null ? m.getAssignment().name() : "UNKNOWN";
                 String modeLabel = switch (m.getMode()) {
                     case 0 -> "AUTO";
@@ -207,11 +270,17 @@ public class ChatOrchestratorService {
                     case 2 -> "OFF";
                     default -> String.valueOf(m.getMode());
                 };
-                String outputLabel = m.isDimmableOutput()
-                        ? m.getOutputPortState() + "%"
-                        : (m.getOutputPortState() == 1 ? "ON" : "OFF");
-                sb.append("| %d | %s | %s | %s | %s |\n"
-                        .formatted(m.getModuleId(), m.getName(), type, modeLabel, outputLabel));
+                String outputLabel;
+                if (m.isDimmableOutput()) {
+                    outputLabel = m.getOutputPortState() + "%";
+                } else {
+                    outputLabel = m.getOutputPortState() == 1 ? "POWERED" : "OFF";
+                }
+                sb.append("| %d | %s | %s | %s | %s | %s |\n"
+                        .formatted(m.getModuleId(), m.getName(), type, modeLabel, outputLabel, accessLabel));
+            }
+            if (!hasAnyModule) {
+                return "(No accessible modules)";
             }
             return sb.toString();
         } catch (Exception e) {
@@ -258,5 +327,46 @@ public class ChatOrchestratorService {
             log.error("Failed to execute tool '{}': {}", toolName, e.getMessage(), e);
             return "{\"success\": false, \"error\": \"" + e.getMessage() + "\"}";
         }
+    }
+
+    /**
+     * Bridges from the MCP-layer access type to the security-layer access type.
+     * This is the only place where this translation happens — the two layers
+     * use different enums ({@link McpToolAccessType} vs {@link IHomeApiTargetAccessType})
+     * to avoid coupling the AI/mcp package to the security utility package.
+     */
+    private static IHomeApiTargetAccessType toSecurityAccessType(McpToolAccessType mcpAccess) {
+        return switch (mcpAccess) {
+            case PUBLIC_READ, RESTRICTED_READ, READ -> IHomeApiTargetAccessType.READ;
+            case WRITE -> IHomeApiTargetAccessType.WRITE;
+        };
+    }
+
+    /**
+     * Returns true if the given tool takes a moduleId parameter and requires
+     * per-module permission checks (both READ and WRITE).
+     * The actual access type (READ vs WRITE) is resolved via
+     * {@link McpToolRegistry#getRequiredAccessType(String)}.
+     */
+    private boolean isModuleIdTool(String toolName) {
+        return "getModuleData".equals(toolName)
+                || "updateModuleOutputState".equals(toolName)
+                || "updateModuleMode".equals(toolName);
+    }
+
+    /**
+     * Extracts the moduleId from a JSON arguments string.
+     * Returns -1 if the argument is missing or unparseable.
+     */
+    private int extractModuleId(String arguments) {
+        try {
+            JsonNode node = objectMapper.readTree(arguments);
+            if (node != null && node.has("moduleId") && !node.get("moduleId").isNull()) {
+                return node.get("moduleId").asInt();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to extract moduleId from arguments: {}", arguments, e);
+        }
+        return -1;
     }
 }

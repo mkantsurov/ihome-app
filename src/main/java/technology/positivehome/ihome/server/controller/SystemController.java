@@ -57,6 +57,7 @@ public class SystemController {
         return statisticProcessor.getTempStat();
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/pressure-stat")
     public PressureStatInfo getPressureStat() {
         return statisticProcessor.getPressureStat();
@@ -104,19 +105,19 @@ public class SystemController {
         return systemProcessor.getModuleListByGroup(group);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAccessPermission('MODULE', 'READ', #moduleId)")
     @GetMapping(path = "/moduledata/{moduleId}")
     public ModuleEntry getModuleData(@PathVariable long moduleId) throws MegadApiMallformedUrlException, URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return systemProcessor.getModuleData(moduleId);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAccessPermission('MODULE', 'WRITE', #moduleId)")
     @PutMapping(path = "/modulemode/{moduleId}")
     public ModuleSummary updateModuleMode(@PathVariable long moduleId, @RequestBody int moduleMode) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         return systemProcessor.updateModuleMode(moduleId, moduleMode);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAccessPermission('MODULE', 'WRITE', #moduleId)")
     @PutMapping(path = "/moduleoutput/{moduleId}")
     public ModuleSummary updateModuleOutputState(@PathVariable long moduleId, @RequestBody int outputStatus) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         return systemProcessor.updateModuleOutputState(moduleId, outputStatus);

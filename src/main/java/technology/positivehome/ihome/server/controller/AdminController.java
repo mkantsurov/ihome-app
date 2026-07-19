@@ -32,7 +32,7 @@ public class AdminController {
                            PasswordEncoder encoder, ErrorMessageLogService errorMessageLogService) {
         this.errorMessageLogService = errorMessageLogService;
     }
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/errors", method = {RequestMethod.HEAD})
     public ResponseEntity<Void> errorCount(@RequestParam(required = false) List<String> filter) {
         HttpHeaders headers = new HttpHeaders();
@@ -45,7 +45,7 @@ public class AdminController {
                 .body(null);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/errors")
     public List<ErrorMessageLogEntryInfo> searchErrors(@RequestParam(required = false) List<String> filter,
                                                        @RequestParam(required = false, defaultValue = "0") @Min(0) Integer page,

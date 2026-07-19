@@ -7,7 +7,9 @@ import java.util.Optional;
  **/
 public enum IHomeApiTargetType {
     UNDEFINED,
-    USER;
+    USER,
+    MODULE,
+    SYSTEM;
 
     public static IHomeApiTargetType of(String targetType) {
 
@@ -15,6 +17,10 @@ public enum IHomeApiTargetType {
         switch (normalizedName) {
             case "USER":
                 return USER;
+            case "MODULE":
+                return MODULE;
+            case "SYSTEM":
+                return SYSTEM;
             default:
                 return UNDEFINED;
         }
