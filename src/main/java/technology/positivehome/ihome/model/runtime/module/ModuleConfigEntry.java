@@ -4,6 +4,7 @@ import technology.positivehome.ihome.model.constant.ModuleAssignment;
 import technology.positivehome.ihome.model.constant.ModuleOperationMode;
 import technology.positivehome.ihome.model.constant.ModuleStartupMode;
 import technology.positivehome.ihome.model.constant.ModuleType;
+import technology.positivehome.ihome.security.model.user.Role;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ public class ModuleConfigEntry {
     private ModuleOperationMode mode;
     private ModuleType type;
     private ModuleStartupMode startupMode;
+    private List<Role> writerRoleNames = new ArrayList<>();
 
     public void setId(long id) {
         this.id = id;
@@ -94,5 +96,13 @@ public class ModuleConfigEntry {
 
     public void setProperties(List<ModulePropertyValue> properties) {
         this.properties = properties;
+    }
+
+    public List<Role> getWriterRoleNames() {
+        return writerRoleNames;
+    }
+
+    public void setWriterRoleNames(List<Role> writerRoleNames) {
+        this.writerRoleNames = writerRoleNames;
     }
 }

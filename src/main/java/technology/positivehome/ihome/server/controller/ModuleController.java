@@ -35,13 +35,13 @@ public class ModuleController {
         return systemProcessor.getModuleList(assignment, group);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAccessPermission('MODULE', 'READ', #moduleId)")
     @GetMapping(path = "/{moduleId}")
     public ModuleEntry getModuleData(@PathVariable long moduleId) throws MegadApiMallformedUrlException, URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return systemProcessor.getModuleData(moduleId);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAccessPermission('MODULE', 'WRITE', #moduleId)")
     @PutMapping(path = "/{moduleId}")
     public ResponseEntity<Void> updateModule(@PathVariable long moduleId, @RequestBody ModuleUpdateRequest moduleUpdateRequest) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         systemProcessor.updateModuleProps(moduleId, moduleUpdateRequest);

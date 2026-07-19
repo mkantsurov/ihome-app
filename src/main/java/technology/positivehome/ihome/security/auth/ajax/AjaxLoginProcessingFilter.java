@@ -26,7 +26,7 @@ import java.io.IOException;
  * Created by maxim on 12/20/18.
  **/
 public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingFilter {
-    private static Logger logger = LoggerFactory.getLogger(AjaxLoginProcessingFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(AjaxLoginProcessingFilter.class);
 
     private final AuthenticationSuccessHandler successHandler;
     private final AuthenticationFailureHandler failureHandler;
@@ -45,8 +45,8 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException, IOException, ServletException {
         if (!HttpMethod.POST.name().equals(request.getMethod()) || !WebUtil.isAjax(request)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Authentication method not supported. Request method: " + request.getMethod());
+            if (log.isDebugEnabled()) {
+                log.debug("Authentication method not supported. Request method: " + request.getMethod());
             }
             throw new AuthMethodNotSupportedException("Authentication method not supported");
         }

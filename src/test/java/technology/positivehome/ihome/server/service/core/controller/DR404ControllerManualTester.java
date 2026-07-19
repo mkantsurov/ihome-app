@@ -11,8 +11,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
-public class DR404ControllerTest {
-    private static final Log log = LogFactory.getLog(DR404ControllerTest.class);
+public class DR404ControllerManualTester {
+    private static final Log log = LogFactory.getLog(DR404ControllerManualTester.class);
     public static void main(String[] argv) {
 
         for (int i=0; i<3; i++) {

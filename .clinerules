@@ -17,6 +17,13 @@ Always read the following file for project context, tech stack, coding patterns,
 - Do not repeat information the user already knows.
 - When presenting a plan or summary, use bullet points, not paragraphs.
 
+## Naming Convention: Entity vs Entry
+
+- **`*Entity`** = persistence model (record/POJO) with all DB columns including raw FKs. Used **internally** by repositories. Never exposed to services/controllers.
+- **`*Entry`** = plain DTO. Domain-level fields only (no raw FKs). Returned by repositories to the rest of the app.
+- **Conversion**: Repository converts `*Entity` → `*Entry` at the boundary layer.
+- **Package**: New entities go in `server/persistence/model/`. Old entities may live in `domain/runtime/module/`.
+
 ## Lessons Learned (do not repeat)
 
 ### Replacing deprecated APIs
