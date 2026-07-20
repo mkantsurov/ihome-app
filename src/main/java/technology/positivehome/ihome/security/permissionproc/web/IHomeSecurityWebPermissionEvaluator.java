@@ -2,9 +2,10 @@ package technology.positivehome.ihome.security.permissionproc.web;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.core.Authentication;
+import technology.positivehome.ihome.security.auth.JwtAuthenticationToken;
 import technology.positivehome.ihome.security.model.permissionproc.AuthorizableObj;
 import technology.positivehome.ihome.security.model.permissionproc.EntityAccessPermission;
-import technology.positivehome.ihome.security.model.user.User;
 import technology.positivehome.ihome.security.service.PermissionService;
 import technology.positivehome.ihome.security.service.UserService;
 
@@ -22,7 +23,7 @@ public class IHomeSecurityWebPermissionEvaluator {
                 .build();
     }
 
-    public boolean hasPermission(User user, Object targetDomainObject, Object permission) {
+    public boolean hasPermission(JwtAuthenticationToken user, Object targetDomainObject, Object permission) {
         EntityAccessPermission perm = EntityAccessPermission.of(permission);
         if (targetDomainObject instanceof Collection collection) {
             for (Object obj : collection) {
@@ -41,7 +42,7 @@ public class IHomeSecurityWebPermissionEvaluator {
         } else if (targetDomainObject instanceof AuthorizableObj authorizable) {
             return authChain.isAuthorized(user, authorizable, perm);
         } else {
-            log.warn("Unable authorize request with " + targetDomainObject + " object.");
+            log.warn("Unable authorize request with %s object.".formatted(targetDomainObject));
             return false;
         }
     }

@@ -70,13 +70,13 @@ public class AuthenticationController {
         String[] userIds = Optional.ofNullable(subject).orElseThrow().split("/(\\D+)");
         User user = userService.getById(Long.parseLong(userIds[1]));
 
-        if (user.getRoles() == null) throw new InsufficientAuthenticationException("User has no roles assigned");
+        if (user.roles() == null) throw new InsufficientAuthenticationException("User has no roles assigned");
 
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(authority -> new SimpleGrantedAuthority(authority.getRole().authority()))
+        List<GrantedAuthority> authorities = user.roles().stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.role().authority()))
                 .collect(Collectors.toList());
 
-        UserContext userContext = UserContext.create(user.getId(), authorities);
+        UserContext userContext = UserContext.create(user.id(), authorities);
         return tokenFactory.createAccessJwtToken(userContext);
     }
 

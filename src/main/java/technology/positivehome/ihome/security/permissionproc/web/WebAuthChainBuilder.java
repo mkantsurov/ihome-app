@@ -1,10 +1,14 @@
 package technology.positivehome.ihome.security.permissionproc.web;
 
+import technology.positivehome.ihome.security.auth.JwtAuthenticationToken;
 import technology.positivehome.ihome.security.model.permissionproc.AuthorizableObj;
 import technology.positivehome.ihome.security.model.permissionproc.EntityAccessPermission;
 
 public class WebAuthChainBuilder {
-    private WebWebAuthProcessor chain, currentItem;
+
+    private WebWebAuthProcessor chain;
+    private WebWebAuthProcessor currentItem;
+
     public static WebAuthChainBuilder getInstance() {
         return new WebAuthChainBuilder();
     }
@@ -21,7 +25,7 @@ public class WebAuthChainBuilder {
     }
 
     public WebAuthProcessorChain build() {
-        currentItem.addNext((UserEntry authentication, AuthorizableObj requestDetail, EntityAccessPermission permission) -> false);
+        currentItem.addNext((JwtAuthenticationToken authentication, AuthorizableObj requestDetail, EntityAccessPermission permission) -> false);
         return chain;
     }
 }

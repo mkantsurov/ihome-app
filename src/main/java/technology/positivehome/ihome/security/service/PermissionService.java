@@ -346,7 +346,7 @@ public class PermissionService {
         };
     }
 
-    private Set<Role> extractRoles(Collection<? extends GrantedAuthority> authorities) {
+    public Set<Role> extractRoles(Collection<? extends GrantedAuthority> authorities) {
         EnumSet<Role> roles = EnumSet.noneOf(Role.class);
         for (GrantedAuthority authority : authorities) {
             String auth = authority.getAuthority();

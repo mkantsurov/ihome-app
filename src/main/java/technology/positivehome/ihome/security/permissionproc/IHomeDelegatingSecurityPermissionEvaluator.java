@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import technology.positivehome.ihome.security.auth.JwtAuthenticationToken;
 import technology.positivehome.ihome.security.model.UserContext;
+import technology.positivehome.ihome.security.permissionproc.web.IHomeSecurityWebPermissionEvaluator;
 import technology.positivehome.ihome.security.service.UserService;
 
 import java.io.Serializable;
@@ -21,16 +22,12 @@ public class IHomeDelegatingSecurityPermissionEvaluator implements PermissionEva
     private static final Logger log = LogManager.getLogger(IHomeDelegatingSecurityPermissionEvaluator.class);
 
     @Autowired
-    private UserService userService;
-    @Autowired
     private IHomeSecurityWebPermissionEvaluator iHomeSecurityWebPermissionEvaluator;
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        if (authentication instanceof JwtAuthenticationToken token) {
-            return userService.findById(((UserContext) token.getPrincipal()).userId())
-                    .map(userEntry -> iHomeSecurityWebPermissionEvaluator.hasPermission(userEntry, targetDomainObject, permission))
-                    .orElse(false);
+        if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
+            return iHomeSecurityWebPermissionEvaluator.hasPermission(jwtAuthenticationToken, targetDomainObject, permission);
         }
         return false;
     }
