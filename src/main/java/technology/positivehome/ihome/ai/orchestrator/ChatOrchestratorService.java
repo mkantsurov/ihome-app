@@ -202,10 +202,11 @@ public class ChatOrchestratorService {
                     You can view all system information and control supported devices.
                     Note: Changing module operation modes (AUTO/MANUAL/OFF) requires administrator privileges.""";
         } else {
+            // For users without admin or supervisor (e.g., AUTHORIZED_GUEST, CHILDREN_ROOM*_MANAGER, UNDEFINED),
+            // the module context below will provide (or omit) the module table based on their actual tool access.
             roleDescription = """
-                    Your access is limited to specific modules.
-                    The table below shows which modules you can view (READ) and which you can control (READ+WRITE).""";
-        }
+                    Your access level is read-only on select system information.
+                    See the module table below for your specific module permissions.""";        }
 
         String moduleContext = buildModuleContext(authentication);
 
@@ -242,8 +243,20 @@ public class ChatOrchestratorService {
      * Each row includes the module's ID, name, type, current state, and the user's
      * access level (READ or READ+WRITE) based on per-module permissions.
      * Modules the user has no access to are excluded entirely.
+     *
+     * <p>If the user does not have access to the {@code getModuleList} tool
+     * (e.g., AUTHORIZED_GUEST), this returns a message indicating that module
+     * details are not available, rather than leaking a full module table that
+     * the user has no tools to query.</p>
      */
     private String buildModuleContext(Authentication authentication) {
+        // Gate on whether the user can access any module-list tool.
+        // If they can't even see getModuleList (e.g., AUTHORIZED_GUEST), don't leak the table.
+        if (!toolRegistry.canExecute("getModuleList", authentication)) {
+            return "(Module details are not available at your access level. "
+                    + "See the tools listed above for what you can query.)";
+        }
+
         try {
             ModuleSummary[] modules = systemProcessor.getModuleList(null, null);
             if (modules == null || modules.length == 0) {
