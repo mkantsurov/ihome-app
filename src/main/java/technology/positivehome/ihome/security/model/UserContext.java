@@ -7,14 +7,10 @@ import java.util.*;
 
 public record UserContext(long userId, String clientIp, List<GrantedAuthority> authorities) {
 
-    public static UserContext create(long userId, List<GrantedAuthority> authorities) {
+    public static Builder builder(long userId) {
         if (userId == 0) {
             throw new IllegalArgumentException("UserId :" + userId);
         }
-        return new UserContext(userId, authorities);
-    }
-
-    public static Builder builder(long userId) {
         return new Builder(userId);
     }
 

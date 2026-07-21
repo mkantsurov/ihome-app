@@ -20,11 +20,20 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private RawAccessJwtToken rawAccessToken;
     private UserContext userContext;
+    private String clientIp;
 
     public JwtAuthenticationToken(RawAccessJwtToken unsafeToken) {
         super(null);
         this.rawAccessToken = unsafeToken;
         this.setAuthenticated(false);
+    }
+
+    public String getClientIp() {
+        return clientIp;
+    }
+
+    public void setClientIp(String clientIp) {
+        this.clientIp = clientIp;
     }
 
     public JwtAuthenticationToken(UserContext userContext, Collection<? extends GrantedAuthority> authorities) {

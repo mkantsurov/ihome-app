@@ -114,18 +114,6 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    @Bean
-    static IHomeDelegatingSecurityPermissionEvaluator securityPermissionEvaluator() {
-        return new IHomeDelegatingSecurityPermissionEvaluator();
-    }
-
-    @Bean
-    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(IHomeDelegatingSecurityPermissionEvaluator iHomeDelegatingSecurityPermissionEvaluator) {
-        IHomeMethodSecurityExpressionHandler handler = new IHomeMethodSecurityExpressionHandler();
-        handler.setPermissionEvaluator(iHomeDelegatingSecurityPermissionEvaluator);
-        return handler;
-    }
-
     protected AjaxLoginProcessingFilter buildAjaxLoginProcessingFilter(AuthenticationManager authenticationManager, String loginEntryPoint) throws Exception {
         AjaxLoginProcessingFilter filter = new AjaxLoginProcessingFilter(loginEntryPoint, successHandler, failureHandler, objectMapper);
         filter.setAuthenticationManager(authenticationManager);
@@ -138,6 +126,13 @@ public class WebSecurityConfig {
                 = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
         filter.setAuthenticationManager(authenticationManager);
         return filter;
+    }
+
+    @Bean
+    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(IHomeDelegatingSecurityPermissionEvaluator iHomeDelegatingSecurityPermissionEvaluator) {
+        IHomeMethodSecurityExpressionHandler handler = new IHomeMethodSecurityExpressionHandler();
+        handler.setPermissionEvaluator(iHomeDelegatingSecurityPermissionEvaluator);
+        return handler;
     }
 
 }

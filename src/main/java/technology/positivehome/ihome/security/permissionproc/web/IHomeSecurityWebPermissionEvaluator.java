@@ -3,6 +3,7 @@ package technology.positivehome.ihome.security.permissionproc.web;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
 import technology.positivehome.ihome.security.auth.JwtAuthenticationToken;
 import technology.positivehome.ihome.security.model.permissionproc.AuthorizableObj;
 import technology.positivehome.ihome.security.model.permissionproc.EntityAccessPermission;
@@ -11,6 +12,7 @@ import technology.positivehome.ihome.security.service.UserService;
 
 import java.util.Collection;
 
+@Service
 public class IHomeSecurityWebPermissionEvaluator {
 
 

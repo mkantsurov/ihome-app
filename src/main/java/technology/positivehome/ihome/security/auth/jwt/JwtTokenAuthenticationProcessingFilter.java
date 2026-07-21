@@ -13,6 +13,7 @@ import technology.positivehome.ihome.configuration.WebSecurityConfig;
 import technology.positivehome.ihome.security.auth.JwtAuthenticationToken;
 import technology.positivehome.ihome.security.auth.jwt.extractor.TokenExtractor;
 import technology.positivehome.ihome.security.model.token.RawAccessJwtToken;
+import technology.positivehome.ihome.security.util.WebUtil;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,7 +38,9 @@ public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticati
             throws AuthenticationException, IOException, ServletException {
         String tokenPayload = request.getHeader(WebSecurityConfig.AUTHENTICATION_HEADER_NAME);
         RawAccessJwtToken token = new RawAccessJwtToken(tokenExtractor.extract(tokenPayload));
-        return getAuthenticationManager().authenticate(new JwtAuthenticationToken(token));
+        JwtAuthenticationToken authToken = new JwtAuthenticationToken(token);
+        authToken.setClientIp(WebUtil.getClientIp(request));
+        return getAuthenticationManager().authenticate(authToken);
     }
 
     @Override

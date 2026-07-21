@@ -29,19 +29,19 @@ public class ModuleController {
         this.statisticProcessor = statisticProcessor;
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasPermission(@ObjectIdFactory.rootListObjReq('module_list'), 'read')")
     @GetMapping
     public ModuleSummary[] moduleList(@RequestParam(required = false) Integer assignment, @RequestParam(required = false) Long group) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException {
         return systemProcessor.getModuleList(assignment, group);
     }
 
-    @PreAuthorize("hasAccessPermission('MODULE', 'READ', #moduleId)")
+    @PreAuthorize("hasPermission(@ObjectIdFactory.moduleIdReq(#moduleId), 'read')")
     @GetMapping(path = "/{moduleId}")
     public ModuleEntry getModuleData(@PathVariable long moduleId) throws MegadApiMallformedUrlException, URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return systemProcessor.getModuleData(moduleId);
     }
 
-    @PreAuthorize("hasAccessPermission('MODULE', 'WRITE', #moduleId)")
+    @PreAuthorize("hasPermission(@ObjectIdFactory.moduleIdReq(#moduleId), 'write')")
     @PutMapping(path = "/{moduleId}")
     public ResponseEntity<Void> updateModule(@PathVariable long moduleId, @RequestBody ModuleUpdateRequest moduleUpdateRequest) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         systemProcessor.updateModuleProps(moduleId, moduleUpdateRequest);

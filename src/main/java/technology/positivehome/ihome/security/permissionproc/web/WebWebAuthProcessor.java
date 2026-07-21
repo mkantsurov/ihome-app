@@ -5,5 +5,4 @@ public interface WebWebAuthProcessor extends WebAuthProcessorChain {
     void addNext(WebAuthProcessorChain next);
 
     WebAuthProcessorChain next();
-
 }
