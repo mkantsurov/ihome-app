@@ -21,7 +21,9 @@ import technology.positivehome.ihome.security.model.token.RawAccessJwtToken;
 import technology.positivehome.ihome.security.model.token.RefreshToken;
 import technology.positivehome.ihome.security.model.user.User;
 import technology.positivehome.ihome.security.service.UserService;
+import technology.positivehome.ihome.security.util.WebUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -56,7 +58,8 @@ public class AuthenticationController {
     @PostMapping(value = "/refresh", produces={ MediaType.APPLICATION_JSON_VALUE })
     public AccessJwtToken refreshAuthenticationToken(
             @RequestHeader(value = X_CLIENT_SSL_DN, required = false) String dn,
-            @RequestBody(required = false) String token) {
+            @RequestBody(required = false) String token,
+            HttpServletRequest request) {
 
         RawAccessJwtToken rawToken = new RawAccessJwtToken(token);
         RefreshToken refreshToken = RefreshToken.create(rawToken, jwtSettings.getTokenSigningKey()).orElseThrow(InvalidJwtToken::new);
@@ -70,13 +73,16 @@ public class AuthenticationController {
         String[] userIds = Optional.ofNullable(subject).orElseThrow().split("/(\\D+)");
         User user = userService.getById(Long.parseLong(userIds[1]));
 
-        if (user.getRoles() == null) throw new InsufficientAuthenticationException("User has no roles assigned");
+        if (user.roles() == null) throw new InsufficientAuthenticationException("User has no roles assigned");
 
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(authority -> new SimpleGrantedAuthority(authority.getRole().authority()))
+        List<GrantedAuthority> authorities = user.roles().stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.role().authority()))
                 .collect(Collectors.toList());
 
-        UserContext userContext = UserContext.create(user.getId(), authorities);
+        UserContext userContext = UserContext.builder(user.id())
+                .withClientIp(WebUtil.getClientIp(request))
+                .withAuthorities(authorities)
+                .build();
         return tokenFactory.createAccessJwtToken(userContext);
     }
 

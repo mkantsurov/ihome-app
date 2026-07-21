@@ -118,6 +118,16 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    @Nonnull
+    public Optional<UserEntity> findById(long userId) {
+        List<UserEntity> users = namedParameterJdbcTemplate.query(
+                SELECT_USER_BY_ID,
+                Map.of("id", userId),
+                userWithRolesExtractor);
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.getFirst());
+    }
+
+    @Override
     public boolean existsByUsername(@Nonnull String username) {
         Integer count = namedParameterJdbcTemplate.queryForObject(
                 COUNT_BY_USERNAME,

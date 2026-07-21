@@ -39,6 +39,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findById(long userId) {
+        return userRepository.findById(userId)
+                .map(this::toDomain);
+    }
+
+    @Override
     public User getById(long userId) {
         UserEntity entity = userRepository.getById(userId);
         return toDomain(entity);

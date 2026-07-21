@@ -15,11 +15,13 @@ import technology.positivehome.ihome.security.service.PermissionService;
 import technology.positivehome.ihome.server.persistence.ModuleConfigRepository;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link McpToolRegistry}.
@@ -35,6 +37,9 @@ class McpToolRegistryTest {
 
     @BeforeEach
     void setUp() {
+        // Stub to simulate that supervisor-controllable modules exist in the system
+        when(moduleConfigRepository.hasAnyModuleWithAssignments(anySet())).thenReturn(true);
+
         PermissionService permissionService = new PermissionService(moduleConfigRepository);
         registry = new McpToolRegistry(objectMapper, permissionService);
         registry.registerTools();
@@ -50,17 +55,16 @@ class McpToolRegistryTest {
     @Test
     void shouldRegisterAllTools() {
         Collection<McpToolDefinition> tools = registry.getAllTools();
-        assertEquals(15, tools.size(), "Expected exactly 15 tools (5 public-read, 8 restricted-read, 2 write)");
+        assertEquals(16, tools.size(), "Expected exactly 16 tools (4 public-read, 10 restricted-read, 1 write, 1 admin-only)");
     }
 
     @Test
     void shouldIncludePublicReadTools() {
-        // Outdoor temperature/humidity, pressure, and external power supply (guest controller data)
+        // Outdoor temperature/humidity, pressure, external power voltage, and external power summary (guest controller data)
         assertTrue(registry.getTool("getTempStat").isPresent());
         assertTrue(registry.getTool("getPressureStat").isPresent());
         assertTrue(registry.getTool("getPowerSummary").isPresent());
-        assertTrue(registry.getTool("getPowerConsumptionStat").isPresent());
-        assertTrue(registry.getTool("getPowerVoltageStat").isPresent());
+        assertTrue(registry.getTool("getPowerVoltageExtStat").isPresent());
     }
 
     @Test
@@ -73,10 +77,14 @@ class McpToolRegistryTest {
         assertTrue(registry.getTool("getModuleData").isPresent());
         assertTrue(registry.getTool("getModuleListByGroup").isPresent());
         assertTrue(registry.getTool("getBoilerTempStat").isPresent());
+        assertTrue(registry.getTool("getPowerConsumptionStat").isPresent(),
+                "getPowerConsumptionStat includes internal consumption data, should be restricted-read");
+        assertTrue(registry.getTool("getPowerVoltageStat").isPresent(),
+                "getPowerVoltageStat includes internal voltage data, should be restricted-read");
     }
 
     @Test
-    void shouldIncludeWriteTools() {
+    void shouldIncludeWriteAndAdminTools() {
         assertTrue(registry.getTool("updateModuleMode").isPresent());
         assertTrue(registry.getTool("updateModuleOutputState").isPresent());
     }
@@ -112,34 +120,34 @@ class McpToolRegistryTest {
 
     @Test
     void adminUserShouldSeeAllTools() {
-        List<GrantedAuthority> adminAuthorities = List.of(
-                new SimpleGrantedAuthority(Role.ADMIN.authority()),
-                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
-        );
+        Authentication admin = new UsernamePasswordAuthenticationToken("admin", null,
+                List.of(new SimpleGrantedAuthority(Role.ADMIN.authority()),
+                        new SimpleGrantedAuthority(Role.UNDEFINED.authority())));
 
-        List<McpToolDefinition> tools = registry.getToolsForRoles(adminAuthorities);
+        List<McpToolDefinition> tools = registry.getToolsForRoles(admin);
         assertEquals(registry.getAllTools().size(), tools.size(),
                 "Admin should see all tools");
     }
 
     @Test
-    void supervisorUserShouldSeeAllTools() {
-        List<GrantedAuthority> supervisorAuthorities = List.of(
-                new SimpleGrantedAuthority(Role.SUPERVISOR.authority())
-        );
+    void supervisorUserShouldSeeAllToolsExceptAdminOnly() {
+        Authentication supervisor = new UsernamePasswordAuthenticationToken("supervisor", null,
+                List.of(new SimpleGrantedAuthority(Role.SUPERVISOR.authority())));
 
-        List<McpToolDefinition> tools = registry.getToolsForRoles(supervisorAuthorities);
-        assertEquals(registry.getAllTools().size(), tools.size(),
-                "Supervisor should see all tools (public-read + restricted-read + write)");
+        List<McpToolDefinition> tools = registry.getToolsForRoles(supervisor);
+        // Supervisor sees: 4 public-read + 10 restricted-read + 1 write = 15 (not updateModuleMode which is ADMIN_ONLY)
+        assertEquals(15, tools.size(),
+                "Supervisor should see 15 tools (public-read + restricted-read + write), excluding admin-only");
+        assertTrue(tools.stream().noneMatch(t -> t.name().equals("updateModuleMode")),
+                "Supervisor should not see ADMIN_ONLY tool updateModuleMode");
     }
 
     @Test
     void nonAdminUserShouldSeeOnlyReadOnlyTools() {
-        List<GrantedAuthority> userAuthorities = List.of(
-                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
-        );
+        Authentication user = new UsernamePasswordAuthenticationToken("user", null,
+                List.of(new SimpleGrantedAuthority(Role.UNDEFINED.authority())));
 
-        List<McpToolDefinition> tools = registry.getToolsForRoles(userAuthorities);
+        List<McpToolDefinition> tools = registry.getToolsForRoles(user);
         assertTrue(tools.size() < registry.getAllTools().size(),
                 "Non-admin should see fewer tools than total");
         assertTrue(tools.stream().noneMatch(McpToolDefinition::requiresModuleWritePermission),
@@ -148,15 +156,14 @@ class McpToolRegistryTest {
 
     @Test
     void authorizedGuestShouldSeeOnlyPublicReadTools() {
-        List<GrantedAuthority> guestAuthorities = List.of(
-                new SimpleGrantedAuthority(Role.AUTHORIZED_GUEST.authority())
-        );
+        Authentication guest = new UsernamePasswordAuthenticationToken("guest", null,
+                List.of(new SimpleGrantedAuthority(Role.AUTHORIZED_GUEST.authority())));
 
-        List<McpToolDefinition> tools = registry.getToolsForRoles(guestAuthorities);
+        List<McpToolDefinition> tools = registry.getToolsForRoles(guest);
 
-        // Guest should see ONLY public-read tools (5 tools), not restricted-read (8) or write (2)
-        assertEquals(5, tools.size(),
-                "AUTHORIZED_GUEST should see only 5 public-read tools");
+        // Guest should see ONLY public-read tools (4 tools), not restricted-read (10) or write (2)
+        assertEquals(4, tools.size(),
+                "AUTHORIZED_GUEST should see only 4 public-read tools");
         assertTrue(tools.stream().noneMatch(McpToolDefinition::requiresModuleWritePermission),
                 "AUTHORIZED_GUEST should not see module-write tools");
         assertTrue(tools.stream().noneMatch(McpToolDefinition::isRestrictedRead),
@@ -169,10 +176,12 @@ class McpToolRegistryTest {
                 "AUTHORIZED_GUEST should see getTempStat");
         assertTrue(tools.stream().anyMatch(t -> t.name().equals("getPowerSummary")),
                 "AUTHORIZED_GUEST should see getPowerSummary");
-        assertTrue(tools.stream().anyMatch(t -> t.name().equals("getPowerConsumptionStat")),
-                "AUTHORIZED_GUEST should see getPowerConsumptionStat");
-        assertTrue(tools.stream().anyMatch(t -> t.name().equals("getPowerVoltageStat")),
-                "AUTHORIZED_GUEST should see getPowerVoltageStat");
+        assertTrue(tools.stream().anyMatch(t -> t.name().equals("getPowerVoltageExtStat")),
+                "AUTHORIZED_GUEST should see getPowerVoltageExtStat (external voltage only, matches guest controller)");
+        assertTrue(tools.stream().noneMatch(t -> t.name().equals("getPowerConsumptionStat")),
+                "AUTHORIZED_GUEST should NOT see getPowerConsumptionStat (includes internal data)");
+        assertTrue(tools.stream().noneMatch(t -> t.name().equals("getPowerVoltageStat")),
+                "AUTHORIZED_GUEST should NOT see getPowerVoltageStat (includes internal data)");
     }
 
     @Test
@@ -190,6 +199,7 @@ class McpToolRegistryTest {
         assertTrue(registry.canExecute("getPressureStat", auth(Role.ADMIN)));
         assertTrue(registry.canExecute("getPowerSummary", auth(Role.ADMIN)));
         assertTrue(registry.canExecute("getPowerVoltageStat", auth(Role.ADMIN)));
+        assertTrue(registry.canExecute("getPowerVoltageExtStat", auth(Role.ADMIN)));
 
         // Can execute module tools
         assertTrue(registry.canExecute("getModuleList", auth(Role.ADMIN)));
@@ -209,7 +219,8 @@ class McpToolRegistryTest {
         assertFalse(registry.canExecute("updateModuleMode", auth(Role.AUTHORIZED_GUEST)));
         assertFalse(registry.canExecute("updateModuleOutputState", auth(Role.AUTHORIZED_GUEST)));
 
-        // Restricted-read tools — denied
+        // Restricted-read tools — denied (includes getPowerConsumptionStat and getPowerVoltageStat
+        // which include internal data not on the guest controller)
         assertFalse(registry.canExecute("getSystemSummary", auth(Role.AUTHORIZED_GUEST)));
         assertFalse(registry.canExecute("getHeatingSummary", auth(Role.AUTHORIZED_GUEST)));
         assertFalse(registry.canExecute("getLuminosityStat", auth(Role.AUTHORIZED_GUEST)));
@@ -218,13 +229,17 @@ class McpToolRegistryTest {
         assertFalse(registry.canExecute("getModuleData", auth(Role.AUTHORIZED_GUEST)));
         assertFalse(registry.canExecute("getModuleListByGroup", auth(Role.AUTHORIZED_GUEST)));
         assertFalse(registry.canExecute("getBoilerTempStat", auth(Role.AUTHORIZED_GUEST)));
+        assertFalse(registry.canExecute("getPowerConsumptionStat", auth(Role.AUTHORIZED_GUEST),
+                "getPowerConsumptionStat includes internal consumption data, denied for AUTHORIZED_GUEST"));
+        assertFalse(registry.canExecute("getPowerVoltageStat", auth(Role.AUTHORIZED_GUEST),
+                "getPowerVoltageStat includes internal voltage data, denied for AUTHORIZED_GUEST"));
 
         // Public-read tools (outdoor temp/humidity, pressure, external power supply) — allowed
         assertTrue(registry.canExecute("getTempStat", auth(Role.AUTHORIZED_GUEST)));
         assertTrue(registry.canExecute("getPressureStat", auth(Role.AUTHORIZED_GUEST)));
         assertTrue(registry.canExecute("getPowerSummary", auth(Role.AUTHORIZED_GUEST)));
-        assertTrue(registry.canExecute("getPowerConsumptionStat", auth(Role.AUTHORIZED_GUEST)));
-        assertTrue(registry.canExecute("getPowerVoltageStat", auth(Role.AUTHORIZED_GUEST)));
+        assertTrue(registry.canExecute("getPowerVoltageExtStat", auth(Role.AUTHORIZED_GUEST),
+                "getPowerVoltageExtStat is external voltage only, matches guest controller"));
     }
 
     @Test
@@ -238,9 +253,13 @@ class McpToolRegistryTest {
 
     @Test
     void supervisorCanExecuteRestrictedAndWriteTools() {
-        // Write tools — allowed (module-assignment enforcement happens at Layer 3)
-        assertTrue(registry.canExecute("updateModuleMode", auth(Role.SUPERVISOR)));
-        assertTrue(registry.canExecute("updateModuleOutputState", auth(Role.SUPERVISOR)));
+        // Write tools — allowed for updateModuleOutputState (module-assignment enforcement happens at Layer 3)
+        assertTrue(registry.canExecute("updateModuleOutputState", auth(Role.SUPERVISOR)),
+                "Supervisor should be able to execute updateModuleOutputState");
+
+        // ADMIN_ONLY tool — denied for supervisor
+        assertFalse(registry.canExecute("updateModuleMode", auth(Role.SUPERVISOR)),
+                "Supervisor should NOT be able to execute ADMIN_ONLY tool updateModuleMode");
 
         // Restricted-read tools — allowed
         assertTrue(registry.canExecute("getSystemSummary", auth(Role.SUPERVISOR)));
@@ -269,6 +288,7 @@ class McpToolRegistryTest {
         assertEquals(McpToolAccessType.PUBLIC_READ, registry.getTool("getPressureStat").get().accessType());
         assertEquals(McpToolAccessType.RESTRICTED_READ, registry.getTool("getSystemSummary").get().accessType());
         assertEquals(McpToolAccessType.RESTRICTED_READ, registry.getTool("getModuleList").get().accessType());
-        assertEquals(McpToolAccessType.WRITE, registry.getTool("updateModuleMode").get().accessType());
+        assertEquals(McpToolAccessType.ADMIN_ONLY, registry.getTool("updateModuleMode").get().accessType());
+        assertEquals(McpToolAccessType.WRITE, registry.getTool("updateModuleOutputState").get().accessType());
     }
 }

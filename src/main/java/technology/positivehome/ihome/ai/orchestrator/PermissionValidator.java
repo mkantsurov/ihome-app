@@ -52,7 +52,7 @@ public class PermissionValidator {
             return java.util.List.of();
         }
 
-        return toolRegistry.getToolsForRoles(authentication.getAuthorities()).stream()
+        return toolRegistry.getToolsForRoles(authentication).stream()
                 .map(tool -> tool.name())
                 .toList();
     }

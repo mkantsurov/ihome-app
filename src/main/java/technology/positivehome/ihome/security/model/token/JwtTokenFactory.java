@@ -41,16 +41,16 @@ public class JwtTokenFactory {
      * @return
      */
     public AccessJwtToken createAccessJwtToken(UserContext userContext) {
-        if (userContext.getUserId() == 0) {
+        if (userContext.userId() == 0) {
             throw new IllegalArgumentException("Cannot create JWT Token without userId");
         }
 
-        if (userContext.getAuthorities() == null || userContext.getAuthorities().isEmpty()) {
+        if (userContext.authorities() == null || userContext.authorities().isEmpty()) {
             throw new IllegalArgumentException("User doesn't have any privileges");
         }
 
-        Claims claims = Jwts.claims().setSubject(USER_PATH + userContext.getUserId());
-        claims.put("scopes", userContext.getAuthorities().stream().map(Object::toString).collect(Collectors.toList()));
+        Claims claims = Jwts.claims().setSubject(USER_PATH + userContext.userId());
+        claims.put("scopes", userContext.authorities().stream().map(Object::toString).collect(Collectors.toList()));
         LocalDateTime currentTime = LocalDateTime.now();
 
         String token = Jwts.builder()
@@ -67,13 +67,13 @@ public class JwtTokenFactory {
     }
 
     public JwtToken createRefreshToken(UserContext userContext) {
-        if (userContext.getUserId() <= 0) {
+        if (userContext.userId() <= 0) {
             throw new IllegalArgumentException("Cannot create JWT Token without userId");
         }
 
         LocalDateTime currentTime = LocalDateTime.now();
 
-        Claims claims = Jwts.claims().setSubject(USER_PATH + userContext.getUserId());
+        Claims claims = Jwts.claims().setSubject(USER_PATH + userContext.userId());
         claims.put("scopes", Collections.singletonList(Scopes.REFRESH_TOKEN.authority()));
 
         String token = Jwts.builder()

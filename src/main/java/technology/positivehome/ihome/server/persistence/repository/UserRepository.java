@@ -26,6 +26,14 @@ public interface UserRepository extends AuditableIHomeRepository<UserEntity, Lon
     Optional<UserEntity> findByUsername(@Nonnull String username);
 
     /**
+     * Finds a user entity by their unique identifier.
+     *
+     * @param userId the user ID to search for
+     * @return an {@link Optional} containing the {@link UserEntity} if found, or empty if no user exists with the given ID
+     */
+    Optional<UserEntity> findById(long userId);
+
+    /**
      * Searches for users whose username matches the given pattern (case-insensitive).
      *
      * @param usernamePattern the username pattern to search for (supports SQL LIKE wildcards: %, _)

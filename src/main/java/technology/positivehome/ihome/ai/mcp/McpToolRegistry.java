@@ -2,7 +2,6 @@ package technology.positivehome.ihome.ai.mcp;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -24,13 +23,14 @@ import java.util.function.Function;
  * Within the AI chat this makes the tool accessible to all authenticated users, but
  * that is a consequence, not the primary definition.
  *
- * <p>Three access tiers exist within the AI chat:
+ * <p>Four access tiers exist within the AI chat:
  * <ul>
  *   <li><b>PUBLIC_READ</b> — data <b>also</b> on the guest controller.
  *       Within the chat: accessible to all authenticated users (including {@code AUTHORIZED_GUEST}).</li>
  *   <li><b>RESTRICTED_READ</b> — data <b>not</b> on the guest controller.
  *       Within the chat: hidden from {@code AUTHORIZED_GUEST}, available to all other roles.</li>
  *   <li><b>WRITE</b> — requires {@code ROLE_ADMIN} or {@code ROLE_SUPERVISOR}</li>
+ *   <li><b>ADMIN_ONLY</b> — requires {@code ROLE_ADMIN} only (e.g., changing module mode)</li>
  * </ul>
  */
 @Component
@@ -52,20 +52,29 @@ public class McpToolRegistry {
         registerPublicReadTools();
         registerRestrictedReadTools();
         registerWriteTools();
-        log.info("Registered {} MCP tools ({} public-read, {} restricted-read, {} write)",
+        log.info("Registered {} MCP tools ({} public-read, {} restricted-read, {} write, {} admin-only)",
                 tools.size(),
                 tools.values().stream().filter(t -> t.accessType() == McpToolAccessType.PUBLIC_READ).count(),
                 tools.values().stream().filter(t -> t.accessType() == McpToolAccessType.RESTRICTED_READ).count(),
-                tools.values().stream().filter(t -> !t.isReadOnly()).count());
+                tools.values().stream().filter(t -> t.accessType() == McpToolAccessType.WRITE).count(),
+                tools.values().stream().filter(t -> t.accessType() == McpToolAccessType.ADMIN_ONLY).count());
     }
 
     /**
      * Registers tools whose data is also exposed via the unauthenticated guest controller.
      * Only tools that directly map to guest-controller endpoints are registered here:
      * <ul>
+     *   <li>Outdoor temperature/humidity ({@code /guest-api/v1/stats/outdoor-temp-stat})</li>
      *   <li>Atmospheric pressure ({@code /guest-api/v1/stats/pressure-stat})</li>
+     *   <li>External power voltage ({@code /guest-api/v1/stats/power-stat})</li>
+     *   <li>External power summary ({@code /guest-api/v1/stats/power-summary})</li>
      * </ul>
      * Within the AI chat these are available to all authenticated users (including AUTHORIZED_GUEST).
+     *
+     * <p>Note: {@code getPowerConsumptionStat} and {@code getPowerVoltageStat} include <b>internal</b>
+     * consumption/voltage data that is NOT on the guest controller. They are therefore
+     * registered as {@link McpToolAccessType#RESTRICTED_READ} in
+     * {@link #registerRestrictedReadTools()}.
      */
     private void registerPublicReadTools() {
         // Temperature statistics — includes outdoor temperature/humidity data (also on guest controller)
@@ -102,21 +111,12 @@ public class McpToolRegistry {
                         .set("properties", objectMapper.createObjectNode()),
                 Set.of());
 
-        // Power consumption statistics — includes external consumption data (also on guest controller)
-        // Guest controller: GET /guest-api/v1/stats/power-stat and GET /guest-api/v1/stats/power-summary
-        register("getPowerConsumptionStat",
-                "Get power consumption statistics over time. Values are in watts.",
-                McpToolAccessType.PUBLIC_READ,
-                buildObjectSchema()
-                        .put("type", "object")
-                        .set("properties", objectMapper.createObjectNode()),
-                Set.of());
-
-        // Power voltage statistics — includes external voltage data (also on guest controller)
+        // External power voltage statistics — exact match to guest controller
         // Guest controller: GET /guest-api/v1/stats/power-stat
         // Values in hundredths of volts, scaled to decimal
-        register("getPowerVoltageStat",
-                "Get power voltage statistics. Values are in volts.",
+        register("getPowerVoltageExtStat",
+                "Get EXTERNAL power voltage statistics only. Values are in volts. " +
+                        "For all voltage data (external + internal), use getPowerVoltageStat instead.",
                 McpToolAccessType.PUBLIC_READ,
                 buildObjectSchema()
                         .put("type", "object")
@@ -132,6 +132,12 @@ public class McpToolRegistry {
      * <p>
      * The guest controller only exposes outdoor temperature/humidity, pressure, external
      * power voltage, and external power summary. Everything else is restricted-read.
+     *
+     * <p>Note: {@code getPowerConsumptionStat} and {@code getPowerVoltageStat} include
+     * <b>internal</b> consumption/voltage data that is NOT on the guest controller,
+     * so they are registered here alongside the full power-stat data.
+     * The external-only subset of {@code getPowerVoltageStat} is available as
+     * {@code getPowerVoltageExtStat} in {@link #registerPublicReadTools()}.
      */
     private void registerRestrictedReadTools() {
         // System summary
@@ -221,15 +227,38 @@ public class McpToolRegistry {
                         .set("properties", objectMapper.createObjectNode()),
                 Set.of(),
                 scaleChartPointValues(0.01));
+
+        // Power consumption statistics — includes internal consumption data NOT on guest controller
+        // Guest controller only exposes external power summary, not full consumption breakdown
+        register("getPowerConsumptionStat",
+                "Get power consumption statistics over time, including external, internal, and backup consumption. Values are in watts.",
+                McpToolAccessType.RESTRICTED_READ,
+                buildObjectSchema()
+                        .put("type", "object")
+                        .set("properties", objectMapper.createObjectNode()),
+                Set.of());
+
+        // Power voltage statistics — includes internal voltage data NOT on guest controller
+        // Guest controller only exposes external voltage (getPowerVoltageExtStat)
+        // Values in hundredths of volts, scaled to decimal
+        register("getPowerVoltageStat",
+                "Get power voltage statistics for all sources (external + internal + backup). Values are in volts. For external voltage only, use getPowerVoltageExtStat.",
+                McpToolAccessType.RESTRICTED_READ,
+                buildObjectSchema()
+                        .put("type", "object")
+                        .set("properties", objectMapper.createObjectNode()),
+                Set.of(),
+                scaleChartPointValues(0.01));
     }
 
     private void registerWriteTools() {
         Set<Role> moduleWriteRoles = Set.of(Role.ADMIN, Role.SUPERVISOR);
+        Set<Role> adminOnlyRoles = Set.of(Role.ADMIN);
 
-        // Update module mode
+        // Update module mode — ADMIN only (sensitive operation)
         register("updateModuleMode",
-                "Change the operation mode of a module (e.g., AUTO, MANUAL, OFF)",
-                McpToolAccessType.WRITE,
+                "Change the operation mode of a module (e.g., AUTO, MANUAL, OFF). Only administrators can perform this action.",
+                McpToolAccessType.ADMIN_ONLY,
                 buildObjectSchema()
                         .put("type", "object")
                         .<ObjectNode>set("properties", objectMapper.createObjectNode()
@@ -241,9 +270,9 @@ public class McpToolRegistry {
                                         .put("description", "The new operation mode (0=AUTO, 1=MANUAL, 2=OFF)")))
                         .<ObjectNode>set("required", objectMapper.createArrayNode()
                                 .add("moduleId").add("mode")),
-                moduleWriteRoles);
+                adminOnlyRoles);
 
-        // Update module output state
+        // Update module output state — ADMIN and SUPERVISOR
         register("updateModuleOutputState",
                 "Enable or disable a module's power output (controls lights, garage door power, sliding gate power, etc.)",
                 McpToolAccessType.WRITE,
@@ -306,6 +335,21 @@ public class McpToolRegistry {
         }
     }
 
+    /**
+     * Returns {@code true} if the given authorities represent a pure AUTHORIZED_GUEST
+     * role — i.e., the user has the AUTHORIZED_GUEST authority and none of the
+     * higher-privilege roles (ADMIN, SUPERVISOR, CHILDREN_ROOM1_MANAGER, CHILDREN_ROOM2_MANAGER).
+     */
+    private static boolean isGuestOnlyRole(Collection<? extends org.springframework.security.core.GrantedAuthority> authorities) {
+        return authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals(Role.AUTHORIZED_GUEST.authority()))
+                && authorities.stream().noneMatch(a ->
+                        a.getAuthority().equals(Role.ADMIN.authority())
+                        || a.getAuthority().equals(Role.SUPERVISOR.authority())
+                        || a.getAuthority().equals(Role.CHILDREN_ROOM1_MANAGER.authority())
+                        || a.getAuthority().equals(Role.CHILDREN_ROOM2_MANAGER.authority()));
+    }
+
     private ObjectNode buildObjectSchema() {
         return objectMapper.createObjectNode();
     }
@@ -323,28 +367,28 @@ public class McpToolRegistry {
      *   <li><b>PUBLIC_READ</b> — all authenticated users (including AUTHORIZED_GUEST)</li>
      *   <li><b>RESTRICTED_READ</b> — all authenticated users except AUTHORIZED_GUEST</li>
      *   <li><b>WRITE</b> — requires {@code ROLE_ADMIN} or {@code ROLE_SUPERVISOR}</li>
+     *   <li><b>ADMIN_ONLY</b> — requires {@code ROLE_ADMIN} only</li>
      * </ul>
      * <p>
      * Note: Per-module READ/WRITE permissions are checked separately by
      * {@code PermissionService#hasModulePermission(Authentication, long, ...)}.
      */
-    public List<McpToolDefinition> getToolsForRoles(Collection<? extends org.springframework.security.core.GrantedAuthority> authorities) {
-        boolean canWriteModules = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.authority())
-                        || a.getAuthority().equals(Role.SUPERVISOR.authority()));
+    public List<McpToolDefinition> getToolsForRoles(Authentication authentication) {
+        Collection<? extends org.springframework.security.core.GrantedAuthority> authorities =
+                authentication.getAuthorities();
 
-        boolean isGuestOnly = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals(Role.AUTHORIZED_GUEST.authority()))
-                && authorities.stream().noneMatch(a ->
-                        a.getAuthority().equals(Role.ADMIN.authority())
-                        || a.getAuthority().equals(Role.SUPERVISOR.authority())
-                        || a.getAuthority().equals(Role.CHILDREN_ROOM1_MANAGER.authority())
-                        || a.getAuthority().equals(Role.CHILDREN_ROOM2_MANAGER.authority()));
+        boolean isAdmin = authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.authority()));
+
+        boolean isGuestOnly = isGuestOnlyRole(authorities);
 
         return tools.values().stream()
                 .filter(tool -> {
+                    if (tool.accessType() == McpToolAccessType.ADMIN_ONLY) {
+                        return isAdmin;
+                    }
                     if (tool.accessType() == McpToolAccessType.WRITE) {
-                        return canWriteModules;
+                        return permissionService.hasAnyWritePermission(authentication);
                     }
                     if (tool.isRestrictedRead()) {
                         return !isGuestOnly;
@@ -379,6 +423,7 @@ public class McpToolRegistry {
      *   <li>WRITE tools: requires a role with any write permission (ADMIN or SUPERVISOR).
      *       SUPERVISOR write access is further restricted per module-assignment type at
      *       execution time — see Layer 3 enforcement in {@code ChatOrchestratorService}.</li>
+     *   <li>ADMIN_ONLY tools: requires ROLE_ADMIN only.</li>
      * </ul>
      */
     public boolean canExecute(String toolName, Authentication authentication) {
@@ -386,19 +431,15 @@ public class McpToolRegistry {
         if (tool == null) {
             return false;
         }
+        if (tool.accessType() == McpToolAccessType.ADMIN_ONLY) {
+            return authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.authority()));
+        }
         if (tool.accessType() == McpToolAccessType.WRITE) {
             return permissionService.hasAnyWritePermission(authentication);
         }
-        var authorities = authentication.getAuthorities();
         if (tool.isRestrictedRead()) {
-            boolean isGuestOnly = authorities.stream()
-                    .anyMatch(a -> a.getAuthority().equals(Role.AUTHORIZED_GUEST.authority()))
-                    && authorities.stream().noneMatch(a ->
-                            a.getAuthority().equals(Role.ADMIN.authority())
-                            || a.getAuthority().equals(Role.SUPERVISOR.authority())
-                            || a.getAuthority().equals(Role.CHILDREN_ROOM1_MANAGER.authority())
-                            || a.getAuthority().equals(Role.CHILDREN_ROOM2_MANAGER.authority()));
-            return !isGuestOnly;
+            return !isGuestOnlyRole(authentication.getAuthorities());
         }
         // PUBLIC_READ / READ — any authenticated user
         return true;

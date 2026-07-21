@@ -30,7 +30,9 @@ import java.util.Set;
  *   <li><b>SUPERVISOR</b> — can READ everything; can WRITE to MODULE (enable/disable power to lights, garage doors, sliding gates, etc.)</li>
  *   <li><b>CHILDREN_ROOM1_MANAGER</b> — can READ everything; WRITE reserved for future room-scoped control</li>
  *   <li><b>CHILDREN_ROOM2_MANAGER</b> — same as above</li>
- *   <li><b>AUTHORIZED_GUEST</b> — READ only on non-sensitive targets</li>
+ *   <li><b>AUTHORIZED_GUEST</b> — no MODULE or SYSTEM permissions via PermissionService.
+ *       Their data access is limited to unauthenticated GuestController endpoints
+ *       (outdoor temperature, pressure, external power voltage, external power summary).</li>
  *   <li><b>UNDEFINED</b> — no permissions</li>
  * </ul>
  */
@@ -318,8 +320,10 @@ public class PermissionService {
             };
 
             case AUTHORIZED_GUEST -> switch (targetType) {
-                case MODULE -> accessType == IHomeApiTargetAccessType.READ;
-                case SYSTEM -> accessType == IHomeApiTargetAccessType.READ;
+                // AUTHORIZED_GUEST has no MODULE or SYSTEM access via PermissionService.
+                // Their data access is limited to GuestController endpoints
+                // (outdoor temp, pressure, external power voltage, external power summary)
+                // which are unauthenticated and bypass this check entirely.
                 default -> false;
             };
 
@@ -338,15 +342,12 @@ public class PermissionService {
                 case USER, SYSTEM, UNDEFINED -> readOnly;
             };
             case CHILDREN_ROOM1_MANAGER, CHILDREN_ROOM2_MANAGER -> readOnly;
-            case AUTHORIZED_GUEST -> switch (targetType) {
-                case MODULE, SYSTEM -> readOnly;
-                default -> EnumSet.noneOf(IHomeApiTargetAccessType.class);
-            };
+            case AUTHORIZED_GUEST -> EnumSet.noneOf(IHomeApiTargetAccessType.class);
             case UNDEFINED -> EnumSet.noneOf(IHomeApiTargetAccessType.class);
         };
     }
 
-    private Set<Role> extractRoles(Collection<? extends GrantedAuthority> authorities) {
+    public Set<Role> extractRoles(Collection<? extends GrantedAuthority> authorities) {
         EnumSet<Role> roles = EnumSet.noneOf(Role.class);
         for (GrantedAuthority authority : authorities) {
             String auth = authority.getAuthority();

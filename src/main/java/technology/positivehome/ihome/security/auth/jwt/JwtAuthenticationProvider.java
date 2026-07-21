@@ -47,8 +47,12 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
         String[] userIds = Optional.ofNullable(subject).orElseThrow().split("/(\\D+)");
-        UserContext context = UserContext.create(Long.parseLong(userIds[1]), authorities);
-        return new JwtAuthenticationToken(context, context.getAuthorities());
+        JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
+        UserContext context = UserContext.builder(Long.parseLong(userIds[1]))
+                .withClientIp(jwtAuthenticationToken.getClientIp())
+                .withAuthorities(authorities)
+                .build();
+        return new JwtAuthenticationToken(context, context.authorities());
     }
 
     @Override

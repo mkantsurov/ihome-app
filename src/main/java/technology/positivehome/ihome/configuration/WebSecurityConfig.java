@@ -4,16 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -25,7 +25,8 @@ import technology.positivehome.ihome.security.auth.jwt.JwtTokenAuthenticationPro
 import technology.positivehome.ihome.security.auth.jwt.SkipPathRequestMatcher;
 import technology.positivehome.ihome.security.auth.jwt.extractor.TokenExtractor;
 import technology.positivehome.ihome.security.config.CustomCorsFilter;
-import technology.positivehome.ihome.security.service.SecurityPermissionEvaluator;
+import technology.positivehome.ihome.security.permissionproc.IHomeDelegatingSecurityPermissionEvaluator;
+import technology.positivehome.ihome.security.permissionproc.IHomeMethodSecurityExpressionHandler;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +35,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     public static final String AUTHENTICATION_HEADER_NAME = "Authorization";
@@ -50,7 +52,6 @@ public class WebSecurityConfig {
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final TokenExtractor tokenExtractor;
     private final ObjectMapper objectMapper;
-    private final SecurityPermissionEvaluator securityPermissionEvaluator;
 
     @Autowired
     public WebSecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint,
@@ -59,8 +60,7 @@ public class WebSecurityConfig {
                              AjaxAuthenticationProvider ajaxAuthenticationProvider,
                              JwtAuthenticationProvider jwtAuthenticationProvider,
                              TokenExtractor tokenExtractor,
-                             ObjectMapper objectMapper,
-                             SecurityPermissionEvaluator securityPermissionEvaluator) {
+                             ObjectMapper objectMapper) {
 
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.successHandler = successHandler;
@@ -69,7 +69,6 @@ public class WebSecurityConfig {
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
         this.tokenExtractor = tokenExtractor;
         this.objectMapper = objectMapper;
-        this.securityPermissionEvaluator = securityPermissionEvaluator;
     }
 
     @Autowired
@@ -115,13 +114,6 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-        handler.setPermissionEvaluator(securityPermissionEvaluator);
-        return (web) -> web.expressionHandler(handler);
-    }
-
     protected AjaxLoginProcessingFilter buildAjaxLoginProcessingFilter(AuthenticationManager authenticationManager, String loginEntryPoint) throws Exception {
         AjaxLoginProcessingFilter filter = new AjaxLoginProcessingFilter(loginEntryPoint, successHandler, failureHandler, objectMapper);
         filter.setAuthenticationManager(authenticationManager);
@@ -134,6 +126,13 @@ public class WebSecurityConfig {
                 = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
         filter.setAuthenticationManager(authenticationManager);
         return filter;
+    }
+
+    @Bean
+    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(IHomeDelegatingSecurityPermissionEvaluator iHomeDelegatingSecurityPermissionEvaluator) {
+        IHomeMethodSecurityExpressionHandler handler = new IHomeMethodSecurityExpressionHandler();
+        handler.setPermissionEvaluator(iHomeDelegatingSecurityPermissionEvaluator);
+        return handler;
     }
 
 }

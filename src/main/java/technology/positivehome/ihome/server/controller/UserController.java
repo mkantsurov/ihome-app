@@ -16,6 +16,7 @@ import technology.positivehome.ihome.model.runtime.user.UpdateUserRequest;
 import technology.positivehome.ihome.model.runtime.user.UserInfo;
 import technology.positivehome.ihome.security.model.user.Role;
 import technology.positivehome.ihome.security.model.user.User;
+import technology.positivehome.ihome.security.model.user.UserRole;
 import technology.positivehome.ihome.security.service.UserService;
 import technology.positivehome.ihome.server.model.SearchParam;
 
@@ -179,7 +180,7 @@ public class UserController {
         // If a new username is provided, check it doesn't conflict with another user
         if (request.username() != null && !request.username().isBlank()) {
             Optional<User> existing = userService.getByUsername(request.username());
-            if (existing.isPresent() && existing.get().getId() != userId) {
+            if (existing.isPresent() && existing.get().id() != userId) {
                 logger.warn("Username '{}' already taken by another user", request.username());
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
@@ -221,11 +222,11 @@ public class UserController {
     }
 
     private UserInfo toUserInfo(User user) {
-        List<Role> roles = Optional.ofNullable(user.getRoles())
+        List<Role> roles = Optional.ofNullable(user.roles())
                 .map(userRoles -> userRoles.stream()
-                        .map(ur -> ur.getRole())
+                        .map(UserRole::role)
                         .collect(Collectors.toList()))
                 .orElse(List.of());
-        return UserInfo.from(user.getId(), user.getUsername(), roles);
+        return UserInfo.from(user.id(), user.username(), roles);
     }
 }

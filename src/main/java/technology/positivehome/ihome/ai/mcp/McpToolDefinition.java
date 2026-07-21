@@ -23,7 +23,7 @@ import java.util.function.Function;
  * Within the AI chat this makes it accessible to all authenticated users, but that
  * is a consequence of the guest-controller exposure, not the primary definition.
  *
- * <p>Permission model:
+ * <p>Four permission tiers govern AI chat access:
  * <ul>
  *   <li>{@link McpToolAccessType#PUBLIC_READ} — data <b>also</b> exposed via the
  *       guest controller. Within the AI chat: accessible to all authenticated users
@@ -33,6 +33,8 @@ import java.util.function.Function;
  *       available to all other authenticated roles.</li>
  *   <li>{@link McpToolAccessType#WRITE} — requires a role that carries MODULE WRITE
  *       permission ({@code ADMIN} or {@code SUPERVISOR})</li>
+ *   <li>{@link McpToolAccessType#ADMIN_ONLY} — requires {@code ADMIN} only,
+ *       even {@code SUPERVISOR} cannot see or execute these tools</li>
  * </ul>
  */
 public record McpToolDefinition(
@@ -49,10 +51,11 @@ public record McpToolDefinition(
     }
 
     /**
-     * Returns true if this tool is a read-only tool (not {@link McpToolAccessType#WRITE}).
+     * Returns true if this tool is a read-only tool (not {@link McpToolAccessType#WRITE}
+     * and not {@link McpToolAccessType#ADMIN_ONLY}).
      */
     public boolean isReadOnly() {
-        return accessType != McpToolAccessType.WRITE;
+        return accessType != McpToolAccessType.WRITE && accessType != McpToolAccessType.ADMIN_ONLY;
     }
 
     /**

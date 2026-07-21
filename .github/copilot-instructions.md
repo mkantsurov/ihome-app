@@ -170,16 +170,17 @@ User (JWT) → ChatController → ChatOrchestratorService → DeepSeek API (clou
 ### Tool Registration Pattern
 - Tools are registered in `McpToolRegistry.registerTools()` via `@PostConstruct`
 - Each tool has: `name`, `description`, `inputSchema` (JSON Schema), `accessType` (McpToolAccessType), and an optional `resultTransformer` (Function<JsonNode, JsonNode>)
-- **15 tools total**: 5 PUBLIC_READ, 8 RESTRICTED_READ, 2 WRITE
+- **16 tools total**: 5 PUBLIC_READ, 8 RESTRICTED_READ, 1 WRITE, 1 ADMIN_ONLY
 
 ### Tool Access Types (McpToolAccessType)
-Tools are categorized into three access types that control which roles can see and execute them:
+Tools are categorized into four access types that control which roles can see and execute them:
 
 | Access Type | Roles | Count | Tools |
 |-------------|-------|-------|-------|
 | **PUBLIC_READ** | Any authenticated user (including `AUTHORIZED_GUEST`) | 5 | `getTempStat`, `getPressureStat`, `getPowerSummary`, `getPowerConsumptionStat`, `getPowerVoltageStat` |
 | **RESTRICTED_READ** | ADMIN, SUPERVISOR, ROLE_UNDEFINED (but NOT AUTHORIZED_GUEST) | 8 | `getSystemSummary`, `getHeatingSummary`, `getLuminosityStat`, `getSystemStat`, `getModuleList`, `getModuleData`, `getModuleListByGroup`, `getBoilerTempStat` |
-| **WRITE** | ADMIN, SUPERVISOR | 2 | `updateModuleMode`, `updateModuleOutputState` |
+| **WRITE** | ADMIN, SUPERVISOR | 1 | `updateModuleOutputState` |
+| **ADMIN_ONLY** | ADMIN only (not even SUPERVISOR) | 1 | `updateModuleMode` |
 
 ### Mapping PUBLIC_READ tools to GuestController
 PUBLIC_READ tools are those whose **data categories** overlap with the GuestController's endpoints. Even if the MCP tool returns more data than the guest controller endpoint (e.g. `getTempStat` returns all sensors including indoor, but also outdoor), the category match is the deciding factor.
@@ -193,9 +194,9 @@ PUBLIC_READ tools are those whose **data categories** overlap with the GuestCont
 
 ### Role-Based Tool Visibility
 - **AUTHORIZED_GUEST** — sees only PUBLIC_READ tools (5 tools)
-- **ROLE_UNDEFINED** — sees PUBLIC_READ + RESTRICTED_READ but NOT WRITE tools (13 tools)
-- **SUPERVISOR** — sees ALL 15 tools; write execution is further restricted by `PermissionService.canControlModuleAssignment()` (can only control `LIGHT_CONTROL`, `EXT_LIGHT_CONTROL`, `GATE_CONTROL`)
-- **ADMIN** — sees ALL 15 tools; no execution restrictions on write tools
+- **ROLE_UNDEFINED** — sees PUBLIC_READ + RESTRICTED_READ but NOT WRITE or ADMIN_ONLY tools (13 tools)
+- **SUPERVISOR** — sees PUBLIC_READ + RESTRICTED_READ + WRITE tools (14 tools); write execution is further restricted by `PermissionService.canControlModuleAssignment()` (can only control `LIGHT_CONTROL`, `EXT_LIGHT_CONTROL`, `GATE_CONTROL`); ADMIN_ONLY tools are invisible
+- **ADMIN** — sees ALL 16 tools; no execution restrictions on write tools
 
 Write tools are visible to both ADMIN and SUPERVISOR roles via `McpToolRegistry`, but at execution time `PermissionService.canControlModuleAssignment()` further restricts which module types SUPERVISOR can actually control.
 
@@ -211,7 +212,7 @@ Write tools are visible to both ADMIN and SUPERVISOR roles via `McpToolRegistry`
 ### Permission Model (Three-Layer Defense)
 1. **Layer 1 — Tool list filtering**: `McpToolRegistry.getToolsForRoles()` filters tools before sending to DeepSeek. Non-admin users never see admin tools.
 2. **Layer 2 — Execution guard**: `PermissionValidator.canExecute()` blocks any unexpected tool call at runtime — checks whether the user's role is allowed to invoke the tool at all.
-3. **Layer 3 — Module-assignment-level guard (write tools only)**: `ChatOrchestratorService` enforces module-type granularity for `updateModuleOutputState` and `updateModuleMode` tools. Before executing, it resolves the target module's `ModuleAssignment` (e.g. `LIGHT_CONTROL`, `HEATING_CONTROL`) and calls `PermissionService.canControlModuleAssignment()`.
+3. **Layer 3 — Module-level permission guard**: `ChatOrchestratorService` enforces per-module granularity for tools that target a specific module ID (`getModuleData`, `updateModuleOutputState`, `updateModuleMode`). Before executing, it resolves the required access type (READ or WRITE) from `McpToolRegistry.getRequiredAccessType()` and calls `PermissionService.hasModulePermission()`. Note that `updateModuleMode` is `ADMIN_ONLY`, so it only reaches this guard if the user is ADMIN, and ADMIN has WRITE permission on all modules.
 
 ### Module-Type Permission Rules
 - **ADMIN** — can control **any** module type
@@ -221,9 +222,9 @@ Write tools are visible to both ADMIN and SUPERVISOR roles via `McpToolRegistry`
 The whitelist is defined in `PermissionService.SUPERVISOR_CONTROLLABLE_ASSIGNMENTS` (a `Set<String>` of enum names). When adding new controllable module types, add them there.
 
 ### Module-Type Check in ChatOrchestratorService
-- `isModuleWriteTool(toolName)` — returns `true` for `updateModuleOutputState` and `updateModuleMode`; these tools need assignment-level permission checking before execution
+- `isModuleIdTool(toolName)` — returns `true` for `getModuleData`, `updateModuleOutputState`, and `updateModuleMode`; these tools need module-level permission checking. Read tools (like `getModuleData` with `RESTRICTED_READ`) check READ permission; write tools use the same method and check WRITE permission. The actual access type (READ vs WRITE) is resolved via `McpToolRegistry.getRequiredAccessType(toolName)`.
 - `extractModuleId(arguments)` — parses `moduleId` from the tool's JSON arguments string
-- The check flow: parse `moduleId` → `systemProcessor.getModuleData(moduleId)` → `module.getAssignment().name()` → `permissionService.canControlModuleAssignment(auth, assignmentName)` → deny with JSON error if not permitted
+- The check flow: parse `moduleId` → `permissionService.hasModulePermission(auth, moduleId, requiredAccess)` → deny with JSON error if not permitted
 - If the module cannot be resolved (e.g. deleted between the system prompt and the tool call), the action is denied with a safe default message
 
 ### Dynamic System Prompt (Home Context + Permissions)

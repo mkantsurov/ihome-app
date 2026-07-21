@@ -27,4 +27,17 @@ public class WebUtil {
         return request.getHeaderValues(CONTENT_TYPE).contains(CONTENT_TYPE_JSON);
     }
 
+    /**
+     * Extracts the client IP address from the request, respecting proxy headers.
+     * Checks the X-Forwarded-For header first, then falls back to getRemoteAddr().
+     */
+    public static String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            // X-Forwarded-For can contain a comma-separated list; the leftmost is the original client
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
 }
