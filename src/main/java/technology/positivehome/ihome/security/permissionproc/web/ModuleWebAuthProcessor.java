@@ -28,7 +28,7 @@ public class ModuleWebAuthProcessor extends AbstractWebWebAuthProcessor {
                 }
             }
         } else if (requestDetail instanceof ModuleId) {
-            if (roles.contains(ADMIN) || roles.contains(SUPERVISOR)) {
+            if (roles.contains(ADMIN) || (roles.contains(SUPERVISOR) && EntityAccessPermission.READ.equals(permission))) {
                 return true;
             }
         }
