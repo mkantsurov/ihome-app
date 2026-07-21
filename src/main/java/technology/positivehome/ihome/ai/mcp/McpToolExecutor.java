@@ -51,7 +51,7 @@ public class McpToolExecutor {
         try {
             Object result = switch (toolName) {
                 case "getSystemSummary" -> systemProcessor.getSummaryInfo();
-                case "getPowerSummary" -> systemProcessor.getPowerSummaryInfo();
+                case "getPowerSummary" -> systemProcessor.getExtPowerSummaryInfo();
                 case "getHeatingSummary" -> systemProcessor.getHeatingSummaryInfo();
                 case "getModuleList" -> {
                     Integer assignment = getIntArg(arguments, "assignment");
@@ -68,6 +68,7 @@ public class McpToolExecutor {
                 case "getLuminosityStat" -> statisticProcessor.getLuminosityStat();
                 case "getSystemStat" -> statisticProcessor.getSystemStat();
                 case "getBoilerTempStat" -> statisticProcessor.getBoilerTempStat();
+                case "getPowerVoltageExtStat" -> statisticProcessor.getPowerVoltageExtStat();
                 case "getPowerVoltageStat" -> statisticProcessor.getPowerVoltageStat();
                 case "getModuleListByGroup" -> {
                     long group = getRequiredLongArg(arguments, "group");

@@ -3,7 +3,8 @@ package technology.positivehome.ihome.ai.mcp;
 /**
  * Categorises an MCP tool by whether its data is exposed via the unauthenticated
  * guest controller ({@link #PUBLIC_READ}) or not ({@link #RESTRICTED_READ}),
- * and whether it performs a write operation ({@link #WRITE}).
+ * and whether it performs a write operation ({@link #WRITE}) or an admin-only
+ * operation ({@link #ADMIN_ONLY}).
  *
  * <p>The defining characteristic of {@link #PUBLIC_READ} is that the tool's data
  * is <b>also served by the guest controller</b> (no authentication required on
@@ -11,7 +12,7 @@ package technology.positivehome.ihome.ai.mcp;
  * authenticated users (including {@code AUTHORIZED_GUEST}), but that is a
  * <b>consequence</b> of the guest-controller exposure, not the primary definition.
  *
- * <p>Three tiers govern AI chat access:
+ * <p>Four tiers govern AI chat access:
  * <ul>
  *   <li>{@link #PUBLIC_READ} — data <b>also</b> exposed via the guest controller.
  *       Within the AI chat: accessible to all authenticated users.</li>
@@ -20,6 +21,8 @@ package technology.positivehome.ihome.ai.mcp;
  *       all other authenticated roles.</li>
  *   <li>{@link #WRITE} — write operations restricted to {@code ADMIN} and
  *       {@code SUPERVISOR}.</li>
+ *   <li>{@link #ADMIN_ONLY} — write operations restricted to {@code ADMIN} only.
+ *       Even SUPERVISOR cannot see or execute these tools.</li>
  * </ul>
  *
  * <p>{@link #READ} is a legacy alias that maps to the {@code READ} security tier.
@@ -48,5 +51,12 @@ public enum McpToolAccessType {
     /**
      * Write tool restricted to ADMIN and SUPERVISOR.
      */
-    WRITE
+    WRITE,
+
+    /**
+     * Write tool restricted to ADMIN only.
+     * Stricter than {@link #WRITE} — even SUPERVISOR cannot see or execute.
+     * Used for sensitive operations like changing module mode.
+     */
+    ADMIN_ONLY
 }

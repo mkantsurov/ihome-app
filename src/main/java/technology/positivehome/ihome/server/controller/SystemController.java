@@ -111,7 +111,7 @@ public class SystemController {
         return systemProcessor.getModuleData(moduleId);
     }
 
-    @PreAuthorize("hasPermission(@ObjectIdFactory.moduleIdReq(#moduleId), 'write')")
+    @PreAuthorize("hasRole('ADMIN') and hasPermission(@ObjectIdFactory.moduleIdReq(#moduleId), 'write')")
     @PutMapping(path = "/modulemode/{moduleId}")
     public ModuleSummary updateModuleMode(@PathVariable long moduleId, @RequestBody int moduleMode) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         return systemProcessor.updateModuleMode(moduleId, moduleMode);

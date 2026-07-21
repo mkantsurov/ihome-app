@@ -145,7 +145,7 @@ public class ChatOrchestratorService {
                             messages.add(Message.tool(toolCall.id(), toolName, errorMsg));
                             continue;
                         }
-                        IHomeApiTargetAccessType requiredAccess = mcpAccess == McpToolAccessType.WRITE
+                        IHomeApiTargetAccessType requiredAccess = (mcpAccess == McpToolAccessType.WRITE || mcpAccess == McpToolAccessType.ADMIN_ONLY)
                                 ? IHomeApiTargetAccessType.WRITE
                                 : IHomeApiTargetAccessType.READ;
                         if (!permissionService.hasModulePermission(authentication, moduleId, requiredAccess)) {
@@ -200,7 +200,8 @@ public class ChatOrchestratorService {
         } else if (isSupervisor) {
             roleDescription = """
                     You have supervisor-level access.
-                    You can view all system information and control supported devices.""";
+                    You can view all system information and control supported devices.
+                    Note: Changing module operation modes (AUTO/MANUAL/OFF) requires administrator privileges.""";
         } else {
             roleDescription = """
                     Your access is limited to specific modules.
