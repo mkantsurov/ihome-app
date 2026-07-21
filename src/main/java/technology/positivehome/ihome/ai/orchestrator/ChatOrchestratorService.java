@@ -82,8 +82,7 @@ public class ChatOrchestratorService {
         messages.add(Message.user(userMessage));
 
         // Get tools the user is allowed to use
-        List<McpToolDefinition> allowedTools = toolRegistry.getToolsForRoles(
-                authentication.getAuthorities());
+        List<McpToolDefinition> allowedTools = toolRegistry.getToolsForRoles(authentication);
         List<ToolDefinition> toolDefinitions = convertToDeepSeekTools(allowedTools);
 
         log.debug("User '{}' has access to {} tools", authentication.getName(), allowedTools.size());

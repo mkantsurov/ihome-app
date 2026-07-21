@@ -15,11 +15,13 @@ import technology.positivehome.ihome.security.service.PermissionService;
 import technology.positivehome.ihome.server.persistence.ModuleConfigRepository;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link McpToolRegistry}.
@@ -35,6 +37,9 @@ class McpToolRegistryTest {
 
     @BeforeEach
     void setUp() {
+        // Stub to simulate that supervisor-controllable modules exist in the system
+        when(moduleConfigRepository.hasAnyModuleWithAssignments(anySet())).thenReturn(true);
+
         PermissionService permissionService = new PermissionService(moduleConfigRepository);
         registry = new McpToolRegistry(objectMapper, permissionService);
         registry.registerTools();
@@ -115,23 +120,21 @@ class McpToolRegistryTest {
 
     @Test
     void adminUserShouldSeeAllTools() {
-        List<GrantedAuthority> adminAuthorities = List.of(
-                new SimpleGrantedAuthority(Role.ADMIN.authority()),
-                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
-        );
+        Authentication admin = new UsernamePasswordAuthenticationToken("admin", null,
+                List.of(new SimpleGrantedAuthority(Role.ADMIN.authority()),
+                        new SimpleGrantedAuthority(Role.UNDEFINED.authority())));
 
-        List<McpToolDefinition> tools = registry.getToolsForRoles(adminAuthorities);
+        List<McpToolDefinition> tools = registry.getToolsForRoles(admin);
         assertEquals(registry.getAllTools().size(), tools.size(),
                 "Admin should see all tools");
     }
 
     @Test
     void supervisorUserShouldSeeAllToolsExceptAdminOnly() {
-        List<GrantedAuthority> supervisorAuthorities = List.of(
-                new SimpleGrantedAuthority(Role.SUPERVISOR.authority())
-        );
+        Authentication supervisor = new UsernamePasswordAuthenticationToken("supervisor", null,
+                List.of(new SimpleGrantedAuthority(Role.SUPERVISOR.authority())));
 
-        List<McpToolDefinition> tools = registry.getToolsForRoles(supervisorAuthorities);
+        List<McpToolDefinition> tools = registry.getToolsForRoles(supervisor);
         // Supervisor sees: 4 public-read + 10 restricted-read + 1 write = 15 (not updateModuleMode which is ADMIN_ONLY)
         assertEquals(15, tools.size(),
                 "Supervisor should see 15 tools (public-read + restricted-read + write), excluding admin-only");
@@ -141,11 +144,10 @@ class McpToolRegistryTest {
 
     @Test
     void nonAdminUserShouldSeeOnlyReadOnlyTools() {
-        List<GrantedAuthority> userAuthorities = List.of(
-                new SimpleGrantedAuthority(Role.UNDEFINED.authority())
-        );
+        Authentication user = new UsernamePasswordAuthenticationToken("user", null,
+                List.of(new SimpleGrantedAuthority(Role.UNDEFINED.authority())));
 
-        List<McpToolDefinition> tools = registry.getToolsForRoles(userAuthorities);
+        List<McpToolDefinition> tools = registry.getToolsForRoles(user);
         assertTrue(tools.size() < registry.getAllTools().size(),
                 "Non-admin should see fewer tools than total");
         assertTrue(tools.stream().noneMatch(McpToolDefinition::requiresModuleWritePermission),
@@ -154,11 +156,10 @@ class McpToolRegistryTest {
 
     @Test
     void authorizedGuestShouldSeeOnlyPublicReadTools() {
-        List<GrantedAuthority> guestAuthorities = List.of(
-                new SimpleGrantedAuthority(Role.AUTHORIZED_GUEST.authority())
-        );
+        Authentication guest = new UsernamePasswordAuthenticationToken("guest", null,
+                List.of(new SimpleGrantedAuthority(Role.AUTHORIZED_GUEST.authority())));
 
-        List<McpToolDefinition> tools = registry.getToolsForRoles(guestAuthorities);
+        List<McpToolDefinition> tools = registry.getToolsForRoles(guest);
 
         // Guest should see ONLY public-read tools (4 tools), not restricted-read (10) or write (2)
         assertEquals(4, tools.size(),
