@@ -5,7 +5,7 @@ import technology.positivehome.ihome.security.model.permissionproc.ModuleId;
 import technology.positivehome.ihome.security.model.permissionproc.RootListObj;
 import technology.positivehome.ihome.security.model.permissionproc.TargetType;
 
-@Component
+@Component("ObjectIdFactory")
 class ObjectIdFactory {
 
     public RootListObj rootListObjReq(String targetType) {
