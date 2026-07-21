@@ -105,19 +105,19 @@ public class SystemController {
         return systemProcessor.getModuleListByGroup(group);
     }
 
-    @PreAuthorize("hasAccessPermission('MODULE', 'READ', #moduleId)")
+    @PreAuthorize("hasPermission(@ObjectIdFactory.moduleIdReq(#moduleId), 'read')")
     @GetMapping(path = "/moduledata/{moduleId}")
     public ModuleEntry getModuleData(@PathVariable long moduleId) throws MegadApiMallformedUrlException, URISyntaxException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, InterruptedException {
         return systemProcessor.getModuleData(moduleId);
     }
 
-    @PreAuthorize("hasAccessPermission('MODULE', 'WRITE', #moduleId)")
+    @PreAuthorize("hasPermission(@ObjectIdFactory.moduleIdReq(#moduleId), 'write')")
     @PutMapping(path = "/modulemode/{moduleId}")
     public ModuleSummary updateModuleMode(@PathVariable long moduleId, @RequestBody int moduleMode) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         return systemProcessor.updateModuleMode(moduleId, moduleMode);
     }
 
-    @PreAuthorize("hasAccessPermission('MODULE', 'WRITE', #moduleId)")
+    @PreAuthorize("hasPermission(@ObjectIdFactory.moduleIdReq(#moduleId), 'write')")
     @PutMapping(path = "/moduleoutput/{moduleId}")
     public ModuleSummary updateModuleOutputState(@PathVariable long moduleId, @RequestBody int outputStatus) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         return systemProcessor.updateModuleOutputState(moduleId, outputStatus);
