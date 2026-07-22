@@ -41,7 +41,7 @@ public class ModuleController {
         return systemProcessor.getModuleData(moduleId);
     }
 
-    @PreAuthorize("hasPermission(@ObjectIdFactory.moduleIdReq(#moduleId), 'write')")
+    @PreAuthorize("hasPermission(@ObjectIdFactory.moduleUpdateReq(#moduleId, #moduleUpdateRequest), 'write')")
     @PutMapping(path = "/{moduleId}")
     public ResponseEntity<Void> updateModule(@PathVariable long moduleId, @RequestBody ModuleUpdateRequest moduleUpdateRequest) throws MegadApiMallformedUrlException, PortNotSupporttedFunctionException, MegadApiMallformedResponseException, IOException, URISyntaxException, InterruptedException {
         systemProcessor.updateModuleProps(moduleId, moduleUpdateRequest);

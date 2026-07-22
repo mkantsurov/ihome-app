@@ -36,6 +36,12 @@ public class ModuleWebAuthProcessor extends AbstractWebWebAuthProcessor {
             } else {
                 return permissionService.hasModulePermission(authenticationToken, id, IHomeApiTargetAccessType.WRITE);
             }
+        } else if (requestDetail instanceof MooduleUpdateRequest req) {
+            if (roles.contains(ADMIN)) {
+                return true;
+            } else {
+                return permissionService.hasModulePermission(authenticationToken, req);
+            }
         }
         return next().isAuthorized(authenticationToken, requestDetail, permission);
     }

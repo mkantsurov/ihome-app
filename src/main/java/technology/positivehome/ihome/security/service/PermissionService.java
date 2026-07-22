@@ -5,7 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import technology.positivehome.ihome.model.constant.ModuleOperationMode;
+import technology.positivehome.ihome.model.constant.ModuleStartupMode;
 import technology.positivehome.ihome.model.runtime.module.ModuleConfigEntry;
+import technology.positivehome.ihome.security.auth.JwtAuthenticationToken;
+import technology.positivehome.ihome.security.model.permissionproc.MooduleUpdateRequest;
 import technology.positivehome.ihome.security.model.user.Role;
 import technology.positivehome.ihome.security.util.IHomeApiTargetAccessType;
 import technology.positivehome.ihome.security.util.IHomeApiTargetType;
@@ -298,6 +302,64 @@ public class PermissionService {
         return allowed;
     }
 
+    /**
+     * Checks whether the authenticated user has permission to update a module via a
+     * {@link MooduleUpdateRequest}.
+     * <p>
+     * This method enforces a two-tier permission model:
+     * <ol>
+     *   <li><b>Generic WRITE access</b> — the user must have WRITE permission on the module
+     *       (as determined by {@link #hasModulePermission(Authentication, long, IHomeApiTargetAccessType)}).
+     *       This covers changes such as power on/off (output value).</li>
+     *   <li><b>Mode / Startup-mode changes</b> — changing the module's operation mode
+     *       ({@link ModuleOperationMode}) or startup mode ({@link ModuleStartupMode})
+     *       is restricted to <b>ADMIN</b> only. Non-ADMIN users with generic WRITE access
+     *       may only perform output-value changes (e.g. turning the module on or off),
+     *       but cannot change the mode from the current values.</li>
+     * </ol>
+     *
+     * @param authenticationToken the authenticated JWT token
+     * @param req                 the module update request containing the target module ID,
+     *                            desired mode (moduleActive), startup mode (enableOnStartup),
+     *                            and output value
+     * @return {@code true} if the user is authorized to perform the requested update;
+     *         {@code false} otherwise
+     */
+    public boolean hasModulePermission(JwtAuthenticationToken authenticationToken, MooduleUpdateRequest req) {
+        boolean genericWritePermission = hasModulePermission(authenticationToken, req.moduleId(), IHomeApiTargetAccessType.WRITE);
+        if (!genericWritePermission) {
+            return false;
+        }
+
+        // ADMIN is allowed to change any field, including mode and startup mode
+        Set<Role> roles = extractRoles(authenticationToken.getAuthorities());
+        if (roles.contains(Role.ADMIN)) {
+            return true;
+        }
+
+        // Non-ADMIN users with WRITE permission may only change the output value
+        // (power on/off). Changing the module operation mode or startup mode is
+        // ADMIN-only.
+        ModuleConfigEntry entry = moduleConfigRepository.getModuleConfigEntry(req.moduleId());
+        if (entry != null) {
+            ModuleOperationMode newMode = req.moduleActive() ? ModuleOperationMode.AUTO : ModuleOperationMode.MANUAL;
+            ModuleStartupMode newStartupMode = req.enableOnStartup() ? ModuleStartupMode.ENABLED : ModuleStartupMode.DISABLED;
+
+            if (!newMode.equals(entry.getMode())) {
+                log.debug("Module mode change DENIED for non-ADMIN user '{}' (roles={}) on module {}",
+                        authenticationToken.getName(), roles, req.moduleId());
+                return false;
+            }
+            if (!newStartupMode.equals(entry.getStartupMode())) {
+                log.debug("Module startup mode change DENIED for non-ADMIN user '{}' (roles={}) on module {}",
+                        authenticationToken.getName(), roles, req.moduleId());
+                return false;
+            }
+        }
+
+        // Only output value changes — allowed for any user with generic WRITE permission
+        return true;
+    }
     // ---- Role-to-permission mapping ----
 
     /**
@@ -381,4 +443,6 @@ public class PermissionService {
         }
         return roles;
     }
+
+
 }
