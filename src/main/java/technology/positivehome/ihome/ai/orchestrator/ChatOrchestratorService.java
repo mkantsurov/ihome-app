@@ -8,11 +8,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import technology.positivehome.ihome.ai.deepseek.DeepSeekClient;
-import technology.positivehome.ihome.ai.deepseek.model.*;
+import technology.positivehome.ihome.ai.deepseek.model.ChatResponse;
+import technology.positivehome.ihome.ai.deepseek.model.Message;
+import technology.positivehome.ihome.ai.deepseek.model.ToolCall;
+import technology.positivehome.ihome.ai.deepseek.model.ToolDefinition;
 import technology.positivehome.ihome.ai.mcp.McpToolAccessType;
 import technology.positivehome.ihome.ai.mcp.McpToolDefinition;
 import technology.positivehome.ihome.ai.mcp.McpToolExecutor;
 import technology.positivehome.ihome.ai.mcp.McpToolRegistry;
+import technology.positivehome.ihome.model.runtime.chat.ChatRequest;
 import technology.positivehome.ihome.model.runtime.module.ModuleSummary;
 import technology.positivehome.ihome.security.model.user.Role;
 import technology.positivehome.ihome.security.service.PermissionService;
@@ -67,19 +71,41 @@ public class ChatOrchestratorService {
     }
 
     /**
-     * Processes a user message and returns the LLM's response.
+     * Processes a chat request containing the full conversation history and returns the LLM's response.
+     * The server prepends a fresh system prompt (with current permissions and module state)
+     * to the conversation history provided by the UI.
      *
-     * @param userMessage    the user's text message
-     * @param authentication the authenticated user
+     * @param conversationHistory the full conversation history from the UI ({@code role: user/ai, text: ...})
+     * @param authentication      the authenticated user
      * @return the final response text
      */
-    public String processMessage(String userMessage, Authentication authentication) {
-        log.info("Processing chat message from user '{}': {}", authentication.getName(), userMessage);
+    public String processMessage(List<ChatRequest.ChatMessage> conversationHistory, Authentication authentication) {
+        ChatRequest.ChatMessage lastMessage = conversationHistory.get(conversationHistory.size() - 1);
+        log.info("Processing chat message from user '{}': {}", authentication.getName(), lastMessage.text());
 
-        // Build the conversation with system prompt and user message
+        // Build the conversation with a fresh system prompt + UI-provided history
         List<Message> messages = new ArrayList<>();
         messages.add(buildSystemPrompt(authentication));
-        messages.add(Message.user(userMessage));
+
+        // Inject the conversation history from the UI (excluding the last user message,
+        // which is added below to keep it at the end of the conversation)
+        for (int i = 0; i < conversationHistory.size() - 1; i++) {
+            ChatRequest.ChatMessage historyMsg = conversationHistory.get(i);
+            Message deepSeekMsg = switch (historyMsg.role()) {
+                case "user" -> Message.user(historyMsg.text());
+                case "ai" -> Message.assistant(historyMsg.text());
+                default -> {
+                    log.warn("Skipping unknown role in conversation history: {}", historyMsg.role());
+                    yield null;
+                }
+            };
+            if (deepSeekMsg != null) {
+                messages.add(deepSeekMsg);
+            }
+        }
+
+        // Add the latest user message
+        messages.add(Message.user(lastMessage.text()));
 
         // Get tools the user is allowed to use
         List<McpToolDefinition> allowedTools = toolRegistry.getToolsForRoles(authentication);
@@ -227,6 +253,11 @@ public class ChatOrchestratorService {
                 You have access to tools that let you interact with the home automation system.
                 Use these tools to answer the user's questions about their home.
                 
+                ## Critical: Device Access Scope
+                The Home Configuration table above is the COMPLETE AND AUTHORITATIVE list of devices
+                that the current user can interact with. Only module IDs shown in that table are
+                accessible to this user.
+                
                 Guidelines:
                 - When asked about device status, use the appropriate tool to get real-time data.
                 - When asked to control a device, use the update tools if you have permission.
@@ -235,6 +266,14 @@ public class ChatOrchestratorService {
                 - If a tool returns an error, explain it to the user in simple terms.
                 - Use Celsius for temperatures and watts/kilowatts for power.
                 - Refer to modules by their name (e.g., "Garage Light") rather than just their ID.
+                - ONLY call tools (getModuleData, updateModuleOutputState, updateModuleMode, etc.)
+                  using module IDs from the Home Configuration table above. Never attempt to
+                  query or control a module ID that is not listed — the user does not have access
+                  to it.
+                - When answering about devices or taking actions, always scope your response to
+                  the modules listed in the Home Configuration table. If the user asks about a
+                  device that is not in that table, explain that it is not available to them
+                  rather than returning empty/generic results or attempting tool calls for it.
                 """.formatted(username, roleDescription, moduleContext));
     }
 
