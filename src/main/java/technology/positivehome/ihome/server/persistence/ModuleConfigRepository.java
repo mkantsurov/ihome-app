@@ -28,6 +28,19 @@ public interface ModuleConfigRepository {
      */
     boolean hasAnyModuleWithAssignments(Collection<String> assignmentNames);
 
+    /**
+     * Returns true if at least one module exists whose {@code permission} column
+     * (the per-module writer role whitelist) contains the specified role name.
+     * <p>
+     * Used to determine whether a non-ADMIN, non-SUPERVISOR role has any writable
+     * modules via the per-module permission override mechanism (e.g., CHILDREN_ROOM1_MANAGER
+     * is listed as a writer on children room #1 light modules).
+     *
+     * @param roleName the role name to look for in the permission column
+     * @return true if at least one module grants writer access to this role
+     */
+    boolean hasAnyModuleWithWriterRole(String roleName);
+
     ModuleConfigEntry updateModuleMode(long moduleId, ModuleOperationMode newMode);
 
     ModuleConfigEntry updateModuleStartupMode(long moduleId, ModuleStartupMode moduleStartupMode);

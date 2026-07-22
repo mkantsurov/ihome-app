@@ -44,6 +44,9 @@ public class ModuleConfigRepositoryImpl implements ModuleConfigRepository {
     private static final String EXISTS_MODULE_WITH_ASSIGNMENTS =
             "SELECT EXISTS(SELECT 1 FROM module_config_entry WHERE module_assignment IN (:assignments))";
 
+    private static final String EXISTS_MODULE_WITH_WRITER_ROLE =
+            "SELECT EXISTS(SELECT 1 FROM module_config_entry WHERE permission @> :roleJson::jsonb)";
+
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -160,6 +163,18 @@ public class ModuleConfigRepositoryImpl implements ModuleConfigRepository {
         Boolean result = namedParameterJdbcTemplate.queryForObject(
                 EXISTS_MODULE_WITH_ASSIGNMENTS,
                 Map.of("assignments", assignmentNames),
+                Boolean.class);
+        return Boolean.TRUE.equals(result);
+    }
+
+    @Override
+    public boolean hasAnyModuleWithWriterRole(String roleName) {
+        if (roleName == null || roleName.isBlank()) {
+            return false;
+        }
+        Boolean result = namedParameterJdbcTemplate.queryForObject(
+                EXISTS_MODULE_WITH_WRITER_ROLE,
+                Map.of("roleJson", "[\"" + roleName + "\"]"),
                 Boolean.class);
         return Boolean.TRUE.equals(result);
     }

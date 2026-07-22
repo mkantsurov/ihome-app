@@ -13,6 +13,7 @@ import technology.positivehome.ihome.ai.mcp.McpToolAccessType;
 import technology.positivehome.ihome.ai.mcp.McpToolDefinition;
 import technology.positivehome.ihome.ai.mcp.McpToolExecutor;
 import technology.positivehome.ihome.ai.mcp.McpToolRegistry;
+import technology.positivehome.ihome.model.runtime.chat.IHomeChatRequest;
 import technology.positivehome.ihome.model.runtime.module.ModuleSummary;
 import technology.positivehome.ihome.security.model.user.Role;
 import technology.positivehome.ihome.security.service.PermissionService;
@@ -67,19 +68,41 @@ public class ChatOrchestratorService {
     }
 
     /**
-     * Processes a user message and returns the LLM's response.
+     * Processes a chat request containing the full conversation history and returns the LLM's response.
+     * The server prepends a fresh system prompt (with current permissions and module state)
+     * to the conversation history provided by the UI.
      *
-     * @param userMessage    the user's text message
-     * @param authentication the authenticated user
+     * @param conversationHistory the full conversation history from the UI ({@code role: user/ai, text: ...})
+     * @param authentication      the authenticated user
      * @return the final response text
      */
-    public String processMessage(String userMessage, Authentication authentication) {
-        log.info("Processing chat message from user '{}': {}", authentication.getName(), userMessage);
+    public String processMessage(List<IHomeChatRequest.ChatMessage> conversationHistory, Authentication authentication) {
+        IHomeChatRequest.ChatMessage lastMessage = conversationHistory.get(conversationHistory.size() - 1);
+        log.info("Processing chat message from user '{}': {}", authentication.getName(), lastMessage.text());
 
-        // Build the conversation with system prompt and user message
+        // Build the conversation with a fresh system prompt + UI-provided history
         List<Message> messages = new ArrayList<>();
         messages.add(buildSystemPrompt(authentication));
-        messages.add(Message.user(userMessage));
+
+        // Inject the conversation history from the UI (excluding the last user message,
+        // which is added below to keep it at the end of the conversation)
+        for (int i = 0; i < conversationHistory.size() - 1; i++) {
+            IHomeChatRequest.ChatMessage historyMsg = conversationHistory.get(i);
+            Message deepSeekMsg = switch (historyMsg.role()) {
+                case "user" -> Message.user(historyMsg.text());
+                case "ai" -> Message.assistant(historyMsg.text());
+                default -> {
+                    log.warn("Skipping unknown role in conversation history: {}", historyMsg.role());
+                    yield null;
+                }
+            };
+            if (deepSeekMsg != null) {
+                messages.add(deepSeekMsg);
+            }
+        }
+
+        // Add the latest user message
+        messages.add(Message.user(lastMessage.text()));
 
         // Get tools the user is allowed to use
         List<McpToolDefinition> allowedTools = toolRegistry.getToolsForRoles(authentication);
@@ -103,7 +126,7 @@ public class ChatOrchestratorService {
                 return "I'm sorry, I couldn't process your request. Please try again.";
             }
 
-            ChatResponse.Choice choice = response.choices().get(0);
+            ChatResponse.Choice choice = response.choices().getFirst();
             Message assistantMessage = choice.message();
 
             // Check if the response is a tool call or final text
@@ -199,8 +222,7 @@ public class ChatOrchestratorService {
         } else if (isSupervisor) {
             roleDescription = """
                     You have supervisor-level access.
-                    You can view all system information and control supported devices.
-                    Note: Changing module operation modes (AUTO/MANUAL/OFF) requires administrator privileges.""";
+                    You can view all system information and control supported devices.""";
         } else {
             // For users without admin or supervisor (e.g., AUTHORIZED_GUEST, CHILDREN_ROOM*_MANAGER, UNDEFINED),
             // the module context below will provide (or omit) the module table based on their actual tool access.
@@ -224,8 +246,62 @@ public class ChatOrchestratorService {
                 
                 %s
                 
+                ## Module Mode Reference
+                Each module has an operation mode shown in the table above:
+                
+                - **UNDEFINED mode**: The module's operation mode has not been explicitly set.
+                  Treat this as the initial/unconfigured state.
+                
+                - **MANUAL mode**: The system does NOT apply any automatic actions to this module.
+                  The module's output state is controlled only by direct user commands (via
+                  tool calls like updateModuleOutputState). If the module turns on or off,
+                  it was because you or the user explicitly requested it — not the system.
+                
+                - **AUTO mode**: The system CAN enable or disable this module automatically,
+                  depending on hardcoded conditions in the project (e.g., motion sensor
+                  triggers a light, temperature thresholds activate heating, time-based
+                  schedules for ventilation). While the system manages the module, you can
+                  still call getModuleData to read its current state or (if your access level
+                  allows) updateModuleOutputState to override it temporarily. Be aware that
+                  in AUTO mode, the system may later override the user's manual change based
+                  on its conditions.
+                
+                Important: Module mode can only be changed by administrators via the
+                updateModuleMode tool. Regular users can only see the mode and understand
+                whether a module is under automatic or manual control.
+                
+                ## Startup Mode Reference
+                Each module also has a **startup mode** shown in the "Startup" column of the
+                table above (ENABLED or DISABLED). This determines what happens when the
+                iHome system restarts:
+                
+                - **ENABLED**: On system restart, the module will be automatically turned on
+                  (output = POWERED). This is useful for devices that should always resume
+                  operation after a power outage or system reboot (e.g., heating pumps,
+                  ventilation, refrigerators).
+                  Some modules additionally enforce this: if they are in AUTO mode and the
+                  startup mode is ENABLED, the system will re-enable the output if it was
+                  manually turned off (checked periodically via cron tasks).
+                
+                - **DISABLED**: On system restart, the module will stay off (output = OFF).
+                  The user must explicitly turn it on after a reboot. This is safer for
+                  devices that should not resume automatically after a power event (e.g.,
+                  garage lights, non-critical loads).
+                
+                You can update a module's startup mode via the updateModuleProps tool
+                (controlled via the `enabledOnStartup` boolean field). Note:
+                - This change persists across restarts — it is saved to the database.
+                - It takes effect immediately AND on the next system restart.
+                - Changing startup mode does NOT change the current output state; it only
+                  changes behavior on the next restart (or cron re-enforcement in AUTO mode).
+                
                 You have access to tools that let you interact with the home automation system.
                 Use these tools to answer the user's questions about their home.
+                
+                ## Critical: Device Access Scope
+                The Home Configuration table above is the COMPLETE AND AUTHORITATIVE list of devices
+                that the current user can interact with. Only module IDs shown in that table are
+                accessible to this user.
                 
                 Guidelines:
                 - When asked about device status, use the appropriate tool to get real-time data.
@@ -235,6 +311,14 @@ public class ChatOrchestratorService {
                 - If a tool returns an error, explain it to the user in simple terms.
                 - Use Celsius for temperatures and watts/kilowatts for power.
                 - Refer to modules by their name (e.g., "Garage Light") rather than just their ID.
+                - ONLY call tools (getModuleData, updateModuleOutputState, updateModuleMode, etc.)
+                  using module IDs from the Home Configuration table above. Never attempt to
+                  query or control a module ID that is not listed — the user does not have access
+                  to it.
+                - When answering about devices or taking actions, always scope your response to
+                  the modules listed in the Home Configuration table. If the user asks about a
+                  device that is not in that table, explain that it is not available to them
+                  rather than returning empty/generic results or attempting tool calls for it.
                 """.formatted(username, roleDescription, moduleContext));
     }
 
@@ -263,8 +347,8 @@ public class ChatOrchestratorService {
                 return "(No modules configured)";
             }
             StringBuilder sb = new StringBuilder();
-            sb.append("| ID | Name | Type | Mode | Output | Access |\n");
-            sb.append("|----|------|------|------|--------|--------|\n");
+            sb.append("| ID | Name | Type | Mode | Startup | Output | Access |\n");
+            sb.append("|----|------|------|------|---------|--------|--------|\n");
             boolean hasAnyModule = false;
             for (ModuleSummary m : modules) {
                 // Check per-module permissions
@@ -280,9 +364,9 @@ public class ChatOrchestratorService {
 
                 String type = m.getAssignment() != null ? m.getAssignment().name() : "UNKNOWN";
                 String modeLabel = switch (m.getMode()) {
-                    case 0 -> "AUTO";
+                    case 0 -> "UNDEFINED";
                     case 1 -> "MANUAL";
-                    case 2 -> "OFF";
+                    case 2 -> "AUTO";
                     default -> String.valueOf(m.getMode());
                 };
                 String outputLabel;
@@ -291,8 +375,9 @@ public class ChatOrchestratorService {
                 } else {
                     outputLabel = m.getOutputPortState() == 1 ? "POWERED" : "OFF";
                 }
-                sb.append("| %d | %s | %s | %s | %s | %s |\n"
-                        .formatted(m.getModuleId(), m.getName(), type, modeLabel, outputLabel, accessLabel));
+                String startupLabel = m.getStartupMode() == 1 ? "ENABLED" : "DISABLED";
+                sb.append("| %d | %s | %s | %s | %s | %s | %s |\n"
+                        .formatted(m.getModuleId(), m.getName(), type, modeLabel, startupLabel, outputLabel, accessLabel));
             }
             if (!hasAnyModule) {
                 return "(No accessible modules)";
