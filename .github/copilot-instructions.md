@@ -229,9 +229,16 @@ The whitelist is defined in `PermissionService.SUPERVISOR_CONTROLLABLE_ASSIGNMEN
 
 ### Dynamic System Prompt (Home Context + Permissions)
 - `ChatOrchestratorService.buildSystemPrompt()` injects a live module list into the system prompt via `buildModuleContext()`
-- `buildModuleContext()` calls `systemProcessor.getModuleList(null, null)` and formats modules as a markdown table: ID, Name, Type (assignment), Mode (AUTO/MANUAL/OFF), Output (ON/OFF or dimmer %)
+- `buildModuleContext()` calls `systemProcessor.getModuleList(null, null)` and formats modules as a markdown table: ID, Name, Type (assignment), Mode (AUTO/MANUAL/OFF), Startup (ENABLED/DISABLED), Output (ON/OFF or dimmer %), Access (READ/READ+WRITE)
 - The role description section is now **dynamic**: `permissionService.getControllableModulesDescription(authentication)` returns a human-readable string describing which module types the user can control (e.g. `"lights, external lights, garage doors, sliding gates"` for SUPERVISOR, `"all module types (lights, gates, heating, power supply, ventilation, etc.)"` for ADMIN)
 - Falls back gracefully to "(No modules configured)" or "(Unable to load module list: ...)" on errors
+
+### ModuleStartupMode in the System Prompt
+- The system prompt now includes a **Startup Mode Reference** section that explains `ModuleStartupMode` (`ENABLED` / `DISABLED`) to the LLM
+- **ENABLED**: on system restart, module turns on automatically; some modules (e.g., `SolarSystemPumpPowerControlModule`) re-enforce this via cron tasks in AUTO mode
+- **DISABLED**: on system restart, module stays off
+- The "Startup" column in the module table shows the current startup mode for each module (derived from `ModuleSummary.getStartupMode()` — ordinal 0 = DISABLED, 1 = ENABLED)
+- Users can change startup mode via `updateModuleProps` tool (the `enabledOnStartup` boolean field), which persists to DB and takes effect on next restart
 
 ### Configuration
 ```yaml

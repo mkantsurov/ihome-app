@@ -141,6 +141,8 @@ public class PermissionService {
      * ADMIN always qualifies — they can write every module.
      * SUPERVISOR qualifies only if at least one module with a SUPERVISOR-controllable
      * assignment type ({@link #SUPERVISOR_CONTROLLABLE_ASSIGNMENTS}) exists in the system.
+     * CHILDREN_ROOM1_MANAGER, CHILDREN_ROOM2_MANAGER, and other per-module roles qualify
+     * if they appear as a writer in any module's permission column.
      * All other roles are denied.
      * <p>
      * Used by the AI chat layer to determine whether to expose "control" tools to the user.
@@ -157,6 +159,15 @@ public class PermissionService {
             // SUPERVISOR is restricted to specific assignment types; only grant access when
             // at least one such module actually exists in the system
             return moduleConfigRepository.hasAnyModuleWithAssignments(SUPERVISOR_CONTROLLABLE_ASSIGNMENTS);
+        }
+        // For per-module-assigned roles (CHILDREN_ROOM1_MANAGER, CHILDREN_ROOM2_MANAGER, etc.),
+        // check if any module has this role in its explicit writer role list.
+        for (Role role : userRoles) {
+            if (role != Role.UNDEFINED && role != Role.AUTHORIZED_GUEST) {
+                if (moduleConfigRepository.hasAnyModuleWithWriterRole(role.name())) {
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -210,6 +221,14 @@ public class PermissionService {
         }
         if (roles.contains(Role.SUPERVISOR)) {
             return "lights, external lights, garage doors, sliding gates";
+        }
+        // Check per-module writer roles (e.g. CHILDREN_ROOM1_MANAGER)
+        for (Role role : roles) {
+            if (role != Role.UNDEFINED && role != Role.AUTHORIZED_GUEST) {
+                if (moduleConfigRepository.hasAnyModuleWithWriterRole(role.name())) {
+                    return "specific modules assigned to " + role.name();
+                }
+            }
         }
         return "none (read-only access)";
     }

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import technology.positivehome.ihome.ai.orchestrator.ChatOrchestratorService;
-import technology.positivehome.ihome.model.runtime.chat.ChatRequest;
 import technology.positivehome.ihome.model.runtime.chat.ChatResponse;
+import technology.positivehome.ihome.model.runtime.chat.IHomeChatRequest;
 
 /**
  * REST controller for the AI chat endpoint.
@@ -49,10 +49,10 @@ public class ChatController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<ChatResponse> chat(
-            @Valid @RequestBody ChatRequest request,
+            @Valid @RequestBody IHomeChatRequest request,
             Authentication authentication) {
 
-        ChatRequest.ChatMessage lastMessage = request.messages().get(request.messages().size() - 1);
+        IHomeChatRequest.ChatMessage lastMessage = request.messages().get(request.messages().size() - 1);
         log.info("Chat request from user '{}': {}", authentication.getName(), lastMessage.text());
 
         String reply = orchestratorService.processMessage(request.messages(), authentication);

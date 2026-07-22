@@ -61,6 +61,13 @@ When replacing deprecated Spring Security `AntPathRequestMatcher` with `PathPatt
 - Latest migration number is 37 (`V37__add_user_tables.sql`).
 - Migrations create tables with sequences, primary keys, foreign keys, indexes, and seed data.
 
+### ModuleStartupMode Behavior
+
+- `ModuleStartupMode` is an enum: `ENABLED` or `DISABLED`.
+- **On system restart**: in `AbstractIHomeModule.initDefaultState()`, if `ModuleStartupMode` is `ENABLED`, the module is automatically turned on (`OutputPortStatus.enabled()`); if `DISABLED`, it stays off.
+- **Runtime update**: `SystemProcessor.updateModuleProps()` calls `systemManager.updateModuleStartupMode()` which persists to DB AND updates in-memory state via `updateStartupMode()`.
+- **Some modules re-enforce startup mode in cron tasks**: e.g., `SolarSystemPumpPowerControlModule` checks `ModuleStartupMode.ENABLED.equals(getStartupMode())` every 15 minutes and re-enables the output if it was turned off.
+
 ### User Domain Persistence Pattern
 - `UserEntity` (record) in `server.persistence.model` — fields: `id`, `username`, `password`, `roles`
 - `UserRowMapper` in `server.persistence.mapper` — nested `UserWithRolesExtractor` does LEFT JOIN with `user_role_entry`

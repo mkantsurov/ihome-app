@@ -20,7 +20,7 @@ import java.util.List;
  * }
  * </pre>
  */
-public record ChatRequest(
+public record IHomeChatRequest(
         @NotEmpty(message = "Messages must not be empty")
         List<ChatMessage> messages
 ) {

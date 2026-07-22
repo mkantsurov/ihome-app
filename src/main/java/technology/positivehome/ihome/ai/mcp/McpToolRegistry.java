@@ -267,7 +267,7 @@ public class McpToolRegistry {
                                         .put("description", "The ID of the module to update"))
                                 .<ObjectNode>set("mode", objectMapper.createObjectNode()
                                         .put("type", "integer")
-                                        .put("description", "The new operation mode (0=AUTO, 1=MANUAL, 2=OFF)")))
+                                        .put("description", "The new operation mode (0=UNDEFINED, 1=MANUAL, 2=AUTO)")))
                         .<ObjectNode>set("required", objectMapper.createArrayNode()
                                 .add("moduleId").add("mode")),
                 adminOnlyRoles);
